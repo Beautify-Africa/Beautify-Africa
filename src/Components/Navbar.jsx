@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../data/navigation';
 import { SearchIcon, CartIcon, MenuIcon, CloseIcon } from './Icons';
 
-const Navbar = () => {
+const Navbar = ({ onOpenAuth }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -101,6 +101,14 @@ const Navbar = () => {
               </span>
             </button>
 
+            {/* Shop Now CTA */}
+            <button
+              onClick={onOpenAuth}
+              className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
+            >
+              Shop Now
+            </button>
+
             {/* Mobile Menu Toggle */}
             <button
               className="lg:hidden text-stone-900 focus:outline-none"
@@ -159,6 +167,17 @@ const Navbar = () => {
               ))}
             </ul>
           </nav>
+
+          {/* Mobile Shop Now CTA */}
+          <button
+            onClick={() => {
+              closeMobileMenu();
+              onOpenAuth();
+            }}
+            className="mb-16 px-10 py-4 bg-stone-900 text-white text-[12px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors"
+          >
+            Shop Now
+          </button>
 
           {/* Social Links */}
           <ul className="flex gap-8" aria-label="Social media links">
