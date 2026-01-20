@@ -66,3 +66,26 @@
     animation-play-state: paused;
   }
 }
+
+/* ========================================
+   Regimen Carousel Animations
+   ======================================== */
+
+@keyframes marquee-slow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@layer utilities {
+  .animate-marquee-slow {
+    animation: marquee-slow var(--carousel-duration, 60s) linear infinite;
+  }
+
+  .animate-marquee-slow:hover {
+    animation-play-state: paused;
+  }
+}
