@@ -87,3 +87,20 @@ export const PlusIcon = ({ className = "w-4 h-4" }) => (
     />
   </svg>
 );
+
+export const ArrowRightIcon = ({ className = "w-4 h-4" }) => (
+  <svg 
+    className={className} 
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth="1.5" 
+      d="M14 5l7 7m0 0l-7 7m7-7H3" 
+    />
+  </svg>
+);
