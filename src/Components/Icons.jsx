@@ -70,3 +70,20 @@ export const CloseIcon = ({ className = "w-8 h-8" }) => (
     />
   </svg>
 );
+
+export const PlusIcon = ({ className = "w-4 h-4" }) => (
+  <svg 
+    className={className} 
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth="1.5" 
+      d="M12 6v6m0 0v6m0-6h6m-6 0H6" 
+    />
+  </svg>
+);

@@ -1,6 +1,7 @@
 import Navbar from './Components/Navbar';
 import HeroSection from './Components/Hero';
 import MarqueeText from './Components/MarqueeText';
+import TrustBar from './Components/TrustBar';
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
       <main>
         <HeroSection />
         <MarqueeText />
+        <TrustBar />
       </main>
     </>
   );
