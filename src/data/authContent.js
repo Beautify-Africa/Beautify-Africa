@@ -21,10 +21,10 @@ export const AUTH_CONTENT = {
 };
 
 export const AUTH_IMAGE = {
-  src: 'https://images.unsplash.com/photo-1596704017254-9b121068fb31?q=80&w=1200&auto=format&fit=crop',
+  src: 'https://images.unsplash.com/photo-1590156206657-b89d3d922a61?q=80&w=1200&auto=format&fit=crop',
   alt: 'Luxury beauty texture',
   quote: '"Beauty is an attitude."',
-  attribution: 'The Éclat Philosophy',
+  attribution: 'The Beautify Africa Philosophy',
 };
 
 export const FORM_FIELDS = {

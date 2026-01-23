@@ -4,14 +4,14 @@
  */
 
 export const HERO_BACKGROUND = {
-  src: "https://images.unsplash.com/photo-1490623970972-ae8bb3da443e?q=80&w=2550&auto=format&fit=crop",
+  src: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?q=80&w=2550&auto=format&fit=crop",
   alt: "Soft focus botanical beauty background"
 };
 
 export const HERO_CARDS = [
   {
     id: 'serum',
-    src: "https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=800&auto=format&fit=crop",
+    src: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?q=80&w=800&auto=format&fit=crop",
     alt: "Luxury Serum Bottle",
     label: "Elixir No. 9",
     position: { top: '8%', right: '8%' },
@@ -21,7 +21,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'texture',
-    src: "https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=800&auto=format&fit=crop",
+    src: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?q=80&w=800&auto=format&fit=crop",
     alt: "Cream Texture Swatch",
     label: "Texture Study",
     labelPosition: 'top-left',
@@ -32,7 +32,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'model',
-    src: "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?q=80&w=800&auto=format&fit=crop",
+    src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=800&auto=format&fit=crop",
     alt: "Model Portrait",
     label: "The Radiant Gaze",
     sublabel: "Campaign",
@@ -45,7 +45,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'gold-oil',
-    src: "https://images.unsplash.com/photo-1567721913486-6585f069b332?q=80&w=800&auto=format&fit=crop",
+    src: "https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=800&auto=format&fit=crop",
     alt: "Gold Oil Texture",
     position: { top: '20%', right: '32%' },
     size: 'w-[150px] aspect-[2/3]',
@@ -55,7 +55,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'powder',
-    src: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop",
+    src: "https://images.unsplash.com/photo-1583209814683-c023dd293cc6?q=80&w=800&auto=format&fit=crop",
     alt: "Crushed Cosmetic Powder",
     label: "Pigment",
     labelPosition: 'top-right',
