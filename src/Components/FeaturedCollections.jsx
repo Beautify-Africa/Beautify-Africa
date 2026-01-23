@@ -20,7 +20,7 @@ const FeaturedCard = ({ item }) => {
       <figure className="absolute inset-0 bg-stone-200">
         <img
           src={item.image}
-          alt=""
+          alt={`${item.title} - ${item.productName}`}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110"
           loading="lazy"
         />

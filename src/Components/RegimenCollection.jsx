@@ -9,7 +9,7 @@ const CategoryCard = ({ category }) => {
         <figure className="absolute inset-0 bg-stone-200">
           <img
             src={category.image}
-            alt=""
+            alt={`${category.title} skincare collection`}
             className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 grayscale-[0.2] group-hover:grayscale-0"
             loading="lazy"
           />

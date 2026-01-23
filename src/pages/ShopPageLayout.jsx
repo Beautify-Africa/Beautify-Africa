@@ -9,7 +9,7 @@ export default function ShopPageLayout({ onOpenAuth, onOpenCart }) {
   return (
     <>
       <Navbar onOpenAuth={onOpenAuth} onOpenCart={onOpenCart} />
-      <main>
+      <main id="main-content">
         <ShopPage />
       </main>
       <Footer />

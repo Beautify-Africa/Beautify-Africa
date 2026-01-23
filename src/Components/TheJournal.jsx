@@ -8,7 +8,7 @@ const FeaturedArticle = ({ article }) => {
       <figure className="absolute inset-0 bg-stone-900">
         <img
           src={article.image}
-          alt=""
+          alt={article.title}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-60"
           loading="lazy"
         />
@@ -57,7 +57,7 @@ const SecondaryArticle = ({ article }) => {
       <figure className="absolute inset-0 bg-stone-800">
         <img
           src={article.image}
-          alt=""
+          alt={article.title}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-60"
           loading="lazy"
         />

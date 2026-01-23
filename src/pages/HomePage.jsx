@@ -15,7 +15,7 @@ export default function HomePage({ onOpenAuth }) {
   return (
     <>
       <Navbar onOpenAuth={onOpenAuth} />
-      <main>
+      <main id="main-content">
         <HeroSection />
         <MarqueeText />
         <TrustBar />
