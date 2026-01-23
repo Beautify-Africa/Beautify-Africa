@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../data/navigation';
 import { SearchIcon, CartIcon, MenuIcon, CloseIcon } from './Icons';
 
-const Navbar = ({ onOpenAuth }) => {
+const Navbar = ({ onOpenAuth, onOpenCart }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Check if we're on the home page
+  const isHomePage = location.pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,6 +25,22 @@ const Navbar = ({ onOpenAuth }) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
     
+    // If not on home page, navigate to home first then scroll
+    if (!isHomePage) {
+      navigate('/');
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          window.scrollTo({
+            top: element.offsetTop - NAV_CONFIG.scrollOffset,
+            behavior: 'smooth',
+          });
+        }
+      }, 100);
+      return;
+    }
+    
     const element = document.getElementById(id);
     if (element) {
       window.scrollTo({
@@ -26,7 +48,7 @@ const Navbar = ({ onOpenAuth }) => {
         behavior: 'smooth',
       });
     }
-  }, []);
+  }, [isHomePage, navigate]);
 
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -45,8 +67,8 @@ const Navbar = ({ onOpenAuth }) => {
         <div className="max-w-[1600px] mx-auto flex items-center justify-between">
           {/* Logo */}
           <div className="flex-1 flex justify-start">
-            <a
-              href="#"
+            <Link
+              to="/"
               className="text-2xl md:text-3xl font-serif tracking-[0.2em] font-bold text-stone-900 group"
               aria-label={`${NAV_CONFIG.brandName} - Home`}
             >
@@ -58,7 +80,7 @@ const Navbar = ({ onOpenAuth }) => {
                 `}
                 aria-hidden="true"
               />
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation Links */}
@@ -91,7 +113,11 @@ const Navbar = ({ onOpenAuth }) => {
             </button>
 
             {/* Cart */}
-            <button className="relative group" aria-label="Shopping cart, 2 items">
+            <button 
+              onClick={onOpenCart}
+              className="relative group" 
+              aria-label="Shopping cart, 2 items"
+            >
               <CartIcon className="w-5 h-5 text-stone-800" />
               <span
                 className="absolute -top-1 -right-1 bg-amber-700 text-white text-[8px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold"

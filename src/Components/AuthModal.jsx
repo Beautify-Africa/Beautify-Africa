@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CloseIcon } from './Icons';
 import {
   AUTH_CONTENT,
@@ -96,6 +97,7 @@ function TermsCheckbox({ checked, onChange }) {
  * AuthModal - Authentication dialog for login/registration
  */
 export default function AuthModal({ isOpen, onClose }) {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -113,8 +115,12 @@ export default function AuthModal({ isOpen, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: Implement authentication logic
+    // TODO: Implement actual authentication logic
     console.log(isLogin ? 'Login' : 'Register', { email, password });
+    
+    // On successful auth, close modal and navigate to shop
+    onClose();
+    navigate('/shop');
   };
 
   const handleBackdropClick = (e) => {
