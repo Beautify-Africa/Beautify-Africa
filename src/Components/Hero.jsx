@@ -49,6 +49,7 @@ const HeroSection = () => {
           src={HERO_BACKGROUND.src}
           alt=""
           className="w-full h-full object-cover brightness-[1.05] opacity-30 blur-[3px]"
+          fetchpriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#faf9f6] via-[#faf9f6]/85 to-transparent" />
         <div className="absolute inset-0 bg-stone-100/10 mix-blend-overlay" />

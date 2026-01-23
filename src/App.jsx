@@ -1,9 +1,27 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import ShopPageLayout from './pages/ShopPageLayout';
+
+// Lazy load pages for code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ShopPageLayout = lazy(() => import('./pages/ShopPageLayout'));
+
+// Eagerly load modals (small, used frequently)
 import AuthModal from './Components/AuthModal';
 import CartDrawer from './Components/CartDrawer';
+
+/**
+ * Loading fallback for lazy-loaded pages
+ */
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-stone-300 border-t-stone-900 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -16,13 +34,15 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage onOpenAuth={openAuth} />} />
-        <Route
-          path="/shop"
-          element={<ShopPageLayout onOpenAuth={openAuth} onOpenCart={openCart} />}
-        />
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<HomePage onOpenAuth={openAuth} />} />
+          <Route
+            path="/shop"
+            element={<ShopPageLayout onOpenAuth={openAuth} onOpenCart={openCart} />}
+          />
+        </Routes>
+      </Suspense>
 
       {/* Global modals */}
       <AuthModal isOpen={isAuthOpen} onClose={closeAuth} />
