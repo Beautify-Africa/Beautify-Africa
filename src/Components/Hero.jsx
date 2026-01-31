@@ -2,6 +2,7 @@ import React from 'react';
 
 import { useState, useCallback, useMemo } from 'react';
 import InteractiveButton from './InteractiveButton';
+import { StarIcon } from './Icons';
 import { HERO_BACKGROUND, HERO_CARDS, HERO_CONFIG } from '../data/heroImages';
 
 /**
@@ -17,6 +18,44 @@ const generateParticles = (count) => {
     duration: Math.random() * 10 + 10,
   }));
 };
+
+const SCATTERED_REVIEWS = [
+  {
+    id: 1,
+    name: 'Sarah J.',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
+    top: '15%',
+    left: '10%',
+  },
+  {
+    id: 2,
+    name: 'Emily R.',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop',
+    top: '28%',
+    left: '5%',
+  },
+  {
+    id: 3,
+    name: 'Jessica M.',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop',
+    top: '20%',
+    left: '42%',
+  },
+  {
+    id: 4,
+    name: 'Michael B.',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+    top: '12%',
+    left: '60%',
+  },
+  {
+    id: 5,
+    name: 'Sophia L.',
+    image: 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=150&h=150&fit=crop',
+    top: '35%',
+    left: '55%',
+  }
+];
 
 const HeroSection = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -217,6 +256,33 @@ const HeroSection = () => {
         <span className="text-[9px] uppercase tracking-[0.4em] origin-center mb-8">Scroll</span>
         <div className="w-px h-10 bg-stone-400" />
       </div>
+
+      {/* Scattered Reviews */}
+      {SCATTERED_REVIEWS.map((review, idx) => (
+        <div
+          key={review.id}
+          className={`absolute flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 animate-reveal-up z-20 hover:scale-105 transition-transform duration-300 cursor-default hidden sm:flex`}
+          style={{
+            top: review.top,
+            left: review.left,
+            animationDelay: `${1.2 + idx * 0.1}s`,
+          }}
+        >
+          <img
+            src={review.image}
+            alt={review.name}
+            className="w-8 h-8 rounded-full object-cover border border-stone-100"
+          />
+          <div className="flex flex-col">
+            <div className="flex gap-0.5 text-amber-500">
+              {[...Array(5)].map((_, i) => (
+                <StarIcon key={i} className="w-2.5 h-2.5" filled={true} />
+              ))}
+            </div>
+            <span className="text-[10px] font-bold text-stone-600 leading-none mt-1">{review.name}</span>
+          </div>
+        </div>
+      ))}
     </section>
   );
 };

@@ -1,13 +1,32 @@
 import { FEATURED_COLLECTIONS, FEATURED_CONTENT, CARD_POSITIONS } from '../data/featuredCollections';
 import { ArrowRightIcon } from './Icons';
 
+import { useState, useEffect } from 'react';
+
 const FeaturedCard = ({ item }) => {
   const positionStyles = CARD_POSITIONS[item.position] || '';
+  const [isHovered, setIsHovered] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Rotate items on hover
+  useEffect(() => {
+    let interval;
+    if (isHovered && item.items && item.items.length > 1) {
+      interval = setInterval(() => {
+        setActiveIndex((prev) => (prev + 1) % item.items.length);
+      }, 3500);
+    } else {
+      setActiveIndex(0); // Reset on un-hover
+    }
+    return () => clearInterval(interval);
+  }, [isHovered, item.items]);
+
+  const currentItem = item.items ? item.items[activeIndex] : item;
 
   return (
     <article
       className={`
-        group relative w-full max-w-md lg:w-[420px] h-[500px] sm:h-[550px] lg:h-[650px]
+        group relative w-full max-w-lg lg:w-[480px] h-[450px] sm:h-[500px] lg:h-[580px]
         rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl md:shadow-2xl
         transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]
         border border-stone-200
@@ -15,13 +34,16 @@ const FeaturedCard = ({ item }) => {
         hover:!z-50 hover:scale-[1.02] lg:hover:scale-[1.1] hover:rotate-0 hover:translate-y-0
         hover:shadow-[0_40px_70px_-12px_rgba(0,0,0,0.5)]
       `}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Card Image */}
       <figure className="absolute inset-0 bg-stone-200">
         <img
-          src={item.image}
-          alt={`${item.title} - ${item.productName}`}
-          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110"
+          key={`img-${currentItem.image}`}
+          src={currentItem.image}
+          alt={`${item.title} - ${currentItem.productName}`}
+          className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110 animate-fade-in"
           loading="lazy"
         />
       </figure>
@@ -43,22 +65,34 @@ const FeaturedCard = ({ item }) => {
       <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10 translate-y-[10%] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
         {/* Badge & Price */}
         <div className="flex items-center justify-between mb-4">
-          <span className="px-2 py-0.5 md:px-3 md:py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-white">
-            {item.badge}
+          <span
+            key={`badge-${currentItem.badge}`}
+            className="px-2 py-0.5 md:px-3 md:py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-white animate-fade-in"
+          >
+            {currentItem.badge}
           </span>
-          <span className="text-lg md:text-xl font-serif text-amber-200 italic">
-            {item.price}
+          <span
+            key={`price-${currentItem.price}`}
+            className="text-lg md:text-xl font-serif text-amber-200 italic animate-fade-in"
+          >
+            {currentItem.price}
           </span>
         </div>
 
         {/* Product Name */}
-        <h4 className="text-2xl md:text-3xl font-serif text-white leading-tight mb-3 md:mb-4 drop-shadow-lg">
-          {item.productName}
+        <h4
+          key={`name-${currentItem.productName}`}
+          className="text-2xl md:text-3xl font-serif text-white leading-tight mb-3 md:mb-4 drop-shadow-lg animate-fade-in"
+        >
+          {currentItem.productName}
         </h4>
 
         {/* Description */}
-        <p className="text-stone-100 text-xs md:text-sm font-normal leading-relaxed mb-6 md:mb-8 line-clamp-3 sm:line-clamp-4 md:line-clamp-none drop-shadow-md">
-          {item.desc}
+        <p
+          key={`desc-${currentItem.desc}`}
+          className="text-stone-100 text-xs md:text-sm font-normal leading-relaxed mb-6 md:mb-8 line-clamp-3 sm:line-clamp-4 md:line-clamp-none drop-shadow-md animate-fade-in"
+        >
+          {currentItem.desc}
         </p>
 
         {/* CTA Button */}
