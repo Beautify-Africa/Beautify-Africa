@@ -8,20 +8,27 @@ const FeaturedCard = ({ item }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Rotate items on hover
+  // Rotate items on hover/tap
   useEffect(() => {
     let interval;
     if (isHovered && item.items && item.items.length > 1) {
       interval = setInterval(() => {
         setActiveIndex((prev) => (prev + 1) % item.items.length);
       }, 3500);
-    } else {
-      setActiveIndex(0); // Reset on un-hover
+      return () => clearInterval(interval);
     }
-    return () => clearInterval(interval);
+    // Return activeIndex to 0 when not hovered
+    return () => {
+      setActiveIndex(0);
+    };
   }, [isHovered, item.items]);
 
   const currentItem = item.items ? item.items[activeIndex] : item;
+
+  // Toggle hover state for mobile tap
+  const handleTap = () => {
+    setIsHovered((prev) => !prev);
+  };
 
   return (
     <article
@@ -31,11 +38,16 @@ const FeaturedCard = ({ item }) => {
         transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]
         border border-stone-200
         ${positionStyles}
+        ${isHovered ? '!z-50 scale-[1.02] lg:scale-[1.1] rotate-0 translate-y-0 shadow-[0_40px_70px_-12px_rgba(0,0,0,0.5)]' : ''}
         hover:!z-50 hover:scale-[1.02] lg:hover:scale-[1.1] hover:rotate-0 hover:translate-y-0
         hover:shadow-[0_40px_70px_-12px_rgba(0,0,0,0.5)]
       `}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleTap}
+      role="button"
+      tabIndex={0}
+      aria-label={`${item.title} - Tap to explore products`}
     >
       {/* Card Image */}
       <figure className="absolute inset-0 bg-stone-200">
@@ -50,19 +62,23 @@ const FeaturedCard = ({ item }) => {
 
       {/* Gradient Overlay */}
       <div
-        className={`absolute inset-0 bg-gradient-to-t ${item.color} via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-all duration-500`}
+        className={`absolute inset-0 bg-gradient-to-t ${item.color} via-black/20 to-transparent transition-all duration-500 ${isHovered ? 'opacity-100' : 'opacity-60'} group-hover:opacity-100`}
         aria-hidden="true"
       />
 
       {/* Default State - Category Title */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 transition-all duration-500 group-hover:opacity-0 group-hover:-translate-y-10">
+      <div className={`absolute inset-0 flex flex-col items-center justify-center p-6 transition-all duration-500 ${isHovered ? 'opacity-0 -translate-y-10' : ''} group-hover:opacity-0 group-hover:-translate-y-10`}>
         <h3 className="text-4xl md:text-5xl font-serif text-white font-bold tracking-wide text-center drop-shadow-2xl">
           {item.title}
         </h3>
+        {/* Mobile tap indicator */}
+        <span className="mt-4 text-xs text-white/80 uppercase tracking-widest lg:hidden">
+          Tap to explore
+        </span>
       </div>
 
-      {/* Hover State - Product Details */}
-      <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10 translate-y-[10%] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
+      {/* Hover/Tap State - Product Details */}
+      <div className={`absolute inset-0 flex flex-col justify-end p-6 md:p-10 transition-all duration-500 delay-100 ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-[10%] opacity-0'} group-hover:translate-y-0 group-hover:opacity-100`}>
         {/* Badge & Price */}
         <div className="flex items-center justify-between mb-4">
           <span
