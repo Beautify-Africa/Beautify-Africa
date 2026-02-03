@@ -304,7 +304,7 @@ const HeroSection = () => {
       {SCATTERED_REVIEWS.map((review, idx) => (
         <div
           key={review.id}
-          className={`absolute items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 animate-reveal-up z-20 hover:scale-105 transition-transform duration-300 cursor-default hidden sm:flex`}
+          className={`absolute flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 animate-reveal-up z-20 hover:scale-105 transition-transform duration-300 cursor-default hidden sm:flex`}
           style={{
             top: review.top,
             left: review.left,

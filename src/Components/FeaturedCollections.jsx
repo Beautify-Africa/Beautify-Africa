@@ -10,24 +10,34 @@ const FeaturedCard = ({ item }) => {
 
   // Rotate items on hover/tap
   useEffect(() => {
-    let interval;
     if (isHovered && item.items && item.items.length > 1) {
-      interval = setInterval(() => {
+      const interval = setInterval(() => {
         setActiveIndex((prev) => (prev + 1) % item.items.length);
       }, 3500);
       return () => clearInterval(interval);
     }
-    // Return activeIndex to 0 when not hovered
-    return () => {
-      setActiveIndex(0);
-    };
   }, [isHovered, item.items]);
 
   const currentItem = item.items ? item.items[activeIndex] : item;
 
   // Toggle hover state for mobile tap
   const handleTap = () => {
-    setIsHovered((prev) => !prev);
+    setIsHovered((prev) => {
+      // Reset index when toggling off
+      if (prev) {
+        setActiveIndex(0);
+      }
+      return !prev;
+    });
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setActiveIndex(0);
   };
 
   return (
@@ -42,8 +52,8 @@ const FeaturedCard = ({ item }) => {
         hover:!z-50 hover:scale-[1.02] lg:hover:scale-[1.1] hover:rotate-0 hover:translate-y-0
         hover:shadow-[0_40px_70px_-12px_rgba(0,0,0,0.5)]
       `}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onClick={handleTap}
       role="button"
       tabIndex={0}
