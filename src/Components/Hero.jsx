@@ -196,8 +196,8 @@ const HeroSection = () => {
       </aside>
 
       {/* Image Carousel - Mobile & Tablet */}
-      <aside className="absolute top-1/2 -translate-y-1/2 right-4 w-[45%] sm:w-[40%] z-20 lg:hidden pointer-events-none">
-        <div className="relative h-[400px] sm:h-[500px] flex items-center justify-center">
+      <aside className="absolute bottom-32 sm:bottom-24 right-4 w-[45%] sm:w-[40%] z-20 lg:hidden pointer-events-none">
+        <div className="relative h-[320px] sm:h-[400px] flex items-center justify-center">
           {/* Main featured card - Model Portrait */}
           <figure className="absolute w-full aspect-[3/4] z-30 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] shadow-2xl pointer-events-auto">
             <div className="w-full h-full overflow-hidden rounded-sm bg-white">
