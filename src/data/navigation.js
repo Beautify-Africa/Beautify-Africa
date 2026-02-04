@@ -19,6 +19,6 @@ export const SOCIAL_LINKS = [
 export const NAV_CONFIG = {
   scrollThreshold: 20,
   scrollOffset: 80,
-  brandName: 'ÉCLAT',
-  tagline: 'The House of Éclat',
+  brandName: 'BEAUTIFY',
+  tagline: 'The House of Beautify',
 };

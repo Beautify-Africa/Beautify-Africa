@@ -4,7 +4,7 @@
  */
 
 export const FOOTER_BRAND = {
-  name: 'ÉCLAT',
+  name: 'BEAUTIFY',
   tagline: 'Masterpieces of elegance.',
   href: '#',
 };
@@ -73,6 +73,6 @@ export const PAYMENT_METHODS = [
 
 export const COPYRIGHT = {
   year: new Date().getFullYear(),
-  company: 'Éclat Beauty',
+  company: 'Beautify',
   text: 'All rights reserved.',
 };

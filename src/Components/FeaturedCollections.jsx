@@ -1,5 +1,6 @@
 import { FEATURED_COLLECTIONS, FEATURED_CONTENT, CARD_POSITIONS } from '../data/featuredCollections';
 import { ArrowRightIcon } from './Icons';
+import FadeIn from './FadeIn';
 
 import { useState, useEffect } from 'react';
 
@@ -163,8 +164,10 @@ const FeaturedCollections = () => {
           className="flex flex-col lg:flex-row items-center justify-center lg:-space-x-12 xl:-space-x-20 space-y-8 lg:space-y-0 py-6 md:py-10 perspective-1000"
           role="list"
         >
-          {FEATURED_COLLECTIONS.map((item) => (
-            <FeaturedCard key={item.id} item={item} />
+          {FEATURED_COLLECTIONS.map((item, index) => (
+            <FadeIn key={item.id} delay={index * 0.2}>
+              <FeaturedCard item={item} />
+            </FadeIn>
           ))}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { REGIMEN_CATEGORIES, REGIMEN_CONTENT, REGIMEN_CONFIG } from '../data/regimenCategories';
 import { ArrowRightIcon } from './Icons';
+import FadeIn from './FadeIn';
 
 const CategoryCard = ({ category }) => {
   return (
@@ -80,7 +81,7 @@ const RegimenCollection = () => {
     >
       {/* Section Header */}
       <header className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 mb-12 md:mb-20">
-        <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4 md:space-y-6">
+        <FadeIn as="div" className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4 md:space-y-6">
           {/* Decorative Line & Tagline */}
           <div className="flex flex-col items-center gap-3 md:gap-4">
             <span className="w-[1px] h-8 md:h-12 bg-stone-400" aria-hidden="true" />
@@ -99,11 +100,11 @@ const RegimenCollection = () => {
           <p className="text-stone-600 font-light text-base md:text-lg leading-relaxed">
             {REGIMEN_CONTENT.description}
           </p>
-        </div>
+        </FadeIn>
       </header>
 
       {/* Carousel */}
-      <div className="relative w-full">
+      <FadeIn delay={0.3} direction="up" className="relative w-full">
         {/* Fade Overlays */}
         <div
           className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 md:w-32 z-20 bg-gradient-to-r from-[#F2F0EB] to-transparent pointer-events-none"
@@ -128,7 +129,7 @@ const RegimenCollection = () => {
             />
           ))}
         </div>
-      </div>
+      </FadeIn>
     </section>
   );
 };

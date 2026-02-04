@@ -1,11 +1,12 @@
 import { TRUST_ITEMS, USP_CONTENT } from '../data/trustItems';
 import { PlusIcon } from './Icons';
+import FadeIn from './FadeIn';
 
 const TrustCard = ({ item }) => {
   return (
     <article
       className={`
-        group relative min-h-[250px] md:min-h-0 overflow-hidden rounded-2xl md:rounded-3xl 
+        group relative min-h-[250px] md:min-h-0 h-full overflow-hidden rounded-2xl md:rounded-3xl 
         shadow-sm hover:shadow-2xl hover:z-10 hover:scale-[1.01] md:hover:scale-[1.02] 
         transition-all duration-500 ease-out cursor-default border border-stone-200/50 
         ${item.className}
@@ -15,7 +16,7 @@ const TrustCard = ({ item }) => {
       <figure className="absolute inset-0 bg-stone-200">
         <img
           src={item.image}
-          alt=""
+          alt={item.label}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110 opacity-95 group-hover:opacity-100"
           loading="lazy"
         />
@@ -70,7 +71,7 @@ const TrustBar = () => {
     >
       <div className="max-w-[1400px] mx-auto">
         {/* Section Header */}
-        <header className="text-center mb-12 md:mb-16">
+        <FadeIn as="header" className="text-center mb-12 md:mb-16">
           <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-800 mb-4 block">
             {USP_CONTENT.tagline}
           </span>
@@ -83,15 +84,21 @@ const TrustBar = () => {
           <p className="text-stone-600 text-lg md:text-xl font-light max-w-2xl mx-auto">
             {USP_CONTENT.description}
           </p>
-        </header>
+        </FadeIn>
 
         {/* Trust Cards Grid */}
         <div
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 auto-rows-auto md:auto-rows-[300px]"
           role="list"
         >
-          {TRUST_ITEMS.map((item) => (
-            <TrustCard key={item.id} item={item} />
+          {TRUST_ITEMS.map((item, index) => (
+            <FadeIn
+              key={item.id}
+              delay={index * 0.1}
+              className={`h-full ${item.className || ''}`}
+            >
+              <TrustCard item={item} />
+            </FadeIn>
           ))}
         </div>
       </div>

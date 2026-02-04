@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NEWSLETTER_CONTENT } from '../data/newsletterContent';
+import FadeIn from './FadeIn';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
@@ -47,7 +48,7 @@ const Newsletter = () => {
               </svg>
             </div>
 
-            <div className="relative z-10">
+            <FadeIn className="relative z-10" delay={0.2}>
               <span className="inline-block mb-4 md:mb-6 text-amber-700 text-[10px] font-bold uppercase tracking-[0.3em]">
                 {NEWSLETTER_CONTENT.tagline}
               </span>
@@ -99,7 +100,7 @@ const Newsletter = () => {
                   {NEWSLETTER_CONTENT.disclaimer}
                 </p>
               </form>
-            </div>
+            </FadeIn>
           </div>
         </div>
       </div>

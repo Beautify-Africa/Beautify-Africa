@@ -1,9 +1,9 @@
-import React from 'react';
-
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import InteractiveButton from './InteractiveButton';
 import { StarIcon } from './Icons';
 import { HERO_BACKGROUND, HERO_CARDS, HERO_CONFIG } from '../data/heroImages';
+import { SCATTERED_REVIEWS } from '../data/heroReviews';
+import FadeIn from './FadeIn';
 
 /**
  * Generates gold dust particle data for ambient effect
@@ -19,46 +19,25 @@ const generateParticles = (count) => {
   }));
 };
 
-const SCATTERED_REVIEWS = [
-  {
-    id: 1,
-    name: 'Sarah J.',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-    top: '15%',
-    left: '10%',
-  },
-  {
-    id: 2,
-    name: 'Emily R.',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop',
-    top: '28%',
-    left: '5%',
-  },
-  {
-    id: 3,
-    name: 'Jessica M.',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop',
-    top: '20%',
-    left: '42%',
-  },
-  {
-    id: 4,
-    name: 'Michael B.',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    top: '12%',
-    left: '60%',
-  },
-  {
-    id: 5,
-    name: 'Sophia L.',
-    image: 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=150&h=150&fit=crop',
-    top: '35%',
-    left: '55%',
-  }
-];
-
 const HeroSection = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  useEffect(() => {
+    const handleInteraction = () => {
+      setHasInteracted(true);
+    };
+
+    window.addEventListener('scroll', handleInteraction, { once: true });
+    window.addEventListener('click', handleInteraction, { once: true });
+    window.addEventListener('touchstart', handleInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleInteraction);
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+    };
+  }, []);
 
   const handleMouseMove = useCallback((e) => {
     const { clientX, clientY } = e;
@@ -196,7 +175,7 @@ const HeroSection = () => {
       </aside>
 
       {/* Image Carousel - Mobile & Tablet */}
-      <aside className="absolute bottom-32 sm:bottom-24 right-4 w-[45%] sm:w-[40%] z-20 lg:hidden pointer-events-none">
+      <aside className={`absolute bottom-32 sm:bottom-24 right-4 w-[45%] sm:w-[40%] lg:hidden pointer-events-none transition-all duration-1000 ease-in-out ${hasInteracted ? 'z-0 opacity-20 scale-90 blur-[1px]' : 'z-20'}`}>
         <div className="relative h-[320px] sm:h-[400px] flex items-center justify-center">
           {/* Main featured card - Model Portrait */}
           <figure className="absolute w-full aspect-[3/4] z-30 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] shadow-2xl pointer-events-auto">
@@ -239,16 +218,17 @@ const HeroSection = () => {
       </aside>
 
       {/* Editorial Content */}
-      <article className="relative z-10 w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20">
+      <article className={`relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 ${hasInteracted ? 'z-30' : 'z-10'}`}>
         <header>
-          <span
-            className="animate-reveal-up text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-800 mb-6 block"
-            style={{ animationDelay: '0.2s' }}
-          >
-            Archive Summer '25 Collection
-          </span>
+          <FadeIn delay={0.2} direction="up">
+            <span
+              className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-800 mb-6 block"
+            >
+              Archive Summer '25 Collection
+            </span>
+          </FadeIn>
 
-          <div className="relative mb-10 animate-reveal-up max-w-6xl" style={{ animationDelay: '0.4s' }}>
+          <FadeIn delay={0.4} direction="up" className="relative mb-10 max-w-6xl">
             <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] text-stone-900 tracking-tighter relative z-20">
               The <br />
               <span className="italic font-normal pl-4 md:pl-20 text-stone-800/90">Radiance</span> <br />
@@ -260,10 +240,10 @@ const HeroSection = () => {
               <span className="text-[9px] uppercase tracking-[0.4em] text-stone-400">Starting At</span>
               <span className="text-2xl font-serif text-stone-900">$42.00</span>
             </div>
-          </div>
+          </FadeIn>
         </header>
 
-        <div className="max-w-xl animate-reveal-up" style={{ animationDelay: '0.6s' }}>
+        <FadeIn delay={0.6} direction="up" className="max-w-xl">
           <p className="text-lg md:text-2xl text-stone-700 font-light leading-relaxed mb-12 relative z-20">
             Merging molecular botanical science with the artistry of velvet pigments. A new standard for the illuminating ritual.
           </p>
@@ -275,7 +255,7 @@ const HeroSection = () => {
               <span className="w-12 h-[1px] bg-stone-300 group-hover:w-20 group-hover:bg-amber-800 transition-all duration-700" aria-hidden="true" />
             </button>
           </nav>
-        </div>
+        </FadeIn>
       </article>
 
       {/* Featured Item Sidebar */}
@@ -302,13 +282,13 @@ const HeroSection = () => {
 
       {/* Scattered Reviews - Desktop (absolute positioned) */}
       {SCATTERED_REVIEWS.map((review, idx) => (
-        <div
+        <FadeIn
           key={review.id}
-          className={`absolute flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 animate-reveal-up z-20 hover:scale-105 transition-transform duration-300 cursor-default hidden sm:flex`}
+          delay={1.2 + idx * 0.1}
+          className="absolute flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 z-20 hover:scale-105 transition-transform duration-300 cursor-default hidden sm:flex"
           style={{
             top: review.top,
             left: review.left,
-            animationDelay: `${1.2 + idx * 0.1}s`,
           }}
         >
           <img
@@ -324,19 +304,17 @@ const HeroSection = () => {
             </div>
             <span className="text-[10px] font-bold text-stone-600 leading-none mt-1">{review.name}</span>
           </div>
-        </div>
+        </FadeIn>
       ))}
 
       {/* Reviews - Mobile (horizontal scroll at bottom) */}
       <div className="absolute bottom-24 left-0 right-0 z-20 sm:hidden px-4">
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
           {SCATTERED_REVIEWS.map((review, idx) => (
-            <div
+            <FadeIn
               key={`mobile-${review.id}`}
-              className="flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 animate-reveal-up flex-shrink-0 snap-start"
-              style={{
-                animationDelay: `${1.2 + idx * 0.1}s`,
-              }}
+              delay={1.2 + idx * 0.1}
+              className="flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 flex-shrink-0 snap-start"
             >
               <img
                 src={review.image}
@@ -351,7 +329,7 @@ const HeroSection = () => {
                 </div>
                 <span className="text-[10px] font-bold text-stone-600 leading-none mt-1 whitespace-nowrap">{review.name}</span>
               </div>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </div>

@@ -24,7 +24,7 @@ const Navbar = ({ onOpenAuth, onOpenCart }) => {
   const scrollToSection = useCallback((e, id) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
-    
+
     // If not on home page, navigate to home first then scroll
     if (!isHomePage) {
       navigate('/');
@@ -40,7 +40,7 @@ const Navbar = ({ onOpenAuth, onOpenCart }) => {
       }, 100);
       return;
     }
-    
+
     const element = document.getElementById(id);
     if (element) {
       window.scrollTo({
@@ -113,9 +113,9 @@ const Navbar = ({ onOpenAuth, onOpenCart }) => {
             </button>
 
             {/* Cart */}
-            <button 
+            <button
               onClick={onOpenCart}
-              className="relative group" 
+              className="relative group"
               aria-label="Shopping cart, 2 items"
             >
               <CartIcon className="w-5 h-5 text-stone-800" />
@@ -211,6 +211,8 @@ const Navbar = ({ onOpenAuth, onOpenCart }) => {
               <li key={social.abbr}>
                 <a
                   href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-[10px] font-bold tracking-widest text-stone-400 hover:text-stone-900 transition-colors"
                   aria-label={social.name}
                 >

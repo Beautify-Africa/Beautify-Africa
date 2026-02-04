@@ -1,5 +1,6 @@
 import { JOURNAL_ARTICLES, JOURNAL_CONTENT } from '../data/journalArticles';
 import { ArrowRightIcon } from './Icons';
+import FadeIn from './FadeIn';
 
 const FeaturedArticle = ({ article }) => {
   return (
@@ -106,7 +107,7 @@ const TheJournal = () => {
     >
       <div className="max-w-[1400px] mx-auto">
         {/* Section Header */}
-        <header className="flex flex-col items-center text-center mb-12 md:mb-20 space-y-4 md:space-y-6">
+        <FadeIn as="header" className="flex flex-col items-center text-center mb-12 md:mb-20 space-y-4 md:space-y-6">
           {/* Decorative Line & Tagline */}
           <div className="flex flex-col items-center gap-2 md:gap-4">
             <span className="w-[1px] h-8 md:h-12 bg-stone-400" aria-hidden="true" />
@@ -125,17 +126,21 @@ const TheJournal = () => {
           <p className="text-stone-600 font-light text-base md:text-lg tracking-wide max-w-xl">
             {JOURNAL_CONTENT.description}
           </p>
-        </header>
+        </FadeIn>
 
         {/* Articles Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-auto lg:h-[800px]">
           {/* Featured Article */}
-          <FeaturedArticle article={featured} />
+          <FadeIn delay={0.2} className="h-full">
+            <FeaturedArticle article={featured} />
+          </FadeIn>
 
           {/* Secondary Articles Column */}
           <div className="flex flex-col gap-6 h-auto lg:h-full">
-            {secondary.map((article) => (
-              <SecondaryArticle key={article.id} article={article} />
+            {secondary.map((article, index) => (
+              <FadeIn key={article.id} delay={0.3 + index * 0.1} className="flex-1">
+                <SecondaryArticle article={article} />
+              </FadeIn>
             ))}
           </div>
         </div>

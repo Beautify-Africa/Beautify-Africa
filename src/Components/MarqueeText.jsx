@@ -1,4 +1,5 @@
 import { MARQUEE_TEXT, MARQUEE_CONFIG } from '../data/marqueeContent';
+import FadeIn from './FadeIn';
 
 /**
  * Generates repeated text content with separators
@@ -38,20 +39,22 @@ const MarqueeText = () => {
         aria-hidden="true"
       />
 
-      {/* Scrolling marquee content */}
-      <div
-        className="flex whitespace-nowrap animate-marquee w-fit"
-        style={{ '--marquee-duration': MARQUEE_CONFIG.animationDuration }}
-        role="marquee"
-        aria-live="off"
-      >
-        {/* Render multiple blocks for seamless looping */}
-        {[...Array(MARQUEE_CONFIG.blockCount)].map((_, index) => (
-          <p key={index} className={textStyles}>
-            {contentBlock}
-          </p>
-        ))}
-      </div>
+      <FadeIn delay={0.2} className="relative z-20">
+        {/* Scrolling marquee content */}
+        <div
+          className="flex whitespace-nowrap animate-marquee w-fit"
+          style={{ '--marquee-duration': MARQUEE_CONFIG.animationDuration }}
+          role="marquee"
+          aria-live="off"
+        >
+          {/* Render multiple blocks for seamless looping */}
+          {[...Array(MARQUEE_CONFIG.blockCount)].map((_, index) => (
+            <p key={index} className={textStyles}>
+              {contentBlock}
+            </p>
+          ))}
+        </div>
+      </FadeIn>
     </section>
   );
 };

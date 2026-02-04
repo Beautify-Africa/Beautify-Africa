@@ -7,6 +7,7 @@ import {
   PAYMENT_METHODS,
   COPYRIGHT,
 } from '../data/footerContent';
+import FadeIn from './FadeIn';
 
 /**
  * Brand section with logo, tagline, and social links
@@ -175,7 +176,7 @@ export default function Footer() {
       className="bg-stone-950 text-stone-400 pt-20 md:pt-32 pb-8 md:pb-12 border-t border-stone-900"
       role="contentinfo"
     >
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12">
+      <FadeIn className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12">
         {/* Main footer navigation grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 md:gap-12 lg:gap-8 mb-16 md:mb-24">
           <BrandSection />
@@ -197,7 +198,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <BottomBar />
-      </div>
+      </FadeIn>
     </footer>
   );
 }

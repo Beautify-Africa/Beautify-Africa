@@ -22,7 +22,7 @@ export const SKIN_TYPES = [
 
 export const BRANDS = [
   'All',
-  'Éclat',
+  'Beautify',
   'Lumière',
   'Velour',
   'Essence',
@@ -46,7 +46,7 @@ export const PRODUCTS = [
   {
     id: 1,
     name: 'The Velvet Botanique',
-    brand: 'Éclat',
+    brand: 'Beautify',
     category: 'Makeup',
     price: 42.0,
     originalPrice: null,
@@ -201,7 +201,7 @@ export const PRODUCTS = [
   {
     id: 8,
     name: 'Obsidian Eyeliner',
-    brand: 'Éclat',
+    brand: 'Beautify',
     category: 'Makeup',
     price: 28.0,
     originalPrice: null,
@@ -267,7 +267,7 @@ export const PRODUCTS = [
   {
     id: 11,
     name: 'Radiance Foundation',
-    brand: 'Éclat',
+    brand: 'Beautify',
     category: 'Makeup',
     price: 68.0,
     originalPrice: null,

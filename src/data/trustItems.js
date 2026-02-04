@@ -4,7 +4,7 @@
  */
 
 export const USP_CONTENT = {
-  tagline: 'The Éclat Promise',
+  tagline: 'The Beautify Promise',
   heading: 'Why Conscious Beauty Matters',
   description: 'Every product we create is a testament to our unwavering commitment to ethics, efficacy, and elegance.',
 };
@@ -21,7 +21,7 @@ export const TRUST_ITEMS = [
     id: 'dermatologist-tested',
     label: 'Dermatologist Tested',
     image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop',
-    desc: 'Every Éclat masterpiece undergoes rigorous clinical assessment and sensitivity testing under strict dermatological supervision.',
+    desc: 'Every Beautify masterpiece undergoes rigorous clinical assessment and sensitivity testing under strict dermatological supervision.',
     className: 'md:col-span-1 md:row-span-2',
   },
   {
@@ -49,7 +49,7 @@ export const TRUST_ITEMS = [
     id: 'satisfaction-guarantee',
     label: 'Satisfaction Guarantee',
     image: 'https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Skincare is a personal journey. Experience the Éclat ritual risk-free with our 60-day return policy.',
+    desc: 'Skincare is a personal journey. Experience the Beautify ritual risk-free with our 60-day return policy.',
     className: 'md:col-span-1 md:row-span-1',
   },
   {

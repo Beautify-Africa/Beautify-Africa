@@ -5,7 +5,7 @@
 
 export const NEWSLETTER_CONTENT = {
   tagline: 'The Inner Circle',
-  heading: 'The Éclat Society',
+  heading: 'The Beautify Society',
   description: 'Join our private members list for early access to limited formulations, scientific journals, and archival releases.',
   submitLabel: 'Subscribe',
   placeholder: 'Email Address',
