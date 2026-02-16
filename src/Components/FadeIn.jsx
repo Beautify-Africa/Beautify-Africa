@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 
 /**
@@ -15,7 +16,7 @@ import { motion } from 'framer-motion';
  * @param {string} className - Additional classes for the container.
  * @param {object} viewport - Custom viewport options (e.g. { once: true, margin: "-100px" }).
  */
-const FadeIn = ({
+const FadeIn = memo(({
     children,
     as = 'div',
     delay = 0,
@@ -64,6 +65,8 @@ const FadeIn = ({
             {children}
         </MotionComponent>
     );
-};
+});
+
+FadeIn.displayName = 'FadeIn';
 
 export default FadeIn;

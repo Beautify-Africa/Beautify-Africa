@@ -1,13 +1,21 @@
+import { lazy, Suspense } from 'react';
 import { Helmet } from 'react-helmet-async';
 import Navbar from '../Components/Navbar';
 import HeroSection from '../Components/Hero';
 import MarqueeText from '../Components/MarqueeText';
 import TrustBar from '../Components/TrustBar';
-import FeaturedCollections from '../Components/FeaturedCollections';
-import RegimenCollection from '../Components/RegimenCollection';
-import TheJournal from '../Components/TheJournal';
-import Newsletter from '../Components/Newsletter';
-import Footer from '../Components/Footer';
+
+// Lazy load below-the-fold components
+const FeaturedCollections = lazy(() => import('../Components/FeaturedCollections'));
+const RegimenCollection = lazy(() => import('../Components/RegimenCollection'));
+const TheJournal = lazy(() => import('../Components/TheJournal'));
+const Newsletter = lazy(() => import('../Components/Newsletter'));
+const Footer = lazy(() => import('../Components/Footer'));
+
+// Minimal loader for below-the-fold sections
+function SectionLoader() {
+  return <div className="min-h-[200px] bg-[#faf9f6]" />;
+}
 
 /**
  * HomePage - Landing page with all marketing sections
@@ -63,12 +71,16 @@ export default function HomePage({ onOpenAuth }) {
         <HeroSection />
         <MarqueeText />
         <TrustBar />
-        <FeaturedCollections />
-        <RegimenCollection />
-        <TheJournal />
-        <Newsletter />
+        <Suspense fallback={<SectionLoader />}>
+          <FeaturedCollections />
+          <RegimenCollection />
+          <TheJournal />
+          <Newsletter />
+        </Suspense>
       </main>
-      <Footer />
+      <Suspense fallback={<SectionLoader />}>
+        <Footer />
+      </Suspense>
     </>
   );
 }
