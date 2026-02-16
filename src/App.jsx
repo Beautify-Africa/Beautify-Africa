@@ -1,5 +1,6 @@
 import { useState, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -33,21 +34,23 @@ function App() {
   const closeCart = useCallback(() => setIsCartOpen(false), []);
 
   return (
-    <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/" element={<HomePage onOpenAuth={openAuth} />} />
-          <Route
-            path="/shop"
-            element={<ShopPageLayout onOpenAuth={openAuth} onOpenCart={openCart} />}
-          />
-        </Routes>
-      </Suspense>
+    <HelmetProvider>
+      <BrowserRouter>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<HomePage onOpenAuth={openAuth} />} />
+            <Route
+              path="/shop"
+              element={<ShopPageLayout onOpenAuth={openAuth} onOpenCart={openCart} />}
+            />
+          </Routes>
+        </Suspense>
 
-      {/* Global modals */}
-      <AuthModal isOpen={isAuthOpen} onClose={closeAuth} />
-      <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
-    </BrowserRouter>
+        {/* Global modals */}
+        <AuthModal isOpen={isAuthOpen} onClose={closeAuth} />
+        <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 

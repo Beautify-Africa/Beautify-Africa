@@ -11,9 +11,9 @@ export const NAV_LINKS = [
 ];
 
 export const SOCIAL_LINKS = [
-  { name: 'Instagram', abbr: 'IG', url: '#' },
-  { name: 'TikTok', abbr: 'TK', url: '#' },
-  { name: 'Pinterest', abbr: 'PT', url: '#' },
+  { name: 'Instagram', abbr: 'IG', url: 'https://www.instagram.com/beautifyafrica' },
+  { name: 'TikTok', abbr: 'TK', url: 'https://www.tiktok.com/@beautifyafrica' },
+  { name: 'Pinterest', abbr: 'PT', url: 'https://www.pinterest.com/beautifyafrica' },
 ];
 
 export const NAV_CONFIG = {
