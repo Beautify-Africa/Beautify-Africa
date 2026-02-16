@@ -79,6 +79,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1617897903246-719242758050?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'A lightweight, high-performance serum that targets dullness and fine lines. Infused with 24k gold particles for instant radiance.',
     skinType: ['Dry', 'Combination', 'Sensitive'],
@@ -101,6 +102,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1567721913486-6585f069b332?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1567721913486-6585f069b332?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1599948128020-9a44505b0d1b?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'Precision tools featuring ultra-fine, 100% vegan synthetic bristles designed to mimic natural hair for superior blending. Hand-bound in sustainable ash wood.',
     skinType: ['All'],
@@ -123,6 +125,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1595425964272-fc617fa29b34?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'A complex, artisanal scent capturing the essence of memory. Notes of Dark Rose, Oud, and Amber.',
     skinType: ['All'],
@@ -145,6 +148,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'A water-break gel cream that floods skin with hydration without heaviness.',
     skinType: ['Oily', 'Combination'],
@@ -167,6 +171,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1532413992378-f169ac26fff0?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'Invisible zinc protection that defends against UVA/UVB rays and blue light.',
     skinType: ['Sensitive', 'All'],
@@ -189,6 +194,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1527799820374-dcf8d9d4a388?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1585751119414-ef2636f8aede?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'A multi-tasking oil that smoothes frizz, seals split ends, and adds high-gloss shine.',
     skinType: ['All'],
@@ -211,6 +217,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1583241800698-e8ab01830a07?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'Waterproof, smudge-proof, and intensely black. The felt tip ensures precision.',
     skinType: ['All'],
@@ -233,6 +240,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'Detoxifies pores and controls oil without stripping the skin.',
     skinType: ['Oily', 'Combination'],
@@ -255,6 +263,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1616627547584-bf28cee262db?q=80&w=800&auto=format&fit=crop',
     ],
     description: '100% Mulberry silk to prevent hair breakage and sleep creases.',
     skinType: ['All'],
@@ -277,6 +286,7 @@ export const PRODUCTS = [
     image: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=800&auto=format&fit=crop',
     images: [
       'https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1557205465-f3762edea6d3?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'Medium buildable coverage with a natural, dewy finish.',
     skinType: ['Dry', 'Combination'],
@@ -296,9 +306,10 @@ export const PRODUCTS = [
     rating: 4.5,
     reviews: 110,
     inStock: true,
-    image: 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?q=80&w=800&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?q=80&w=800&auto=format&fit=crop',
     images: [
-      'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?q=80&w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1598452963314-b09f397a5c48?q=80&w=800&auto=format&fit=crop',
     ],
     description: 'Restores pH balance and preps skin for serums.',
     skinType: ['Oily', 'Combination'],

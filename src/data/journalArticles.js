@@ -27,7 +27,7 @@ export const JOURNAL_ARTICLES = {
       hoverColor: 'hover:text-amber-200',
       title: 'The Art of Layering Textures',
       excerpt: 'A definitive guide to the correct order of application for maximum absorption and flawless finish.',
-      image: 'https://images.unsplash.com/photo-1583209814683-c023dd293cc6?q=80&w=1200&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?q=80&w=1200&auto=format&fit=crop',
       cta: 'View the Guide',
     },
     {
