@@ -40,19 +40,16 @@ function FloatingInput({ field, value, onChange }) {
  */
 function VisualPanel() {
   return (
-    <div className="hidden md:block w-1/2 relative bg-stone-200">
-      <img
-        src={AUTH_IMAGE.src}
-        alt={AUTH_IMAGE.alt}
-        className="absolute inset-0 w-full h-full object-cover opacity-90"
-        loading="lazy"
-      />
+    <div
+      className="w-full md:w-1/2 relative min-h-[250px] md:min-h-0 flex items-end bg-cover bg-center"
+      style={{ backgroundImage: `url(${AUTH_IMAGE.src})` }}
+    >
       <div
         className="absolute inset-0 bg-gradient-to-t from-stone-900/80 via-transparent to-transparent"
         aria-hidden="true"
       />
-      <figure className="absolute bottom-12 left-12 right-12 text-white">
-        <blockquote className="font-serif italic text-3xl mb-4 leading-tight">
+      <figure className="relative z-10 p-8 md:p-12 text-white w-full">
+        <blockquote className="font-serif italic text-2xl md:text-3xl mb-4 leading-tight">
           {AUTH_IMAGE.quote}
         </blockquote>
         <div className="w-12 h-[1px] bg-white/50 mb-4" aria-hidden="true" />
