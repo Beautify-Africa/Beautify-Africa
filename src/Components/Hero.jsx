@@ -250,7 +250,10 @@ const HeroSection = () => {
 
           <nav className="flex flex-col sm:flex-row items-center gap-8 relative z-20" aria-label="Hero actions">
             <InteractiveButton label="Shop the Archive" primary />
-            <button className="group flex items-center gap-4 py-4 text-[10px] font-bold uppercase tracking-[0.4em] text-stone-900">
+            <button 
+              className="group flex items-center gap-4 py-4 text-[10px] font-bold uppercase tracking-[0.4em] text-stone-900"
+              aria-label="Explore the Lab - Learn about our science and research"
+            >
               Explore the Lab
               <span className="w-12 h-[1px] bg-stone-300 group-hover:w-20 group-hover:bg-amber-800 transition-all duration-700" aria-hidden="true" />
             </button>

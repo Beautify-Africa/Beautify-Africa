@@ -123,7 +123,10 @@ const FeaturedCard = ({ item }) => {
         </p>
 
         {/* CTA Button */}
-        <button className="w-full py-3 md:py-4 bg-white text-stone-900 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] rounded-lg hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 group/btn">
+        <button 
+          className="w-full py-3 md:py-4 bg-white text-stone-900 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] rounded-lg hover:bg-stone-100 transition-colors flex items-center justify-center gap-2 group/btn"
+          aria-label={`View details for ${currentItem.productName}`}
+        >
           View Details
           <ArrowRightIcon className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
         </button>
