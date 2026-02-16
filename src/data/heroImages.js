@@ -67,7 +67,7 @@ export const HERO_CARDS = [
 ];
 
 export const HERO_CONFIG = {
-  particleCount: 30,
+  particleCount: 15, // Reduced for better performance
   parallaxIntensity: 50,
   parallaxScale: 1.2,
 };

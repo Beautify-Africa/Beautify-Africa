@@ -68,6 +68,8 @@ const HeroSection = () => {
           alt=""
           className="w-full h-full object-cover brightness-[1.05] opacity-30 blur-[3px]"
           fetchpriority="high"
+          loading="eager"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#faf9f6] via-[#faf9f6]/85 to-transparent" />
         <div className="absolute inset-0 bg-stone-100/10 mix-blend-overlay" />
@@ -100,6 +102,8 @@ const HeroSection = () => {
               src={HERO_CARDS[0].src}
               alt={HERO_CARDS[0].alt}
               className="w-full h-full object-cover opacity-95"
+              loading="lazy"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-amber-900/5 mix-blend-multiply" />
           </div>
@@ -115,6 +119,8 @@ const HeroSection = () => {
               src={HERO_CARDS[1].src}
               alt={HERO_CARDS[1].alt}
               className="w-full h-full object-cover scale-110"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <figcaption className="absolute -top-3 -left-3 bg-stone-900 text-white px-3 py-1 text-[8px] font-bold uppercase tracking-widest">
@@ -129,6 +135,8 @@ const HeroSection = () => {
               src={HERO_CARDS[2].src}
               alt={HERO_CARDS[2].alt}
               className="w-full h-full object-cover hover:scale-110 transition-transform duration-[2s]"
+              loading="eager"
+              decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-tr from-stone-900/10 to-transparent mix-blend-overlay" />
           </div>
