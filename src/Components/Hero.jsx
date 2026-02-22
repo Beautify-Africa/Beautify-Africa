@@ -59,20 +59,26 @@ const HeroSection = () => {
     >
       {/* Background Layer */}
       <div
-        className="absolute inset-0 z-0 scale-110 transition-transform duration-700 ease-out pointer-events-none"
+        className="absolute inset-0 z-0 pointer-events-none bg-[#faf9f6]"
+        aria-hidden="true"
+      />
+
+      {/* Portrait Image - Left Side */}
+      <div
+        className="absolute left-4 md:left-8 lg:left-12 top-[10%] bottom-[10%] z-[2] pointer-events-none w-[35%] sm:w-[30%] md:w-[26%] lg:w-[22%] transition-transform duration-700 ease-out"
         style={{ transform: parallaxTransform }}
         aria-hidden="true"
       >
         <img
           src={HERO_BACKGROUND.src}
           alt=""
-          className="w-full h-full object-cover brightness-[1.05] opacity-30 blur-[3px]"
+          className="w-full h-full object-cover object-top rounded-md opacity-[0.35]"
           fetchpriority="high"
           loading="eager"
           decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#faf9f6] via-[#faf9f6]/85 to-transparent" />
-        <div className="absolute inset-0 bg-stone-100/10 mix-blend-overlay" />
+        <div className="absolute inset-0 rounded-md bg-gradient-to-r from-transparent to-[#faf9f6]/70" />
+        <div className="absolute inset-0 rounded-md bg-gradient-to-b from-[#faf9f6]/30 via-transparent to-[#faf9f6]/50" />
       </div>
 
       {/* Gold Dust Particles */}

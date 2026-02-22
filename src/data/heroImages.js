@@ -4,8 +4,8 @@
  */
 
 export const HERO_BACKGROUND = {
-  src: "https://images.unsplash.com/photo-1596755389378-c31d21fd1273?q=80&w=2550&auto=format&fit=crop",
-  alt: "Soft focus botanical beauty background"
+  src: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=1200&auto=format&fit=crop",
+  alt: "Portrait of a beautiful woman"
 };
 
 export const HERO_CARDS = [
