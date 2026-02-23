@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PROMO_BANNERS } from '../data/promoBanners';
 
 /**
@@ -8,16 +8,16 @@ import { PROMO_BANNERS } from '../data/promoBanners';
 export default function PromoBanner() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const isTransitioning = useRef(false);
 
   const totalBanners = PROMO_BANNERS.length;
 
   const goToSlide = useCallback((index) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
+    if (isTransitioning.current) return;
+    isTransitioning.current = true;
     setActiveIndex(index);
-    setTimeout(() => setIsTransitioning(false), 600);
-  }, [isTransitioning]);
+    setTimeout(() => { isTransitioning.current = false; }, 600);
+  }, []);
 
   const goNext = useCallback(() => {
     goToSlide((activeIndex + 1) % totalBanners);
@@ -34,7 +34,7 @@ export default function PromoBanner() {
     return () => clearInterval(timer);
   }, [goNext, isPaused]);
 
-  const activeBanner = PROMO_BANNERS[activeIndex];
+
 
   return (
     <div
@@ -50,13 +50,12 @@ export default function PromoBanner() {
         {PROMO_BANNERS.map((banner, index) => (
           <div
             key={banner.id}
-            className={`absolute inset-0 transition-all duration-600 ease-in-out ${
-              index === activeIndex
-                ? 'opacity-100 translate-x-0 z-10'
-                : index < activeIndex
+            className={`absolute inset-0 bg-stone-900 transition-all duration-500 ease-in-out ${index === activeIndex
+              ? 'opacity-100 translate-x-0 z-10'
+              : index < activeIndex
                 ? 'opacity-0 -translate-x-full z-0'
                 : 'opacity-0 translate-x-full z-0'
-            }`}
+              }`}
             role="group"
             aria-roledescription="slide"
             aria-label={`${index + 1} of ${totalBanners}: ${banner.headline}`}
@@ -144,11 +143,10 @@ export default function PromoBanner() {
           <button
             key={banner.id}
             onClick={() => goToSlide(index)}
-            className={`transition-all duration-300 rounded-full ${
-              index === activeIndex
-                ? 'w-6 h-1.5 bg-white'
-                : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/60'
-            }`}
+            className={`transition-all duration-300 rounded-full ${index === activeIndex
+              ? 'w-6 h-1.5 bg-white'
+              : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/60'
+              }`}
             aria-label={`Go to offer ${index + 1}: ${banner.headline}`}
             aria-current={index === activeIndex ? 'true' : undefined}
           />

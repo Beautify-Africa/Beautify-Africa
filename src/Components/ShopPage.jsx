@@ -41,9 +41,8 @@ function SidebarDropdown({ title, children, defaultOpen = false }) {
         </svg>
       </button>
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          isOpen ? 'max-h-[400px] opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
-        }`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[400px] opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
+          }`}
       >
         {children}
       </div>
@@ -63,7 +62,6 @@ function ProductSidebar({
   setSelectedSkinType,
   maxPrice,
   setMaxPrice,
-  products,
 }) {
   // Count products per category
   const categoryCounts = useMemo(() => {
@@ -102,17 +100,15 @@ function ProductSidebar({
               <li key={cat}>
                 <button
                   onClick={() => setSelectedCategory(cat)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-all ${
-                    selectedCategory === cat
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-all ${selectedCategory === cat
                       ? 'bg-stone-900 text-white font-medium'
                       : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
-                  }`}
+                    }`}
                   aria-pressed={selectedCategory === cat}
                 >
                   <span>{cat}</span>
-                  <span className={`text-[10px] font-mono ${
-                    selectedCategory === cat ? 'text-stone-300' : 'text-stone-400'
-                  }`}>
+                  <span className={`text-[10px] font-mono ${selectedCategory === cat ? 'text-stone-300' : 'text-stone-400'
+                    }`}>
                     {categoryCounts[cat] || 0}
                   </span>
                 </button>
@@ -128,17 +124,15 @@ function ProductSidebar({
               <li key={brand}>
                 <button
                   onClick={() => setSelectedBrand(brand)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-all ${
-                    selectedBrand === brand
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-all ${selectedBrand === brand
                       ? 'bg-stone-900 text-white font-medium'
                       : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
-                  }`}
+                    }`}
                   aria-pressed={selectedBrand === brand}
                 >
                   <span>{brand}</span>
-                  <span className={`text-[10px] font-mono ${
-                    selectedBrand === brand ? 'text-stone-300' : 'text-stone-400'
-                  }`}>
+                  <span className={`text-[10px] font-mono ${selectedBrand === brand ? 'text-stone-300' : 'text-stone-400'
+                    }`}>
                     {brandCounts[brand] || 0}
                   </span>
                 </button>
@@ -154,11 +148,10 @@ function ProductSidebar({
               <button
                 key={type}
                 onClick={() => setSelectedSkinType(type)}
-                className={`px-3 py-1.5 text-[10px] uppercase rounded-full border transition-all ${
-                  selectedSkinType === type
+                className={`px-3 py-1.5 text-[10px] uppercase rounded-full border transition-all ${selectedSkinType === type
                     ? 'bg-stone-900 text-white border-stone-900'
                     : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                }`}
+                  }`}
                 aria-pressed={selectedSkinType === type}
               >
                 {type}
@@ -206,9 +199,8 @@ function FilterButtonList({ items, selected, onSelect }) {
         <li key={item}>
           <button
             onClick={() => onSelect(item)}
-            className={`text-sm hover:text-amber-800 transition-colors ${
-              selected === item ? 'text-amber-800 font-medium' : 'text-stone-600'
-            }`}
+            className={`text-sm hover:text-amber-800 transition-colors ${selected === item ? 'text-amber-800 font-medium' : 'text-stone-600'
+              }`}
             aria-pressed={selected === item}
           >
             {item}
@@ -229,11 +221,10 @@ function SkinTypeChips({ types, selected, onSelect }) {
         <button
           key={type}
           onClick={() => onSelect(type)}
-          className={`px-3 py-1 text-[10px] uppercase border transition-all ${
-            selected === type
+          className={`px-3 py-1 text-[10px] uppercase border transition-all ${selected === type
               ? 'bg-stone-900 text-white border-stone-900'
               : 'bg-transparent text-stone-600 border-stone-300 hover:border-stone-500'
-          }`}
+            }`}
           aria-pressed={selected === type}
         >
           {type}
@@ -332,11 +323,10 @@ function SearchFilterBar({
         {/* Filter toggle button */}
         <button
           onClick={() => setShowFilters((prev) => !prev)}
-          className={`relative flex items-center gap-2 px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.12em] border rounded-md transition-all ${
-            showFilters || hasActiveFilters
+          className={`relative flex items-center gap-2 px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.12em] border rounded-md transition-all ${showFilters || hasActiveFilters
               ? 'bg-stone-900 text-white border-stone-900'
               : 'bg-stone-50 text-stone-700 border-stone-300 hover:border-stone-500'
-          }`}
+            }`}
           aria-expanded={showFilters}
           aria-controls="filter-panel"
         >
@@ -387,9 +377,8 @@ function SearchFilterBar({
       {/* Expandable filter panel */}
       <div
         id="filter-panel"
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          showFilters ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
-        }`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
+          }`}
       >
         <div className="bg-white rounded-lg shadow-md border border-stone-200 p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -403,11 +392,10 @@ function SearchFilterBar({
                   <button
                     key={cat}
                     onClick={() => onCategoryChange(cat)}
-                    className={`px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${
-                      selectedCategory === cat
+                    className={`px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${selectedCategory === cat
                         ? 'bg-stone-900 text-white border-stone-900'
                         : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                    }`}
+                      }`}
                     aria-pressed={selectedCategory === cat}
                   >
                     {cat}
@@ -426,11 +414,10 @@ function SearchFilterBar({
                   <button
                     key={brand}
                     onClick={() => onBrandChange(brand)}
-                    className={`px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${
-                      selectedBrand === brand
+                    className={`px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${selectedBrand === brand
                         ? 'bg-stone-900 text-white border-stone-900'
                         : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                    }`}
+                      }`}
                     aria-pressed={selectedBrand === brand}
                   >
                     {brand}
@@ -449,11 +436,10 @@ function SearchFilterBar({
                   <button
                     key={type}
                     onClick={() => onSkinTypeChange(type)}
-                    className={`px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${
-                      selectedSkinType === type
+                    className={`px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${selectedSkinType === type
                         ? 'bg-stone-900 text-white border-stone-900'
                         : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                    }`}
+                      }`}
                     aria-pressed={selectedSkinType === type}
                   >
                     {type}

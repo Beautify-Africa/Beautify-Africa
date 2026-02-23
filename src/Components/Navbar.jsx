@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../data/navigation';
 import { SearchIcon, CartIcon, MenuIcon, CloseIcon } from './Icons';
 
-const Navbar = ({ onOpenAuth, onOpenCart }) => {
+const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -128,12 +128,12 @@ const Navbar = ({ onOpenAuth, onOpenCart }) => {
             </button>
 
             {/* Shop Now CTA */}
-            <button
-              onClick={onOpenAuth}
+            <Link
+              to="/shop"
               className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
             >
               Shop Now
-            </button>
+            </Link>
 
             {/* Mobile Menu Toggle */}
             <button
@@ -195,15 +195,13 @@ const Navbar = ({ onOpenAuth, onOpenCart }) => {
           </nav>
 
           {/* Mobile Shop Now CTA */}
-          <button
-            onClick={() => {
-              closeMobileMenu();
-              onOpenAuth();
-            }}
+          <Link
+            to="/shop"
+            onClick={closeMobileMenu}
             className="mb-16 px-10 py-4 bg-stone-900 text-white text-[12px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors"
           >
             Shop Now
-          </button>
+          </Link>
 
           {/* Social Links */}
           <ul className="flex gap-8" aria-label="Social media links">
