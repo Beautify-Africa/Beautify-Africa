@@ -72,14 +72,15 @@ const Navbar = ({ onOpenCart }) => {
               className="text-2xl md:text-3xl font-serif tracking-[0.2em] font-bold text-stone-900 group"
               aria-label={`${NAV_CONFIG.brandName} - Home`}
             >
-              {NAV_CONFIG.brandName}
-              <span
-                className={`
-                  inline-block w-1.5 h-1.5 rounded-full ml-1 bg-amber-600 
-                  transition-all duration-500 ${isScrolled ? 'scale-100' : 'scale-0'}
-                `}
-                aria-hidden="true"
-              />
+              BEAUT
+              <span className="relative inline-block">
+                I
+                <span
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-500"
+                  aria-hidden="true"
+                />
+              </span>
+              FY
             </Link>
           </div>
 

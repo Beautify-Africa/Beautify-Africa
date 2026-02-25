@@ -2,7 +2,7 @@
  * Auth Modal content configuration
  * Centralized data for the AuthModal component
  */
-import authImage from '../../assets/Auth.jpg';
+import authImage from '../assets/Auth.jpg';
 
 export const AUTH_CONTENT = {
   login: {

@@ -30,11 +30,5 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     // Enable CSS code splitting
     cssCodeSplit: true,
-  },
-  // Enable compression
-  server: {
-    headers: {
-      'Cache-Control': 'public, max-age=31536000',
-    },
-  },
+  }
 })

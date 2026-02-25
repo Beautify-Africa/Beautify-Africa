@@ -2,10 +2,11 @@
  * Hero section image configuration
  * Centralized source of truth for all hero imagery
  */
+import heroBg from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.jpg';
 
 export const HERO_BACKGROUND = {
-  src: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=1200&auto=format&fit=crop",
-  alt: "Portrait of a beautiful woman"
+  src: heroBg,
+  alt: "Woman with avocado face mask"
 };
 
 export const HERO_CARDS = [

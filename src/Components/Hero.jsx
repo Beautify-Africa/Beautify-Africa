@@ -54,32 +54,32 @@ const HeroSection = () => {
   return (
     <section
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full overflow-hidden flex flex-col justify-center bg-[#faf9f6]"
+      className="relative min-h-screen w-full overflow-hidden flex flex-col justify-center"
       aria-label="Hero banner"
     >
-      {/* Background Layer */}
+      {/* Full-Section Background Image */}
       <div
-        className="absolute inset-0 z-0 pointer-events-none bg-[#faf9f6]"
-        aria-hidden="true"
-      />
-
-      {/* Portrait Image - Left Side */}
-      <div
-        className="absolute left-4 md:left-8 lg:left-12 top-[10%] bottom-[10%] z-[2] pointer-events-none w-[35%] sm:w-[30%] md:w-[26%] lg:w-[22%] transition-transform duration-700 ease-out"
+        className="absolute inset-0 z-0 pointer-events-none"
         style={{ transform: parallaxTransform }}
         aria-hidden="true"
       >
         <img
           src={HERO_BACKGROUND.src}
           alt=""
-          className="w-full h-full object-cover object-top rounded-md opacity-[0.35]"
+          className="w-full h-full object-cover object-center"
+          style={{ opacity: 0.85 }}
           fetchpriority="high"
           loading="eager"
           decoding="async"
         />
-        <div className="absolute inset-0 rounded-md bg-gradient-to-r from-transparent to-[#faf9f6]/70" />
-        <div className="absolute inset-0 rounded-md bg-gradient-to-b from-[#faf9f6]/30 via-transparent to-[#faf9f6]/50" />
       </div>
+
+      {/* Subtle overlay — soft darkness left-side only so headline is readable */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0) 70%)' }}
+        aria-hidden="true"
+      />
 
       {/* Gold Dust Particles */}
       <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden" aria-hidden="true">
@@ -264,7 +264,7 @@ const HeroSection = () => {
 
           <nav className="flex flex-col sm:flex-row items-center gap-8 relative z-20" aria-label="Hero actions">
             <InteractiveButton label="Shop the Archive" primary />
-            <button 
+            <button
               className="group flex items-center gap-4 py-4 text-[10px] font-bold uppercase tracking-[0.4em] text-stone-900"
               aria-label="Explore the Lab - Learn about our science and research"
             >
