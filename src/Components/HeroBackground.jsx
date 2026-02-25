@@ -30,19 +30,19 @@ const HeroBackground = ({ parallaxTransform }) => {
                     src={HERO_BACKGROUND.src}
                     alt=""
                     className="w-full h-full object-cover object-center"
-                    style={{ opacity: 0.85 }}
+                    style={{ opacity: 1 }}
                     fetchpriority="high"
                     loading="eager"
                     decoding="async"
                 />
             </div>
 
-            {/* Left-side gradient overlay for text readability */}
+            {/* Warm left-side wash — keeps text legible without darkening the image */}
             <div
                 className="absolute inset-0 z-[1] pointer-events-none"
                 style={{
                     background:
-                        'linear-gradient(to right, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0) 70%)',
+                        'linear-gradient(to right, rgba(250,247,242,0.55) 0%, rgba(250,247,242,0.25) 45%, rgba(250,247,242,0) 65%)',
                 }}
                 aria-hidden="true"
             />

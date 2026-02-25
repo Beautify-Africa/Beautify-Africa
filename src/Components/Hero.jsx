@@ -53,7 +53,7 @@ const HeroSection = () => {
       >
         <header>
           <FadeIn delay={0.2} direction="up">
-            <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-800 mb-6 block">
+            <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-900 mb-6 block">
               {HERO_COPY.collectionLabel}
             </span>
           </FadeIn>
@@ -79,7 +79,7 @@ const HeroSection = () => {
         </header>
 
         <FadeIn delay={0.6} direction="up" className="max-w-xl">
-          <p className="text-lg md:text-2xl text-stone-700 font-light leading-relaxed mb-12 relative z-20">
+          <p className="text-lg md:text-2xl text-stone-900 font-normal leading-relaxed mb-12 relative z-20">
             {HERO_COPY.subtitle}
           </p>
 
