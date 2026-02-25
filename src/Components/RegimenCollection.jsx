@@ -85,9 +85,9 @@ const RegimenCollection = () => {
         <div className="absolute left-1/2 top-0 bottom-0 w-px border-l border-dashed border-stone-300/50 -translate-x-1/2" />
 
         {/* Ghost step numbers */}
-        <span className="absolute top-8 left-[5%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.03] leading-none select-none">01</span>
-        <span className="absolute top-1/3 right-[4%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.03] leading-none select-none">02</span>
-        <span className="absolute bottom-8 left-[8%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.03] leading-none select-none">03</span>
+        <span className="absolute top-8 left-[5%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.08] leading-none select-none">01</span>
+        <span className="absolute top-1/3 right-[4%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.08] leading-none select-none">02</span>
+        <span className="absolute bottom-8 left-[8%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.08] leading-none select-none">03</span>
       </div>
 
       {/* Section Header */}

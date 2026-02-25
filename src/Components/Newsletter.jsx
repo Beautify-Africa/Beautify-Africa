@@ -42,11 +42,11 @@ const Newsletter = () => {
               className="absolute inset-0 pointer-events-none"
               aria-hidden="true"
               style={{
-                backgroundImage: 'radial-gradient(circle, rgba(180,140,80,0.35) 1px, transparent 1px)',
+                backgroundImage: 'radial-gradient(circle, rgba(160,110,40,0.55) 1.5px, transparent 1.5px)',
                 backgroundSize: '22px 22px',
                 maskImage: 'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
                 WebkitMaskImage: 'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
-                opacity: 0.45,
+                opacity: 0.7,
               }}
             />
 

@@ -110,13 +110,13 @@ const TheJournal = () => {
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
         style={{
-          backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, rgba(168,162,158,0.15) 39px, rgba(168,162,158,0.15) 40px)',
+          backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, rgba(168,162,158,0.30) 39px, rgba(168,162,158,0.30) 40px)',
           backgroundSize: '100% 40px',
         }}
       />
       {/* Giant decorative drop-cap */}
       <span
-        className="absolute -top-8 right-0 md:right-4 text-[clamp(160px,25vw,320px)] font-serif font-bold leading-none text-stone-900 opacity-[0.03] pointer-events-none select-none"
+        className="absolute -top-8 right-0 md:right-4 text-[clamp(160px,25vw,320px)] font-serif font-bold leading-none text-stone-900 opacity-[0.07] pointer-events-none select-none"
         aria-hidden="true"
       >
         J

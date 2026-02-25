@@ -151,7 +151,7 @@ const FeaturedCollections = () => {
       {/* ── Botanical corner accents ── */}
 
       {/* Top-left: Shea leaf */}
-      <svg aria-hidden="true" className="absolute -top-6 -left-6 w-48 md:w-72 opacity-[0.045] text-stone-900 pointer-events-none animate-float-slow" viewBox="0 0 200 260" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg aria-hidden="true" className="absolute -top-6 -left-6 w-48 md:w-72 opacity-[0.10] text-stone-900 pointer-events-none animate-float-slow" viewBox="0 0 200 260" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M100 240 C100 240 20 160 30 80 C40 20 100 10 100 10 C100 10 160 20 170 80 C180 160 100 240 100 240Z" />
         <path d="M100 240 L100 10" />
         <path d="M100 80 C80 60 50 55 30 80" />
@@ -163,7 +163,7 @@ const FeaturedCollections = () => {
       </svg>
 
       {/* Top-right: Aloe branch */}
-      <svg aria-hidden="true" className="absolute -top-4 -right-8 w-44 md:w-64 opacity-[0.04] text-stone-900 pointer-events-none animate-float-slow" style={{ animationDelay: '1.5s' }} viewBox="0 0 200 280" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg aria-hidden="true" className="absolute -top-4 -right-8 w-44 md:w-64 opacity-[0.09] text-stone-900 pointer-events-none animate-float-slow" style={{ animationDelay: '1.5s' }} viewBox="0 0 200 280" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M100 270 L100 40" />
         <path d="M100 40 C100 40 60 10 30 30" />
         <path d="M100 40 C100 40 140 10 170 30" />
@@ -176,7 +176,7 @@ const FeaturedCollections = () => {
       </svg>
 
       {/* Bottom-left: Fern frond */}
-      <svg aria-hidden="true" className="absolute bottom-0 -left-4 w-40 md:w-60 opacity-[0.04] text-stone-900 pointer-events-none animate-float-slow" style={{ animationDelay: '3s' }} viewBox="0 0 180 260" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg aria-hidden="true" className="absolute bottom-0 -left-4 w-40 md:w-60 opacity-[0.09] text-stone-900 pointer-events-none animate-float-slow" style={{ animationDelay: '3s' }} viewBox="0 0 180 260" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M90 250 C90 250 90 30 90 10" />
         <path d="M90 50 Q50 30 20 50 Q50 45 90 70" />
         <path d="M90 90 Q45 65 10 85 Q45 80 90 110" />
@@ -186,7 +186,7 @@ const FeaturedCollections = () => {
       </svg>
 
       {/* Bottom-right: Baobab silhouette */}
-      <svg aria-hidden="true" className="absolute bottom-0 -right-4 w-36 md:w-56 opacity-[0.04] text-stone-900 pointer-events-none animate-float-slow" style={{ animationDelay: '4.5s' }} viewBox="0 0 160 240" fill="none" stroke="currentColor" strokeWidth="1">
+      <svg aria-hidden="true" className="absolute bottom-0 -right-4 w-36 md:w-56 opacity-[0.09] text-stone-900 pointer-events-none animate-float-slow" style={{ animationDelay: '4.5s' }} viewBox="0 0 160 240" fill="none" stroke="currentColor" strokeWidth="1">
         <path d="M80 240 L80 100" />
         <path d="M80 100 L40 60" />
         <path d="M80 100 L120 60" />
