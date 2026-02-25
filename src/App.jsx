@@ -36,6 +36,14 @@ function App() {
   return (
     <HelmetProvider>
       <BrowserRouter>
+        {/* Skip-to-content link — visible only on keyboard focus */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:px-6 focus:py-3 focus:bg-stone-900 focus:text-white focus:text-xs focus:font-bold focus:uppercase focus:tracking-widest focus:rounded-sm focus:shadow-xl"
+        >
+          Skip to main content
+        </a>
+
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<HomePage onOpenAuth={openAuth} />} />

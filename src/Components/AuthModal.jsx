@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useNavigate } from 'react-router-dom';
 import { CloseIcon } from './Icons';
 import {
@@ -100,6 +101,16 @@ export default function AuthModal({ isOpen, onClose }) {
   const [password, setPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  const trapRef = useFocusTrap(isOpen);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
   const content = isLogin ? AUTH_CONTENT.login : AUTH_CONTENT.register;
 
   const toggleMode = useCallback(() => {
@@ -114,7 +125,7 @@ export default function AuthModal({ isOpen, onClose }) {
     e.preventDefault();
     // TODO: Implement actual authentication logic
     console.log(isLogin ? 'Login' : 'Register', { email, password });
-    
+
     // On successful auth, close modal and navigate to shop
     onClose();
     navigate('/shop');
@@ -143,7 +154,7 @@ export default function AuthModal({ isOpen, onClose }) {
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-4xl bg-[#faf9f6] rounded-sm shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-fade-in-up">
+      <div ref={trapRef} className="relative w-full max-w-4xl bg-[#faf9f6] rounded-sm shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-fade-in-up">
         {/* Close Button */}
         <button
           onClick={onClose}

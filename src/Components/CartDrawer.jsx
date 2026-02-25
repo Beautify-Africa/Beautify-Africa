@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { CloseIcon, PlusIcon, MinusIcon } from './Icons';
 import { CART_CONTENT, MOCK_CART_ITEMS } from '../data/cartContent';
+import CheckoutModal from './CheckoutModal';
 
 /**
  * Individual cart item
@@ -85,7 +87,7 @@ function EmptyCart({ onClose }) {
 /**
  * Cart footer with subtotal and checkout
  */
-function CartFooter({ subtotal }) {
+function CartFooter({ subtotal, onCheckout }) {
   return (
     <div className="p-6 md:p-8 bg-white border-t border-stone-100">
       <div className="flex justify-between items-center mb-6">
@@ -100,6 +102,7 @@ function CartFooter({ subtotal }) {
         {CART_CONTENT.shippingNote}
       </p>
       <button
+        onClick={onCheckout}
         className="w-full bg-stone-900 text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500"
         aria-label="Proceed to checkout"
       >
@@ -113,8 +116,18 @@ function CartFooter({ subtotal }) {
  * CartDrawer - Slide-out shopping cart
  */
 export default function CartDrawer({ isOpen, onClose }) {
-  // In production, this would come from cart context/state
   const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const trapRef = useFocusTrap(isOpen);
+
+  // Close drawer on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
@@ -134,22 +147,26 @@ export default function CartDrawer({ isOpen, onClose }) {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleCheckout = () => {
+    onClose();
+    setTimeout(() => setIsCheckoutOpen(true), 350);
+  };
+
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[150] bg-stone-900/40 backdrop-blur-sm transition-opacity duration-500 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-[150] bg-stone-900/40 backdrop-blur-sm transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Drawer */}
       <aside
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-[#faf9f6] z-[160] shadow-2xl transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        ref={trapRef}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-[#faf9f6] z-[160] shadow-2xl transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
@@ -183,13 +200,20 @@ export default function CartDrawer({ isOpen, onClose }) {
                   />
                 ))}
               </div>
-              <CartFooter subtotal={subtotal} />
+              <CartFooter subtotal={subtotal} onCheckout={handleCheckout} />
             </>
           ) : (
             <EmptyCart onClose={onClose} />
           )}
         </div>
       </aside>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        cartItems={cartItems}
+      />
     </>
   );
 }
