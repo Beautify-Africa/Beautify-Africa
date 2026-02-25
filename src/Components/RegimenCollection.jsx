@@ -76,9 +76,20 @@ const RegimenCollection = () => {
   return (
     <section
       id="regimen"
-      className="py-16 md:py-32 bg-[#F2F0EB] overflow-hidden border-t border-stone-200"
+      className="relative py-16 md:py-32 bg-[#F2F0EB] overflow-hidden border-t border-stone-200"
       aria-labelledby="regimen-heading"
     >
+      {/* ── Ghost step numbers + editorial connector ── */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" aria-hidden="true">
+        {/* Vertical dotted connector */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px border-l border-dashed border-stone-300/50 -translate-x-1/2" />
+
+        {/* Ghost step numbers */}
+        <span className="absolute top-8 left-[5%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.03] leading-none select-none">01</span>
+        <span className="absolute top-1/3 right-[4%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.03] leading-none select-none">02</span>
+        <span className="absolute bottom-8 left-[8%] text-[clamp(80px,18vw,200px)] font-serif font-bold text-stone-900 opacity-[0.03] leading-none select-none">03</span>
+      </div>
+
       {/* Section Header */}
       <header className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-12 mb-12 md:mb-20">
         <FadeIn as="div" className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4 md:space-y-6">

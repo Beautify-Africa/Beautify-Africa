@@ -36,7 +36,20 @@ const Newsletter = () => {
           </figure>
 
           {/* Content Section */}
-          <div className="w-full lg:w-7/12 p-8 sm:p-10 md:p-16 lg:p-24 flex flex-col justify-center relative">
+          <div className="w-full lg:w-7/12 p-8 sm:p-10 md:p-16 lg:p-24 flex flex-col justify-center relative overflow-hidden">
+            {/* Radial dot-grid background */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              aria-hidden="true"
+              style={{
+                backgroundImage: 'radial-gradient(circle, rgba(180,140,80,0.35) 1px, transparent 1px)',
+                backgroundSize: '22px 22px',
+                maskImage: 'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
+                WebkitMaskImage: 'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
+                opacity: 0.45,
+              }}
+            />
+
             {/* Decorative Icon */}
             <div
               className="absolute top-6 right-6 md:top-10 md:right-10 opacity-5 pointer-events-none hidden sm:block"

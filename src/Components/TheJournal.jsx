@@ -102,9 +102,26 @@ const TheJournal = () => {
   return (
     <section
       id="journal"
-      className="py-16 md:py-32 px-4 sm:px-6 md:px-12 bg-[#faf9f6] border-t border-stone-200"
+      className="relative py-16 md:py-32 px-4 sm:px-6 md:px-12 bg-[#faf9f6] border-t border-stone-200 overflow-hidden"
       aria-labelledby="journal-heading"
     >
+      {/* ── Editorial background: ruled lines + drop-cap ── */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        aria-hidden="true"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, rgba(168,162,158,0.15) 39px, rgba(168,162,158,0.15) 40px)',
+          backgroundSize: '100% 40px',
+        }}
+      />
+      {/* Giant decorative drop-cap */}
+      <span
+        className="absolute -top-8 right-0 md:right-4 text-[clamp(160px,25vw,320px)] font-serif font-bold leading-none text-stone-900 opacity-[0.03] pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        J
+      </span>
+
       <div className="max-w-[1400px] mx-auto">
         {/* Section Header */}
         <FadeIn as="header" className="flex flex-col items-center text-center mb-12 md:mb-20 space-y-4 md:space-y-6">

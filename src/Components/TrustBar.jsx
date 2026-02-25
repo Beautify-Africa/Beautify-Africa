@@ -69,33 +69,8 @@ const TrustBar = () => {
       aria-labelledby="usp-heading"
       id="trust"
     >
-      {/* ── Spotlight beam ── */}
-      {/* Outer sweep cone */}
-      <div
-        className="absolute top-0 left-1/2 pointer-events-none animate-spotlight-sweep"
-        aria-hidden="true"
-        style={{
-          width: '600px',
-          height: '520px',
-          transformOrigin: 'top center',
-          background:
-            'conic-gradient(from -12deg at 50% 0%, transparent 0deg, rgba(217,119,6,0.18) 12deg, rgba(251,191,36,0.28) 18deg, rgba(217,119,6,0.18) 24deg, transparent 36deg)',
-          filter: 'blur(6px)',
-        }}
-      />
-      {/* Inner bright pin — apex glow */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none animate-spotlight-glow"
-        aria-hidden="true"
-        style={{
-          width: '180px',
-          height: '3px',
-          background:
-            'linear-gradient(to right, transparent, rgba(251,191,36,0.9) 40%, rgba(255,255,255,0.95) 50%, rgba(251,191,36,0.9) 60%, transparent)',
-          filter: 'blur(3px)',
-          boxShadow: '0 0 18px 6px rgba(251,191,36,0.45)',
-        }}
-      />
+      {/* Clean amber accent line */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" aria-hidden="true" />
 
       <div className="max-w-[1400px] mx-auto">
         {/* Section Header */}

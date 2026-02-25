@@ -10,9 +10,11 @@
     transform: translateY(0) rotate(0deg);
     opacity: 0;
   }
+
   50% {
     opacity: 0.6;
   }
+
   100% {
     transform: translateY(-100vh) rotate(360deg);
     opacity: 0;
@@ -25,6 +27,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -52,6 +55,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -75,6 +79,7 @@
   0% {
     transform: translateX(0);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -98,6 +103,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -108,6 +114,7 @@
     opacity: 0;
     transform: translateY(40px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -167,6 +174,7 @@
   from {
     width: 0%;
   }
+
   to {
     width: 100%;
   }
@@ -183,24 +191,76 @@
    ======================================== */
 
 @keyframes spotlight-sweep {
-  0%   { transform: translateX(-50%) rotate(-18deg) scaleX(1);   opacity: 0.55; }
-  25%  { transform: translateX(-50%) rotate(0deg)   scaleX(1.1); opacity: 0.75; }
-  50%  { transform: translateX(-50%) rotate(18deg)  scaleX(1);   opacity: 0.55; }
-  75%  { transform: translateX(-50%) rotate(0deg)   scaleX(1.1); opacity: 0.75; }
-  100% { transform: translateX(-50%) rotate(-18deg) scaleX(1);   opacity: 0.55; }
+  0% {
+    transform: translateX(-50%) rotate(-18deg) scaleX(1);
+    opacity: 0.55;
+  }
+
+  25% {
+    transform: translateX(-50%) rotate(0deg) scaleX(1.1);
+    opacity: 0.75;
+  }
+
+  50% {
+    transform: translateX(-50%) rotate(18deg) scaleX(1);
+    opacity: 0.55;
+  }
+
+  75% {
+    transform: translateX(-50%) rotate(0deg) scaleX(1.1);
+    opacity: 0.75;
+  }
+
+  100% {
+    transform: translateX(-50%) rotate(-18deg) scaleX(1);
+    opacity: 0.55;
+  }
 }
 
 @keyframes spotlight-glow {
-  0%, 100% { opacity: 0.7; }
-  50%       { opacity: 1;   }
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @layer utilities {
   .animate-spotlight-sweep {
     animation: spotlight-sweep 6s ease-in-out infinite;
   }
+
   .animate-spotlight-glow {
     animation: spotlight-glow 3s ease-in-out infinite;
   }
 }
 
+/* ========================================
+   Botanical Float Animation
+   ======================================== */
+
+@keyframes float-slow {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+
+  66% {
+    transform: translateY(-5px) rotate(-0.5deg);
+  }
+}
+
+@layer utilities {
+  .animate-float-slow {
+    animation: float-slow 8s ease-in-out infinite;
+  }
+}
