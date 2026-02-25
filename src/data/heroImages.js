@@ -72,3 +72,18 @@ export const HERO_CONFIG = {
   parallaxIntensity: 50,
   parallaxScale: 1.2,
 };
+
+/** All editorial copy shown in the hero section */
+export const HERO_COPY = {
+  collectionLabel: "Archive Summer '25 Collection",
+  headlineParts: ['The', 'Radiance', 'Report.'],
+  subtitle: 'Merging molecular botanical science with the artistry of velvet pigments. A new standard for the illuminating ritual.',
+  priceLabel: 'Starting At',
+  priceValue: '$42.00',
+  primaryCta: 'Shop the Archive',
+  secondaryCta: 'Explore the Lab',
+  secondaryCtaAriaLabel: 'Explore the Lab - Learn about our science and research',
+  featuredLabel: 'Featured Masterpiece',
+  featuredProduct: 'The Velvet Botanique No. 4',
+  scrollHint: 'Scroll',
+};
