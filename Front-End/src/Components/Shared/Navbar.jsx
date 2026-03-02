@@ -9,8 +9,8 @@ const Navbar = ({ onOpenCart }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Check if we're on the home page
-  const isHomePage = location.pathname === '/';
+  // Show landing-page items only when NOT on the shop page
+  const isShopPage = location.pathname === '/shop';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,10 +25,9 @@ const Navbar = ({ onOpenCart }) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);
 
-    // If not on home page, navigate to home first then scroll
+    const isHomePage = location.pathname === '/';
     if (!isHomePage) {
       navigate('/');
-      // Wait for navigation, then scroll
       setTimeout(() => {
         const element = document.getElementById(id);
         if (element) {
@@ -48,7 +47,7 @@ const Navbar = ({ onOpenCart }) => {
         behavior: 'smooth',
       });
     }
-  }, [isHomePage, navigate]);
+  }, [location.pathname, navigate]);
 
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
@@ -84,34 +83,38 @@ const Navbar = ({ onOpenCart }) => {
             </Link>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <ul className="hidden lg:flex items-center gap-14 text-[10px] uppercase tracking-[0.4em] font-bold text-stone-600">
-            {NAV_LINKS.map((link) => (
-              <li key={link.id}>
-                <a
-                  href={`#${link.id}`}
-                  onClick={(e) => scrollToSection(e, link.id)}
-                  className="hover:text-amber-800 transition-colors relative group"
-                >
-                  {link.name}
-                  <span
-                    className="absolute -bottom-1 left-0 w-0 h-[1px] bg-amber-800 transition-all duration-500 group-hover:w-full"
-                    aria-hidden="true"
-                  />
-                </a>
-              </li>
-            ))}
-          </ul>
+          {/* Desktop Navigation Links — visible on landing page only */}
+          {!isShopPage && (
+            <ul className="hidden lg:flex items-center gap-14 text-[10px] uppercase tracking-[0.4em] font-bold text-stone-600">
+              {NAV_LINKS.map((link) => (
+                <li key={link.id}>
+                  <a
+                    href={`#${link.id}`}
+                    onClick={(e) => scrollToSection(e, link.id)}
+                    className="hover:text-amber-800 transition-colors relative group"
+                  >
+                    {link.name}
+                    <span
+                      className="absolute -bottom-1 left-0 w-0 h-[1px] bg-amber-800 transition-all duration-500 group-hover:w-full"
+                      aria-hidden="true"
+                    />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* Action Icons */}
           <div className="flex-1 flex justify-end items-center gap-6 md:gap-8">
-            {/* Search */}
-            <button
-              className="hidden sm:block text-stone-800 hover:text-amber-800 transition-colors"
-              aria-label="Search products"
-            >
-              <SearchIcon />
-            </button>
+            {/* Search — visible on landing page only */}
+            {!isShopPage && (
+              <button
+                className="hidden sm:block text-stone-800 hover:text-amber-800 transition-colors"
+                aria-label="Search products"
+              >
+                <SearchIcon />
+              </button>
+            )}
 
             {/* Cart */}
             <button
@@ -128,13 +131,15 @@ const Navbar = ({ onOpenCart }) => {
               </span>
             </button>
 
-            {/* Shop Now CTA */}
-            <Link
-              to="/shop"
-              className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
-            >
-              Shop Now
-            </Link>
+            {/* Shop Now CTA — visible on landing page only */}
+            {!isShopPage && (
+              <Link
+                to="/shop"
+                className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
+              >
+                Shop Now
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button
@@ -177,32 +182,36 @@ const Navbar = ({ onOpenCart }) => {
             {NAV_CONFIG.tagline}
           </span>
 
-          {/* Mobile Nav Links */}
-          <nav aria-label="Mobile navigation">
-            <ul className="flex flex-col gap-8 mb-20">
-              {NAV_LINKS.map((link, index) => (
-                <li key={link.id}>
-                  <a
-                    href={`#${link.id}`}
-                    onClick={(e) => scrollToSection(e, link.id)}
-                    className="text-4xl sm:text-5xl font-serif text-stone-900 hover:text-amber-800 transition-colors duration-500"
-                    style={{ transitionDelay: `${index * 100}ms` }}
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* Mobile Nav Links — visible on landing page only */}
+          {!isShopPage && (
+            <nav aria-label="Mobile navigation">
+              <ul className="flex flex-col gap-8 mb-20">
+                {NAV_LINKS.map((link, index) => (
+                  <li key={link.id}>
+                    <a
+                      href={`#${link.id}`}
+                      onClick={(e) => scrollToSection(e, link.id)}
+                      className="text-4xl sm:text-5xl font-serif text-stone-900 hover:text-amber-800 transition-colors duration-500"
+                      style={{ transitionDelay: `${index * 100}ms` }}
+                    >
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
 
-          {/* Mobile Shop Now CTA */}
-          <Link
-            to="/shop"
-            onClick={closeMobileMenu}
-            className="mb-16 px-10 py-4 bg-stone-900 text-white text-[12px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors"
-          >
-            Shop Now
-          </Link>
+          {/* Mobile Shop Now CTA — visible on landing page only */}
+          {!isShopPage && (
+            <Link
+              to="/shop"
+              onClick={closeMobileMenu}
+              className="mb-16 px-10 py-4 bg-stone-900 text-white text-[12px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors"
+            >
+              Shop Now
+            </Link>
+          )}
 
           {/* Social Links */}
           <ul className="flex gap-8" aria-label="Social media links">

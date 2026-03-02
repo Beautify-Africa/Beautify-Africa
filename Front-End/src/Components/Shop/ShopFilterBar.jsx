@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { SearchIcon } from '../Shared/Icons';
-import { CATEGORIES, BRANDS, SKIN_TYPES, SORT_OPTIONS, PRICE_RANGE, FILTER_LABELS } from '../../data/shopData';
+import { BRANDS, SKIN_TYPES, SORT_OPTIONS, PRICE_RANGE, FILTER_LABELS } from '../../data/shopData';
 
 /**
  * Price range slider used inside the filter panel
@@ -29,7 +29,6 @@ function PriceRangeSlider({ value, max, onChange }) {
 export default function ShopFilterBar({
     searchQuery, onSearchChange,
     sortOption, onSortChange,
-    selectedCategory, onCategoryChange,
     selectedBrand, onBrandChange,
     selectedSkinType, onSkinTypeChange,
     maxPrice, onMaxPriceChange,
@@ -39,11 +38,10 @@ export default function ShopFilterBar({
     const filterRef = useRef(null);
 
     const hasActiveFilters =
-        selectedCategory !== 'All' || selectedBrand !== 'All' ||
+        selectedBrand !== 'All' ||
         selectedSkinType !== 'All' || maxPrice < PRICE_RANGE.max;
 
     const activeFilterCount = [
-        selectedCategory !== 'All',
         selectedBrand !== 'All',
         selectedSkinType !== 'All',
         maxPrice < PRICE_RANGE.max,
@@ -142,19 +140,7 @@ export default function ShopFilterBar({
                 aria-hidden={!showFilters}
             >
                 <div className="bg-white rounded-lg shadow-md border border-stone-200 p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* Category */}
-                        <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{FILTER_LABELS.category}</h3>
-                            <div className="flex flex-wrap gap-1.5">
-                                {CATEGORIES.map((cat) => (
-                                    <button key={cat} onClick={() => onCategoryChange(cat)}
-                                        className={chipClass(selectedCategory === cat)} aria-pressed={selectedCategory === cat}>
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* Brand */}
                         <div>
                             <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{FILTER_LABELS.brand}</h3>
