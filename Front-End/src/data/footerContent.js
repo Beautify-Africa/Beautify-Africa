@@ -10,11 +10,23 @@ export const FOOTER_BRAND = {
 };
 
 export const SOCIAL_LINKS = [
-  { name: 'Instagram', href: 'https://instagram.com' },
-  { name: 'TikTok', href: 'https://tiktok.com' },
-  { name: 'Pinterest', href: 'https://pinterest.com' },
-  { name: 'YouTube', href: 'https://youtube.com' },
+  { name: 'Instagram', href: 'https://instagram.com', color: '#C13584' },
+  { name: 'TikTok',   href: 'https://tiktok.com',   color: '#69C9D0' },
+  { name: 'Pinterest',href: 'https://pinterest.com', color: '#E60023' },
+  { name: 'YouTube',  href: 'https://youtube.com',   color: '#FF0000' },
+  { name: 'Facebook', href: 'https://facebook.com',  color: '#1877F2' },
+  { name: 'X',        href: 'https://x.com',         color: '#e7e7e7' },
 ];
+
+export const ROTATING_SOCIAL_SENTENCE = {
+  prefix: 'Born of the continent, find us glowing on',
+  suffix: '\u2014 where beauty is sacred.',
+};
+
+export const SOCIAL_ROTATION_CONFIG = {
+  intervalMs: 3000,
+  transitionMs: 400,
+};
 
 export const FOOTER_NAV_SECTIONS = [
   {

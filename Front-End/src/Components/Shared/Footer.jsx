@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
   FOOTER_BRAND,
   SOCIAL_LINKS,
@@ -6,8 +7,73 @@ import {
   LOCALE_CONFIG,
   PAYMENT_METHODS,
   COPYRIGHT,
+  ROTATING_SOCIAL_SENTENCE,
+  SOCIAL_ROTATION_CONFIG,
 } from '../../data/footerContent';
 import FadeIn from './FadeIn';
+import {
+  InstagramIcon,
+  TikTokIcon,
+  PinterestIcon,
+  YouTubeIcon,
+  FacebookIcon,
+  XIcon,
+} from './Icons';
+
+const ICON_MAP = [InstagramIcon, TikTokIcon, PinterestIcon, YouTubeIcon, FacebookIcon, XIcon];
+
+const SOCIAL_ICONS = SOCIAL_LINKS.map((link, i) => ({ ...link, Icon: ICON_MAP[i] }));
+
+function RotatingSocialSentence() {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % SOCIAL_ICONS.length);
+        setVisible(true);
+      }, SOCIAL_ROTATION_CONFIG.transitionMs);
+    }, SOCIAL_ROTATION_CONFIG.intervalMs);
+    return () => clearInterval(interval);
+  }, []);
+
+  const current = SOCIAL_ICONS[index];
+  const { Icon } = current;
+
+  return (
+    <p className="font-serif italic text-base md:text-lg text-stone-400 leading-relaxed">
+      {ROTATING_SOCIAL_SENTENCE.prefix}{' '}
+      <a
+        href={current.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Follow us on ${current.name}`}
+        className="inline-flex items-center justify-center relative align-middle mx-1 group"
+      >
+        <span
+          style={{
+            color: current.color,
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0) scale(1)' : 'translateY(-6px) scale(0.7)',
+            transition: 'opacity 0.4s ease, transform 0.4s ease, filter 0.3s ease',
+            display: 'inline-flex',
+            filter: 'drop-shadow(0 0 6px currentColor)',
+          }}
+        >
+          <Icon className="w-5 h-5 md:w-6 md:h-6 transition-colors duration-300" />
+        </span>
+        <span
+          className="absolute -bottom-0.5 left-0 w-0 h-[1px] transition-all duration-300 group-hover:w-full"
+          style={{ backgroundColor: current.color }}
+          aria-hidden="true"
+        />
+      </a>
+      {' '}{ROTATING_SOCIAL_SENTENCE.suffix}
+    </p>
+  );
+}
 
 /**
  * Brand section with logo, tagline, and social links
@@ -25,26 +91,7 @@ function BrandSection() {
       <p className="font-serif italic text-lg md:text-xl text-stone-500 mb-8 md:mb-12 font-light">
         {FOOTER_BRAND.tagline}
       </p>
-      <nav aria-label="Social media links">
-        <ul className="flex flex-wrap items-center gap-6 md:gap-8">
-          {SOCIAL_LINKS.map((social) => (
-            <li key={social.name}>
-              <a
-                href={social.href}
-                className="text-[10px] font-bold uppercase tracking-[0.2em] hover:text-[#faf9f6] transition-colors relative group"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {social.name}
-                <span
-                  className="absolute -bottom-2 left-0 w-0 h-[1px] bg-[#faf9f6] transition-all duration-300 group-hover:w-full"
-                  aria-hidden="true"
-                />
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <RotatingSocialSentence />
     </div>
   );
 }
