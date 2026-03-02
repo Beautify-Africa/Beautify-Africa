@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import StepIndicator from './StepIndicator';
+import AuthGateStep from './AuthGateStep';
 import ShippingStep from './ShippingStep';
 import PaymentStep from './PaymentStep';
 import ConfirmationStep from './ConfirmationStep';
 import { validateShipping, validatePayment, generateOrderNumber, INITIAL_SHIPPING, INITIAL_PAYMENT } from '../../data/checkoutUtils';
 
 /**
- * CheckoutModal — orchestrates the 3-step checkout flow
+ * CheckoutModal — orchestrates the checkout flow:
+ *   Step 0: Auth Gate (Login / Register / Guest)
+ *   Step 1: Shipping
+ *   Step 2: Payment
+ *   Step 3: Confirmation
  */
 export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(0);
+    const [isGuest, setIsGuest] = useState(true);
     const [errors, setErrors] = useState({});
     const [orderNumber, setOrderNumber] = useState('');
     const [shipping, setShipping] = useState(INITIAL_SHIPPING);
@@ -28,6 +34,13 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
         if (errors[field]) setErrors((prev) => { const e = { ...prev }; delete e[field]; return e; });
     };
 
+    /* Step 0 → Step 1 */
+    const handleAuthContinue = ({ isGuest: guest }) => {
+        setIsGuest(guest);
+        setStep(1);
+    };
+
+    /* Step 1 → Step 2 */
     const handleShippingNext = () => {
         const e = validateShipping(shipping);
         if (Object.keys(e).length) { setErrors(e); return; }
@@ -35,6 +48,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
         setStep(2);
     };
 
+    /* Step 2 → Step 3 */
     const handlePlaceOrder = () => {
         const e = validatePayment(payment);
         if (Object.keys(e).length) { setErrors(e); return; }
@@ -47,7 +61,8 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
         onClose();
         // Reset for next open
         setTimeout(() => {
-            setStep(1);
+            setStep(0);
+            setIsGuest(true);
             setErrors({});
             setShipping(INITIAL_SHIPPING);
             setPayment(INITIAL_PAYMENT);
@@ -79,7 +94,9 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
                 {/* Header */}
                 <div className="sticky top-0 bg-white z-10 px-8 pt-8 pb-4 border-b border-stone-100">
                     <div className="flex items-center justify-between mb-6">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400">Checkout</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400">
+                            {step === 0 ? 'Welcome' : 'Checkout'}
+                        </span>
                         {step < 3 && (
                             <button
                                 onClick={handleClose}
@@ -92,11 +109,16 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
                             </button>
                         )}
                     </div>
-                    <StepIndicator step={step} />
+                    {/* Only show step indicator for steps 1-3 */}
+                    {step >= 1 && <StepIndicator step={step} />}
                 </div>
 
                 {/* Body */}
                 <div className="px-8 py-6">
+                    {step === 0 && (
+                        <AuthGateStep onContinue={handleAuthContinue} />
+                    )}
+
                     {step === 1 && (
                         <>
                             <ShippingStep data={shipping} onChange={updateShipping} errors={errors} />
@@ -134,6 +156,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
                             orderNumber={orderNumber}
                             cartItems={cartItems}
                             shipping={shipping}
+                            isGuest={isGuest}
                             onClose={handleClose}
                         />
                     )}
@@ -142,4 +165,3 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
         </div>
     );
 }
-

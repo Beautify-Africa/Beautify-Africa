@@ -1,11 +1,71 @@
+import { useState } from 'react';
 import { CHECKOUT_COPY } from '../../data/checkoutContent';
+import { GUEST_CONVERSION } from '../../data/checkoutGateContent';
 
 const { confirmation: C } = CHECKOUT_COPY;
 
 /**
- * Step 3 — Order confirmation with animated checkmark, order summary, and delivery estimate
+ * Guest-to-account conversion prompt — shown only for guest checkouts
  */
-export default function ConfirmationStep({ orderNumber, cartItems, shipping, onClose }) {
+function GuestConversion({ email }) {
+    const [password, setPassword] = useState('');
+    const [created, setCreated] = useState(false);
+
+    const handleCreate = (e) => {
+        e.preventDefault();
+        // TODO: wire up real account creation API
+        console.log('Create account for guest:', { email, password });
+        setCreated(true);
+    };
+
+    if (created) {
+        return (
+            <div className="mt-8 p-6 bg-amber-50 border border-amber-200 rounded-sm text-center animate-fade-in">
+                <div className="w-10 h-10 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h4 className="font-serif text-lg text-stone-900 mb-1">{GUEST_CONVERSION.successHeading}</h4>
+                <p className="text-xs text-stone-500">{GUEST_CONVERSION.successMessage}</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-8 p-6 bg-stone-50 border border-stone-200 rounded-sm animate-fade-in">
+            <h4 className="font-serif text-lg text-stone-900 mb-1 text-center">{GUEST_CONVERSION.heading}</h4>
+            <p className="text-xs text-stone-500 text-center mb-5">{GUEST_CONVERSION.description}</p>
+
+            <form onSubmit={handleCreate} className="space-y-4">
+                <div className="relative">
+                    <input
+                        type="password"
+                        id="guest-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="peer w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder-stone-300 focus:outline-none focus:border-stone-900 transition-colors rounded-sm"
+                        placeholder={GUEST_CONVERSION.passwordPlaceholder}
+                        required
+                        minLength={6}
+                    />
+                </div>
+                <button
+                    type="submit"
+                    className="w-full bg-stone-900 text-white py-3 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
+                >
+                    {GUEST_CONVERSION.submitLabel}
+                </button>
+            </form>
+        </div>
+    );
+}
+
+/**
+ * Step 3 — Order confirmation with animated checkmark, order summary, delivery estimate,
+ * and optional guest-to-account conversion
+ */
+export default function ConfirmationStep({ orderNumber, cartItems, shipping, isGuest, onClose }) {
     const total = cartItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
     const delivery = new Date();
     delivery.setDate(delivery.getDate() + C.deliveryDaysOffset);
@@ -44,16 +104,19 @@ export default function ConfirmationStep({ orderNumber, cartItems, shipping, onC
             </div>
 
             {/* Estimated delivery */}
-            <div className="flex items-center justify-center gap-2 text-sm text-stone-600 mb-8">
+            <div className="flex items-center justify-center gap-2 text-sm text-stone-600 mb-4">
                 <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
                 </svg>
                 {C.deliveryLabel}: <strong className="text-stone-900">{deliveryStr}</strong>
             </div>
 
+            {/* Guest-to-account conversion */}
+            {isGuest && <GuestConversion email={shipping.email} />}
+
             <button
                 onClick={onClose}
-                className="w-full bg-stone-900 text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
+                className="mt-6 w-full bg-stone-900 text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
             >
                 {C.continueBtn}
             </button>
