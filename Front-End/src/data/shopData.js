@@ -3,15 +3,6 @@
  * Centralized product data and filter options
  */
 
-export const CATEGORIES = [
-  'All',
-  'Skincare',
-  'Makeup',
-  'Haircare',
-  'Fragrance',
-  'Tools & Accessories',
-];
-
 /**
  * Hierarchical navigation categories with subcategories for the shop nav bar
  */

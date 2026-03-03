@@ -93,7 +93,7 @@ export const HERO_ROTATION_CONFIG = {
 /** All editorial copy shown in the hero section */
 export const HERO_COPY = {
   collectionLabel: "Archive Summer '25 Collection",
-  headlineParts: ['The', 'Radiance', 'Report.'],
+  headlineParts: ['The', 'Report.'],
   subtitle: 'Merging molecular botanical science with the artistry of velvet pigments. A new standard for the illuminating ritual.',
   priceLabel: 'Starting At',
   priceValue: '$42.00',

@@ -16,7 +16,6 @@ const componentsMap = {
   PromoBanner: 'Shop',
   ShopFilterBar: 'Shop',
   ShopPage: 'Shop',
-  ShopSidebar: 'Shop',
   FadeIn: 'Shared',
   Footer: 'Shared',
   Icons: 'Shared',

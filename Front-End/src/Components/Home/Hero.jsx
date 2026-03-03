@@ -104,7 +104,7 @@ const HeroSection = () => {
                 <RotatingWord />
               </span>{' '}
               <br />
-              {HERO_COPY.headlineParts[2]}
+              {HERO_COPY.headlineParts[1]}
             </h1>
 
             {/* Price label */}
