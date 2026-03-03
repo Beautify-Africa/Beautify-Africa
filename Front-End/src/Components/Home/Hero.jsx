@@ -4,7 +4,46 @@ import FadeIn from '../Shared/FadeIn';
 import HeroBackground from './HeroBackground';
 import HeroCards from './HeroCards';
 import HeroReviews from './HeroReviews';
-import { HERO_CONFIG, HERO_COPY } from '../../data/heroImages';
+import { HERO_CONFIG, HERO_COPY, HERO_ROTATING_WORDS, HERO_ROTATION_CONFIG } from '../../data/heroImages';
+
+/**
+ * RotatingWord — cycles through luxury words with a fade + slide transition
+ */
+const RotatingWord = () => {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % HERO_ROTATING_WORDS.length);
+        setVisible(true);
+      }, HERO_ROTATION_CONFIG.transitionMs);
+    }, HERO_ROTATION_CONFIG.intervalMs);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span
+      className="inline-block"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0) scale(1)' : 'translateY(-12px) scale(0.88)',
+        transition: `opacity ${HERO_ROTATION_CONFIG.transitionMs}ms ease, transform ${HERO_ROTATION_CONFIG.transitionMs}ms ease`,
+        backgroundImage: 'linear-gradient(135deg, #78350f, #b45309, #d97706, #92400e)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: visible ? 'drop-shadow(0 2px 12px rgba(180, 83, 9, 0.3))' : 'none',
+      }}
+      aria-live="polite"
+      aria-label={HERO_ROTATING_WORDS[index]}
+    >
+      {HERO_ROTATING_WORDS[index]}
+    </span>
+  );
+};
 
 /**
  * HeroSection — orchestrates background, cards, reviews, and editorial content
@@ -62,7 +101,7 @@ const HeroSection = () => {
             <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] text-stone-900 tracking-tighter relative z-20">
               {HERO_COPY.headlineParts[0]} <br />
               <span className="italic font-normal pl-4 md:pl-20 text-stone-800/90">
-                {HERO_COPY.headlineParts[1]}
+                <RotatingWord />
               </span>{' '}
               <br />
               {HERO_COPY.headlineParts[2]}

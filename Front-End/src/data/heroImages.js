@@ -73,6 +73,23 @@ export const HERO_CONFIG = {
   parallaxScale: 1.2,
 };
 
+/** Words that rotate in the hero headline (replacing the static "Radiance") */
+export const HERO_ROTATING_WORDS = [
+  'Radiance',
+  'Opulence',
+  'Eminence',
+  'Grandeur',
+  'Elegance',
+  'Splendor',
+  'Botanica',
+  'Heritage',
+];
+
+export const HERO_ROTATION_CONFIG = {
+  intervalMs: 3000,
+  transitionMs: 400,
+};
+
 /** All editorial copy shown in the hero section */
 export const HERO_COPY = {
   collectionLabel: "Archive Summer '25 Collection",
