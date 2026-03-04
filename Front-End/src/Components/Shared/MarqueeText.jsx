@@ -44,8 +44,8 @@ const MarqueeText = () => {
         <div
           className="flex whitespace-nowrap animate-marquee w-fit"
           style={{ '--marquee-duration': MARQUEE_CONFIG.animationDuration }}
-          role="marquee"
-          aria-live="off"
+          role="region"
+          aria-label="Scrolling brand values"
         >
           {/* Render multiple blocks for seamless looping */}
           {[...Array(MARQUEE_CONFIG.blockCount)].map((_, index) => (

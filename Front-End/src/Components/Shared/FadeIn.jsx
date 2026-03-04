@@ -24,7 +24,7 @@ const FadeIn = memo(({
     direction = 'up',
     fullWidth = false,
     className = '',
-    viewport = { once: false, margin: '-50px' },
+    viewport = { once: true, margin: '-50px' },
     ...props
 }) => {
     const directions = {

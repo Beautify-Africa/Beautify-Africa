@@ -11,7 +11,7 @@ const InteractiveButton = ({ label, primary = false }) => {
   const fillStyles = primary ? 'bg-stone-800' : 'bg-stone-50';
 
   return (
-    <button className={`${baseStyles} ${variantStyles}`}>
+    <button type="button" className={`${baseStyles} ${variantStyles}`}>
       {/* Minimalist fill effect */}
       <span 
         className={`absolute inset-0 w-0 transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:w-full ${fillStyles}`}

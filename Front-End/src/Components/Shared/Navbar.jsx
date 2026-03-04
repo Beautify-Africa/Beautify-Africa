@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../../data/navigation';
 import { SearchIcon, CartIcon, MenuIcon, CloseIcon } from './Icons';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
@@ -51,6 +52,29 @@ const Navbar = ({ onOpenCart }) => {
 
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  // Focus trap for mobile menu
+  const mobileMenuRef = useFocusTrap(isMobileMenuOpen);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isMobileMenuOpen]);
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') closeMobileMenu();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
 
   return (
     <header>
@@ -109,6 +133,7 @@ const Navbar = ({ onOpenCart }) => {
             {/* Search — visible on landing page only */}
             {!isShopPage && (
               <button
+                type="button"
                 className="hidden sm:block text-stone-800 hover:text-amber-800 transition-colors"
                 aria-label="Search products"
               >
@@ -118,9 +143,10 @@ const Navbar = ({ onOpenCart }) => {
 
             {/* Cart */}
             <button
+              type="button"
               onClick={onOpenCart}
               className="relative group"
-              aria-label="Shopping cart, 2 items"
+              aria-label="Shopping cart"
             >
               <CartIcon className="w-5 h-5 text-stone-800" />
               <span
@@ -143,6 +169,7 @@ const Navbar = ({ onOpenCart }) => {
 
             {/* Mobile Menu Toggle */}
             <button
+              type="button"
               className="lg:hidden text-stone-900 focus:outline-none"
               onClick={openMobileMenu}
               aria-label="Open menu"
@@ -158,6 +185,7 @@ const Navbar = ({ onOpenCart }) => {
       {/* Mobile Menu Overlay */}
       <div
         id="mobile-menu"
+        ref={mobileMenuRef}
         role="dialog"
         aria-modal="true"
         aria-label="Mobile navigation menu"
@@ -169,6 +197,7 @@ const Navbar = ({ onOpenCart }) => {
       >
         {/* Close Button */}
         <button
+          type="button"
           className="absolute top-8 right-8 text-stone-900 p-2"
           onClick={closeMobileMenu}
           aria-label="Close menu"

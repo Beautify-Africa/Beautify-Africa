@@ -27,8 +27,19 @@ const SOCIAL_ICONS = SOCIAL_LINKS.map((link, i) => ({ ...link, Icon: ICON_MAP[i]
 function RotatingSocialSentence() {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 
   useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
     const interval = setInterval(() => {
       setVisible(false);
       setTimeout(() => {
@@ -37,7 +48,7 @@ function RotatingSocialSentence() {
       }, SOCIAL_ROTATION_CONFIG.transitionMs);
     }, SOCIAL_ROTATION_CONFIG.intervalMs);
     return () => clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const current = SOCIAL_ICONS[index];
   const { Icon } = current;
