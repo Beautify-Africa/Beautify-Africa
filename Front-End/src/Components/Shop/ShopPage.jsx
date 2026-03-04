@@ -14,6 +14,7 @@ function EmptyState({ onClearFilters }) {
     <div className="py-20 text-center">
       <p className="font-serif text-xl text-stone-500">{SHOP_CONTENT.noResultsMessage}</p>
       <button
+        type="button"
         onClick={onClearFilters}
         className="mt-4 text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-stone-900"
       >
@@ -73,9 +74,11 @@ export default function ShopPage() {
     setWishlist((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   }, []);
 
+  const [toastMessage, setToastMessage] = useState('');
+
   const addToCart = useCallback((id) => {
-    console.log(`Added product ${id} to cart`);
-    alert('Added to cart');
+    setToastMessage('Added to cart');
+    setTimeout(() => setToastMessage(''), 2500);
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -146,6 +149,17 @@ export default function ShopPage() {
           onClose={() => setSelectedProduct(null)}
           onAddToCart={addToCart}
         />
+      )}
+
+      {/* Toast notification */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-stone-900 text-white text-sm font-medium rounded-sm shadow-xl animate-fade-in"
+        >
+          {toastMessage}
+        </div>
       )}
     </section>
   );

@@ -19,6 +19,7 @@ const TrustCard = ({ item }) => {
           alt={item.label}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110 opacity-95 group-hover:opacity-100"
           loading="lazy"
+          decoding="async"
         />
       </figure>
 

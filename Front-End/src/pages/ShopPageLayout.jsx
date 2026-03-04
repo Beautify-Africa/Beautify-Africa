@@ -21,13 +21,18 @@ export default function ShopPageLayout({ onOpenAuth, onOpenCart }) {
         <meta property="og:title" content="Shop | Beautify Africa - Premium African Beauty Products" />
         <meta property="og:description" content="Browse our collection of luxurious African-inspired skincare, makeup, and beauty essentials. Shop ethically sourced ingredients celebrating African beauty traditions." />
         <meta property="og:image" content="https://beautify-africa.com/og-image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Beautify Africa - Shop Premium African Beauty Products" />
+        <meta property="og:locale" content="en_US" />
         
         {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://beautify-africa.com/shop" />
-        <meta property="twitter:title" content="Shop | Beautify Africa - Premium African Beauty Products" />
-        <meta property="twitter:description" content="Browse our collection of luxurious African-inspired skincare, makeup, and beauty essentials. Shop ethically sourced ingredients celebrating African beauty traditions." />
-        <meta property="twitter:image" content="https://beautify-africa.com/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://beautify-africa.com/shop" />
+        <meta name="twitter:title" content="Shop | Beautify Africa - Premium African Beauty Products" />
+        <meta name="twitter:description" content="Browse our collection of luxurious African-inspired skincare, makeup, and beauty essentials. Shop ethically sourced ingredients celebrating African beauty traditions." />
+        <meta name="twitter:image" content="https://beautify-africa.com/og-image.jpg" />
+        <meta name="twitter:image:alt" content="Beautify Africa - Shop Premium African Beauty Products" />
         
         {/* JSON-LD Structured Data for Product Listing */}
         <script type="application/ld+json">

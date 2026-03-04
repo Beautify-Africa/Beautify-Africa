@@ -93,7 +93,7 @@ export default function ProductCard({
   onProductClick,
 }) {
   return (
-    <article className="group relative flex flex-col">
+    <article className="group relative flex flex-col" role="listitem">
       {/* Product Image */}
       <div
         className="relative aspect-[3/4] bg-stone-100 overflow-hidden cursor-pointer"
@@ -108,6 +108,9 @@ export default function ProductCard({
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
+          width="400"
+          height="533"
         />
 
         <ProductBadges product={product} />
