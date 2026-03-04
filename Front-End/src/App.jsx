@@ -51,6 +51,22 @@ function App() {
               path="/shop"
               element={<ShopPageLayout onOpenAuth={openAuth} onOpenCart={openCart} />}
             />
+            {/* 404 catch-all */}
+            <Route
+              path="*"
+              element={
+                <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf9f6] px-6 text-center">
+                  <h1 className="font-serif text-6xl text-stone-900 mb-4">404</h1>
+                  <p className="text-stone-600 mb-8">The page you're looking for doesn't exist.</p>
+                  <a
+                    href="/"
+                    className="px-8 py-3 bg-stone-900 text-white text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors rounded-sm"
+                  >
+                    Back to Home
+                  </a>
+                </div>
+              }
+            />
           </Routes>
         </Suspense>
 
