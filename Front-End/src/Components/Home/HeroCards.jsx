@@ -53,7 +53,7 @@ const HeroCards = ({ hasInteracted }) => (
             {/* Card 4: Gold Oil Texture */}
             <figure className="absolute top-[20%] right-[32%] w-[150px] aspect-[2/3] z-10 transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] hover:z-50 hover:scale-105 hover:-rotate-3 rotate-[8deg] shadow-lg pointer-events-auto opacity-90">
                 <div className="w-full h-full overflow-hidden rounded-sm bg-stone-300">
-                    <img src={HERO_CARDS[3].src} alt={HERO_CARDS[3].alt} className="w-full h-full object-cover" />
+                    <img src={HERO_CARDS[3].src} alt={HERO_CARDS[3].alt} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     <div className="absolute inset-0 bg-stone-900/5" />
                 </div>
             </figure>
@@ -62,7 +62,7 @@ const HeroCards = ({ hasInteracted }) => (
             <figure className="absolute bottom-[35%] right-[24%] w-[170px] aspect-square z-40 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] hover:z-50 hover:scale-110 hover:rotate-6 rotate-[20deg] shadow-2xl pointer-events-auto">
                 <div className="w-full h-full overflow-hidden rounded-sm bg-stone-100 p-1.5 bg-white">
                     <div className="w-full h-full overflow-hidden bg-stone-200">
-                        <img src={HERO_CARDS[4].src} alt={HERO_CARDS[4].alt} className="w-full h-full object-cover" />
+                        <img src={HERO_CARDS[4].src} alt={HERO_CARDS[4].alt} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     </div>
                 </div>
                 <figcaption className="absolute -top-2 right-4 bg-amber-800/90 text-white px-2 py-0.5 text-[7px] font-bold uppercase tracking-widest">

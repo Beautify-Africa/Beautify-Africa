@@ -19,6 +19,10 @@ const HeroReviews = () => (
                     src={review.image}
                     alt={review.name}
                     className="w-8 h-8 rounded-full object-cover border border-stone-100"
+                    loading="lazy"
+                    decoding="async"
+                    width="32"
+                    height="32"
                 />
                 <div className="flex flex-col">
                     <div className="flex gap-0.5 text-amber-500" aria-label="5 stars">
@@ -47,6 +51,10 @@ const HeroReviews = () => (
                             src={review.image}
                             alt={review.name}
                             className="w-8 h-8 rounded-full object-cover border border-stone-100"
+                            loading="lazy"
+                            decoding="async"
+                            width="32"
+                            height="32"
                         />
                         <div className="flex flex-col">
                             <div className="flex gap-0.5 text-amber-500" aria-label="5 stars">

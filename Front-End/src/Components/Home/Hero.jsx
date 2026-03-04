@@ -8,12 +8,24 @@ import { HERO_CONFIG, HERO_COPY, HERO_ROTATING_WORDS, HERO_ROTATION_CONFIG } fro
 
 /**
  * RotatingWord — cycles through luxury words with a fade + slide transition
+ * Respects prefers-reduced-motion: shows first word statically
  */
 const RotatingWord = () => {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 
   useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
     const interval = setInterval(() => {
       setVisible(false);
       setTimeout(() => {
@@ -22,7 +34,7 @@ const RotatingWord = () => {
       }, HERO_ROTATION_CONFIG.transitionMs);
     }, HERO_ROTATION_CONFIG.intervalMs);
     return () => clearInterval(interval);
-  }, []);
+  }, [prefersReducedMotion]);
 
   return (
     <span
@@ -125,6 +137,7 @@ const HeroSection = () => {
           <nav className="flex flex-col sm:flex-row items-center gap-8 relative z-20" aria-label="Hero actions">
             <InteractiveButton label={HERO_COPY.primaryCta} primary />
             <button
+              type="button"
               className="group flex items-center gap-4 py-4 text-[10px] font-bold uppercase tracking-[0.4em] text-stone-900"
               aria-label={HERO_COPY.secondaryCtaAriaLabel}
             >

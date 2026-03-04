@@ -35,14 +35,19 @@ export default function HomePage({ onOpenAuth }) {
         <meta property="og:title" content="Beautify Africa | Premium African Beauty & Skincare" />
         <meta property="og:description" content="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions." />
         <meta property="og:image" content="https://beautify-africa.com/og-image.jpg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Beautify Africa - Premium African Beauty Products" />
         <meta property="og:site_name" content="Beautify Africa" />
+        <meta property="og:locale" content="en_US" />
         
         {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://beautify-africa.com/" />
-        <meta property="twitter:title" content="Beautify Africa | Premium African Beauty & Skincare" />
-        <meta property="twitter:description" content="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions." />
-        <meta property="twitter:image" content="https://beautify-africa.com/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://beautify-africa.com/" />
+        <meta name="twitter:title" content="Beautify Africa | Premium African Beauty & Skincare" />
+        <meta name="twitter:description" content="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions." />
+        <meta name="twitter:image" content="https://beautify-africa.com/og-image.jpg" />
+        <meta name="twitter:image:alt" content="Beautify Africa - Premium African Beauty Products" />
         
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">
