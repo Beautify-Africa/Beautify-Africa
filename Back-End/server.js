@@ -5,11 +5,12 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
 
 // Load environment variables
 dotenv.config({ quiet: true });
 
-const requiredEnvVars = ['MONGO_URI'];
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
@@ -43,6 +44,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api', productRoutes);
+app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 5000;
 let server;
