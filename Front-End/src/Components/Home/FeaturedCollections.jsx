@@ -220,7 +220,7 @@ const FeaturedCollections = () => {
           role="list"
         >
           {FEATURED_COLLECTIONS.map((item, index) => (
-            <FadeIn key={item.id} delay={index * 0.2}>
+            <FadeIn key={item.id} delay={index * 0.2} className="w-full lg:w-auto">
               <FeaturedCard item={item} />
             </FadeIn>
           ))}
