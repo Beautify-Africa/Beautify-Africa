@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { Helmet } from 'react-helmet-async';
 import Navbar from '../Components/Shared/Navbar';
+import Seo from '../Components/Shared/Seo';
 import HeroSection from '../Components/Home/Hero';
 import MarqueeText from '../Components/Shared/MarqueeText';
 import TrustBar from '../Components/Shared/TrustBar';
@@ -23,54 +23,31 @@ function SectionLoader() {
 export default function HomePage({ onOpenAuth }) {
   return (
     <>
-      <Helmet>
-        <title>Beautify Africa | Premium African Beauty & Skincare</title>
-        <meta name="title" content="Beautify Africa | Premium African Beauty & Skincare" />
-        <meta name="description" content="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions." />
-        <link rel="canonical" href="https://beautify-africa.com/" />
-        
-        {/* Open Graph */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://beautify-africa.com/" />
-        <meta property="og:title" content="Beautify Africa | Premium African Beauty & Skincare" />
-        <meta property="og:description" content="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions." />
-        <meta property="og:image" content="https://beautify-africa.com/og-image.jpg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Beautify Africa - Premium African Beauty Products" />
-        <meta property="og:site_name" content="Beautify Africa" />
-        <meta property="og:locale" content="en_US" />
-        
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content="https://beautify-africa.com/" />
-        <meta name="twitter:title" content="Beautify Africa | Premium African Beauty & Skincare" />
-        <meta name="twitter:description" content="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions." />
-        <meta name="twitter:image" content="https://beautify-africa.com/og-image.jpg" />
-        <meta name="twitter:image:alt" content="Beautify Africa - Premium African Beauty Products" />
-        
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "Beautify Africa",
-            "url": "https://beautify-africa.com",
-            "logo": "https://beautify-africa.com/logo.png",
-            "description": "Premium African beauty and skincare products with ethically sourced ingredients celebrating African beauty traditions",
-            "sameAs": [
-              "https://www.instagram.com/beautifyafrica",
-              "https://www.tiktok.com/@beautifyafrica",
-              "https://www.pinterest.com/beautifyafrica"
-            ],
-            "contactPoint": {
-              "@type": "ContactPoint",
-              "contactType": "Customer Service",
-              "email": "hello@beautify-africa.com"
-            }
-          })}
-        </script>
-      </Helmet>
+      <Seo
+        title="Beautify Africa | Premium African Beauty & Skincare"
+        description="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions."
+        path="/"
+        imageAlt="Beautify Africa - Premium African Beauty Products"
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'Beautify Africa',
+          url: 'https://beautify-africa.com',
+          logo: 'https://beautify-africa.com/logo.png',
+          description:
+            'Premium African beauty and skincare products with ethically sourced ingredients celebrating African beauty traditions',
+          sameAs: [
+            'https://www.instagram.com/beautifyafrica',
+            'https://www.tiktok.com/@beautifyafrica',
+            'https://www.pinterest.com/beautifyafrica',
+          ],
+          contactPoint: {
+            '@type': 'ContactPoint',
+            contactType: 'Customer Service',
+            email: 'hello@beautify-africa.com',
+          },
+        }}
+      />
       <Navbar onOpenAuth={onOpenAuth} />
       <main id="main-content">
         <HeroSection />
