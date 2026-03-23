@@ -4,11 +4,12 @@ import FadeIn from './FadeIn';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: Implement newsletter signup logic
-    console.log('Newsletter signup:', email);
+    setStatusMessage('Newsletter signup will be available soon.');
+    setEmail('');
   };
 
   return (
@@ -93,7 +94,12 @@ const Newsletter = () => {
                       id="newsletter-email"
                       name="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (statusMessage) {
+                          setStatusMessage('');
+                        }
+                      }}
                       className="w-full bg-transparent border-b border-stone-400 py-2.5 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors font-serif italic text-lg md:text-xl"
                       placeholder={NEWSLETTER_CONTENT.placeholder}
                       required
@@ -112,6 +118,12 @@ const Newsletter = () => {
                 <p className="mt-4 text-[9px] md:text-[10px] text-stone-400 tracking-wide uppercase">
                   {NEWSLETTER_CONTENT.disclaimer}
                 </p>
+
+                {statusMessage && (
+                  <p role="status" className="mt-3 text-xs text-stone-500">
+                    {statusMessage}
+                  </p>
+                )}
               </form>
             </FadeIn>
           </div>
