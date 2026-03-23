@@ -20,7 +20,7 @@ function SectionLoader() {
 /**
  * HomePage - Landing page with all marketing sections
  */
-export default function HomePage() {
+export default function HomePage({ onOpenCart }) {
   return (
     <>
       <Seo
@@ -48,7 +48,7 @@ export default function HomePage() {
           },
         }}
       />
-      <Navbar />
+      <Navbar onOpenCart={onOpenCart} />
       <main id="main-content">
         <HeroSection />
         <MarqueeText />

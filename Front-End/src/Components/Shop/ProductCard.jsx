@@ -51,7 +51,7 @@ function HoverActions({ product, onAddToCart }) {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          onAddToCart(product.id);
+          onAddToCart(product);
         }}
         disabled={!product.inStock}
         className="w-full py-2 bg-stone-900 text-white text-[10px] uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

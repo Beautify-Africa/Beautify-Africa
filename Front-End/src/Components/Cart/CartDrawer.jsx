@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useCart } from '../../hooks/useCart';
 import { CloseIcon, PlusIcon, MinusIcon } from '../Shared/Icons';
-import { CART_CONTENT, MOCK_CART_ITEMS } from '../../data/cartContent';
+import { CART_CONTENT } from '../../data/cartContent';
 import CheckoutModal from '../Checkout/CheckoutModal';
 
 /**
@@ -116,8 +117,8 @@ function CartFooter({ subtotal, onCheckout }) {
  * CartDrawer - Slide-out shopping cart
  */
 export default function CartDrawer({ isOpen, onClose }) {
-  const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const { cartItems, subtotal, updateQuantity, removeItem } = useCart();
 
   const trapRef = useFocusTrap(isOpen);
 
@@ -128,24 +129,6 @@ export default function CartDrawer({ isOpen, onClose }) {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
-
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
 
   const handleCheckout = () => {
     onClose();

@@ -152,7 +152,7 @@ export default function ProductDetailsModal({ product, onClose, onAddToCart }) {
             </p>
 
             <button
-              onClick={() => onAddToCart(product.id)}
+              onClick={() => onAddToCart(product)}
               disabled={!product.inStock}
               className={`w-full py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${
                 product.inStock

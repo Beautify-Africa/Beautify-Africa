@@ -42,7 +42,7 @@ function App() {
 
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<HomePage onOpenCart={openCart} />} />
             <Route path="/shop" element={<ShopPageLayout onOpenCart={openCart} />} />
             {/* 404 catch-all */}
             <Route

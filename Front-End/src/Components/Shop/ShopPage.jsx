@@ -4,6 +4,7 @@ import ProductDetailsModal from './ProductDetailsModal';
 import PromoBanner from './PromoBanner';
 import ShopNavBar from './ShopNavBar';
 import ShopFilterBar from './ShopFilterBar';
+import { useCart } from '../../hooks/useCart';
 import { PRODUCTS, PRICE_RANGE, SHOP_CONTENT } from '../../data/shopData';
 
 function EmptyState({ onClearFilters }) {
@@ -22,6 +23,7 @@ function EmptyState({ onClearFilters }) {
 }
 
 export default function ShopPage() {
+  const { addItem } = useCart();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [selectedSkinType, setSelectedSkinType] = useState('All');
@@ -100,14 +102,16 @@ export default function ShopPage() {
     };
   }, []);
 
-  const addToCart = useCallback(() => {
+  const addToCart = useCallback((product) => {
+    addItem(product);
+
     if (toastTimeoutRef.current) {
       window.clearTimeout(toastTimeoutRef.current);
     }
 
-    setToastMessage('Added to cart');
+    setToastMessage(`${product.name} added to cart`);
     toastTimeoutRef.current = window.setTimeout(() => setToastMessage(''), 2500);
-  }, []);
+  }, [addItem]);
 
   const clearFilters = useCallback(() => {
     setSelectedCategory('All');
