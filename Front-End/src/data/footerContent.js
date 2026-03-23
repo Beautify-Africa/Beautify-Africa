@@ -6,7 +6,7 @@
 export const FOOTER_BRAND = {
   name: 'BEAUTIFY',
   tagline: 'Masterpieces of elegance.',
-  href: '#',
+  href: '/',
 };
 
 export const SOCIAL_LINKS = [
