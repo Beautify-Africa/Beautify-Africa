@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../../data/navigation';
-import { SearchIcon, CartIcon, MenuIcon, CloseIcon } from './Icons';
+import { CartIcon, MenuIcon, CloseIcon } from './Icons';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useCart } from '../../hooks/useCart';
+import CustomerProfileMenu from '../Auth/CustomerProfileMenu';
 
 const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { cartCount } = useCart();
 
   // Show landing-page items only when NOT on the shop page
   const isShopPage = location.pathname === '/shop';
@@ -131,31 +134,26 @@ const Navbar = ({ onOpenCart }) => {
           {/* Action Icons */}
           <div className="flex-1 flex justify-end items-center gap-6 md:gap-8">
             {/* Search — visible on landing page only */}
-            {!isShopPage && (
+            {isShopPage && (
               <button
                 type="button"
-                className="hidden sm:block text-stone-800 hover:text-amber-800 transition-colors"
-                aria-label="Search products"
+                onClick={onOpenCart}
+                className="relative group"
+                aria-label={`Shopping cart${cartCount ? ` with ${cartCount} item${cartCount === 1 ? '' : 's'}` : ''}`}
               >
-                <SearchIcon />
+                <CartIcon className="w-5 h-5 text-stone-800" />
+                {cartCount > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1 bg-amber-700 text-white text-[8px] min-w-[14px] h-3.5 px-1 flex items-center justify-center rounded-full font-bold"
+                    aria-hidden="true"
+                  >
+                    {cartCount}
+                  </span>
+                )}
               </button>
             )}
 
-            {/* Cart */}
-            <button
-              type="button"
-              onClick={onOpenCart}
-              className="relative group"
-              aria-label="Shopping cart"
-            >
-              <CartIcon className="w-5 h-5 text-stone-800" />
-              <span
-                className="absolute -top-1 -right-1 bg-amber-700 text-white text-[8px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold"
-                aria-hidden="true"
-              >
-                2
-              </span>
-            </button>
+            {isShopPage && <CustomerProfileMenu />}
 
             {/* Shop Now CTA — visible on landing page only */}
             {!isShopPage && (

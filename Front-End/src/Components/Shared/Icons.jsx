@@ -37,6 +37,23 @@ export const CartIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+export const ProfileIcon = ({ className = "w-5 h-5" }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.2"
+      d="M15.75 6.75a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.25a7.5 7.5 0 0115 0"
+    />
+  </svg>
+);
+
 export const MenuIcon = ({ className = "w-6 h-6" }) => (
   <svg 
     className={className} 
