@@ -1,125 +1,146 @@
 import { useState } from 'react';
 import { CHECKOUT_COPY } from '../../data/checkoutContent';
 import { GUEST_CONVERSION } from '../../data/checkoutGateContent';
+import { useAuth } from '../../hooks/useAuth';
 
 const { confirmation: C } = CHECKOUT_COPY;
 
-/**
- * Guest-to-account conversion prompt — shown only for guest checkouts
- */
-function GuestConversion({ email }) {
-    const [password, setPassword] = useState('');
-    const [created, setCreated] = useState(false);
+function GuestConversion({ shipping }) {
+  const { register, loading, error, clearError } = useAuth();
+  const [password, setPassword] = useState('');
+  const [created, setCreated] = useState(false);
 
-    const handleCreate = (e) => {
-        e.preventDefault();
-        // TODO: wire up real account creation API
-        console.log('Create account for guest:', { email, password });
-        setCreated(true);
-    };
+  const handleCreate = async (e) => {
+    e.preventDefault();
 
-    if (created) {
-        return (
-            <div className="mt-8 p-6 bg-amber-50 border border-amber-200 rounded-sm text-center animate-fade-in">
-                <div className="w-10 h-10 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-                <h4 className="font-serif text-lg text-stone-900 mb-1">{GUEST_CONVERSION.successHeading}</h4>
-                <p className="text-xs text-stone-500">{GUEST_CONVERSION.successMessage}</p>
-            </div>
-        );
+    const name = [shipping.firstName, shipping.lastName].filter(Boolean).join(' ').trim();
+
+    try {
+      await register({
+        name: name || shipping.email,
+        email: shipping.email,
+        password,
+      });
+      clearError();
+      setCreated(true);
+      setPassword('');
+    } catch {
+      // AuthContext stores the error for display in the panel.
     }
+  };
 
+  if (created) {
     return (
-        <div className="mt-8 p-6 bg-stone-50 border border-stone-200 rounded-sm animate-fade-in">
-            <h4 className="font-serif text-lg text-stone-900 mb-1 text-center">{GUEST_CONVERSION.heading}</h4>
-            <p className="text-xs text-stone-500 text-center mb-5">{GUEST_CONVERSION.description}</p>
-
-            <form onSubmit={handleCreate} className="space-y-4">
-                <div className="relative">
-                    <input
-                        type="password"
-                        id="guest-password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="peer w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder-stone-300 focus:outline-none focus:border-stone-900 transition-colors rounded-sm"
-                        placeholder={GUEST_CONVERSION.passwordPlaceholder}
-                        required
-                        minLength={6}
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="w-full bg-stone-900 text-white py-3 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
-                >
-                    {GUEST_CONVERSION.submitLabel}
-                </button>
-            </form>
+      <div className="mt-8 rounded-sm border border-amber-200 bg-amber-50 p-6 text-center animate-fade-in">
+        <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300 bg-amber-100">
+          <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
+        <h4 className="mb-1 font-serif text-lg text-stone-900">{GUEST_CONVERSION.successHeading}</h4>
+        <p className="text-xs text-stone-500">{GUEST_CONVERSION.successMessage}</p>
+      </div>
     );
+  }
+
+  return (
+    <div className="mt-8 rounded-sm border border-stone-200 bg-stone-50 p-6 animate-fade-in">
+      <h4 className="mb-1 text-center font-serif text-lg text-stone-900">{GUEST_CONVERSION.heading}</h4>
+      <p className="mb-5 text-center text-xs text-stone-500">{GUEST_CONVERSION.description}</p>
+
+      <form onSubmit={handleCreate} className="space-y-4">
+        <div className="relative">
+          <input
+            type="password"
+            id="guest-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="peer w-full rounded-sm border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder-stone-300 transition-colors focus:border-stone-900 focus:outline-none"
+            placeholder={GUEST_CONVERSION.passwordPlaceholder}
+            required
+            minLength={8}
+            autoComplete="new-password"
+          />
+        </div>
+
+        {error && (
+          <p
+            role="alert"
+            className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          >
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-sm bg-stone-900 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-stone-900"
+        >
+          {loading ? 'Creating Account...' : GUEST_CONVERSION.submitLabel}
+        </button>
+      </form>
+    </div>
+  );
 }
 
-/**
- * Step 3 — Order confirmation with animated checkmark, order summary, delivery estimate,
- * and optional guest-to-account conversion
- */
 export default function ConfirmationStep({ orderNumber, cartItems, shipping, isGuest, onClose }) {
-    const total = cartItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
-    const delivery = new Date();
-    delivery.setDate(delivery.getDate() + C.deliveryDaysOffset);
-    const deliveryStr = delivery.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const delivery = new Date();
+  delivery.setDate(delivery.getDate() + C.deliveryDaysOffset);
+  const deliveryStr = delivery.toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
 
-    return (
-        <div className="text-center">
-            {/* Animated checkmark */}
-            <div className="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-500 flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-            </div>
+  return (
+    <div className="text-center">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-amber-500 bg-amber-50">
+        <svg className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
 
-            <h3 className="font-serif text-2xl text-stone-900 mb-1">{C.title}</h3>
-            <p className="text-stone-500 text-sm mb-6">
-                {C.emailNote} <strong className="text-stone-900">{shipping.email}</strong>
-            </p>
+      <h3 className="mb-1 font-serif text-2xl text-stone-900">{C.title}</h3>
+      <p className="mb-6 text-sm text-stone-500">
+        {C.emailNote} <strong className="text-stone-900">{shipping.email}</strong>
+      </p>
 
-            {/* Order summary */}
-            <div className="bg-stone-50 border border-stone-100 rounded-sm px-6 py-4 mb-6 text-left" aria-label="Order summary">
-                <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-stone-400">{C.orderLabel}</span>
-                    <span className="font-mono text-sm font-bold text-stone-900">{orderNumber}</span>
-                </div>
-                {cartItems.map((item) => (
-                    <div key={item.id} className="flex justify-between text-sm text-stone-700 py-1.5 border-t border-stone-100 first:border-0">
-                        <span>{item.name} <span className="text-stone-400">×{item.quantity}</span></span>
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                ))}
-                <div className="flex justify-between text-sm font-bold text-stone-900 pt-3 mt-2 border-t border-stone-200">
-                    <span>{C.totalLabel}</span>
-                    <span>${total.toFixed(2)}</span>
-                </div>
-            </div>
-
-            {/* Estimated delivery */}
-            <div className="flex items-center justify-center gap-2 text-sm text-stone-600 mb-4">
-                <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
-                </svg>
-                {C.deliveryLabel}: <strong className="text-stone-900">{deliveryStr}</strong>
-            </div>
-
-            {/* Guest-to-account conversion */}
-            {isGuest && <GuestConversion email={shipping.email} />}
-
-            <button
-                onClick={onClose}
-                className="mt-6 w-full bg-stone-900 text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
-            >
-                {C.continueBtn}
-            </button>
+      <div className="mb-6 rounded-sm border border-stone-100 bg-stone-50 px-6 py-4 text-left" aria-label="Order summary">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-stone-400">{C.orderLabel}</span>
+          <span className="font-mono text-sm font-bold text-stone-900">{orderNumber}</span>
         </div>
-    );
+        {cartItems.map((item) => (
+          <div key={item.id} className="flex justify-between border-t border-stone-100 py-1.5 text-sm text-stone-700 first:border-0">
+            <span>
+              {item.name} <span className="text-stone-400">x{item.quantity}</span>
+            </span>
+            <span>${(item.price * item.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+        <div className="mt-2 flex justify-between border-t border-stone-200 pt-3 text-sm font-bold text-stone-900">
+          <span>{C.totalLabel}</span>
+          <span>${total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div className="mb-4 flex items-center justify-center gap-2 text-sm text-stone-600">
+        <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
+        </svg>
+        {C.deliveryLabel}: <strong className="text-stone-900">{deliveryStr}</strong>
+      </div>
+
+      {isGuest && <GuestConversion shipping={shipping} />}
+
+      <button
+        onClick={onClose}
+        className="mt-6 w-full rounded-sm bg-stone-900 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900"
+      >
+        {C.continueBtn}
+      </button>
+    </div>
+  );
 }
