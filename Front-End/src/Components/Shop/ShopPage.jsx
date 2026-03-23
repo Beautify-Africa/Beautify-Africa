@@ -1,14 +1,11 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import ProductCard from './ProductCard';
 import ProductDetailsModal from './ProductDetailsModal';
 import PromoBanner from './PromoBanner';
 import ShopNavBar from './ShopNavBar';
 import ShopFilterBar from './ShopFilterBar';
-import {
-  PRODUCTS, PRICE_RANGE, SHOP_CONTENT,
-} from '../../data/shopData';
+import { PRODUCTS, PRICE_RANGE, SHOP_CONTENT } from '../../data/shopData';
 
-/** Empty state when no products match filters */
 function EmptyState({ onClearFilters }) {
   return (
     <div className="py-20 text-center">
@@ -16,7 +13,7 @@ function EmptyState({ onClearFilters }) {
       <button
         type="button"
         onClick={onClearFilters}
-        className="mt-4 text-xs font-bold uppercase tracking-widest text-stone-900 border-b border-stone-900"
+        className="mt-4 border-b border-stone-900 text-xs font-bold uppercase tracking-widest text-stone-900"
       >
         {SHOP_CONTENT.clearFiltersLabel}
       </button>
@@ -24,9 +21,6 @@ function EmptyState({ onClearFilters }) {
   );
 }
 
-/**
- * ShopPage — orchestrates filters, sidebar, filter bar, and product grid
- */
 export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
@@ -37,48 +31,82 @@ export default function ShopPage() {
   const [sortOption, setSortOption] = useState('newest');
   const [wishlist, setWishlist] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const toastTimeoutRef = useRef(null);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const handleSelectCategory = useCallback((label) => {
     setSelectedCategory(label);
     setSelectedSubcategory(null);
   }, []);
 
-  const handleSelectSubcategory = useCallback((categoryLabel, sub) => {
+  const handleSelectSubcategory = useCallback((categoryLabel, subcategory) => {
     setSelectedCategory(categoryLabel);
-    setSelectedSubcategory(sub);
+    setSelectedSubcategory(subcategory);
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((p) => {
-      const matchCategory = selectedCategory === 'All' || p.category === selectedCategory;
-      const matchSub = !selectedSubcategory || !p.subcategory || p.subcategory === selectedSubcategory;
-      const matchBrand = selectedBrand === 'All' || p.brand === selectedBrand;
-      const matchSkin = selectedSkinType === 'All' || p.skinType.includes('All') || p.skinType.includes(selectedSkinType);
-      const matchPrice = p.price <= maxPrice;
-      const q = searchQuery.toLowerCase();
-      const matchSearch = p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q);
-      return matchCategory && matchSub && matchBrand && matchSkin && matchPrice && matchSearch;
+    return PRODUCTS.filter((product) => {
+      const matchCategory = selectedCategory === 'All' || product.category === selectedCategory;
+      const matchSubcategory =
+        !selectedSubcategory || !product.subcategory || product.subcategory === selectedSubcategory;
+      const matchBrand = selectedBrand === 'All' || product.brand === selectedBrand;
+      const matchSkinType =
+        selectedSkinType === 'All' ||
+        product.skinType.includes('All') ||
+        product.skinType.includes(selectedSkinType);
+      const matchPrice = product.price <= maxPrice;
+      const normalizedQuery = deferredSearchQuery.toLowerCase();
+      const matchSearch =
+        product.name.toLowerCase().includes(normalizedQuery) ||
+        product.brand.toLowerCase().includes(normalizedQuery);
+
+      return matchCategory && matchSubcategory && matchBrand && matchSkinType && matchPrice && matchSearch;
     }).sort((a, b) => {
       switch (sortOption) {
-        case 'price-low': return a.price - b.price;
-        case 'price-high': return b.price - a.price;
-        case 'rating': return b.rating - a.rating;
-        case 'best-selling': return (b.isBestSeller ? 1 : 0) - (a.isBestSeller ? 1 : 0);
-        default: return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'best-selling':
+          return Number(b.isBestSeller) - Number(a.isBestSeller);
+        default:
+          return Number(b.isNew) - Number(a.isNew);
       }
     });
-  }, [selectedCategory, selectedSubcategory, selectedSkinType, selectedBrand, maxPrice, searchQuery, sortOption]);
+  }, [
+    selectedCategory,
+    selectedSubcategory,
+    selectedSkinType,
+    selectedBrand,
+    maxPrice,
+    deferredSearchQuery,
+    sortOption,
+  ]);
 
   const toggleWishlist = useCallback((id, e) => {
     e.stopPropagation();
-    setWishlist((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
+    setWishlist((prev) => (prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]));
   }, []);
 
-  const [toastMessage, setToastMessage] = useState('');
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  const addToCart = useCallback((id) => {
+  const addToCart = useCallback(() => {
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
+
     setToastMessage('Added to cart');
-    setTimeout(() => setToastMessage(''), 2500);
+    toastTimeoutRef.current = window.setTimeout(() => setToastMessage(''), 2500);
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -91,15 +119,15 @@ export default function ShopPage() {
   }, []);
 
   return (
-    <section className="pt-24 pb-12 min-h-screen bg-[#faf9f6]" aria-labelledby="shop-heading">
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+    <section className="min-h-screen bg-[#faf9f6] pt-24 pb-12" aria-labelledby="shop-heading">
+      <div className="mx-auto max-w-[1600px] px-6 md:px-12">
         <PromoBanner />
 
         <header className="mb-6" aria-labelledby="shop-heading">
-          <h1 id="shop-heading" className="font-serif text-4xl md:text-5xl text-stone-900 mb-4">
+          <h1 id="shop-heading" className="mb-4 font-serif text-4xl text-stone-900 md:text-5xl">
             {SHOP_CONTENT.heading}
           </h1>
-          <p className="text-stone-700 font-light max-w-xl leading-relaxed">{SHOP_CONTENT.description}</p>
+          <p className="max-w-xl font-light leading-relaxed text-stone-700">{SHOP_CONTENT.description}</p>
         </header>
 
         <ShopNavBar
@@ -111,18 +139,23 @@ export default function ShopPage() {
 
         <div className="mt-8">
           <ShopFilterBar
-            searchQuery={searchQuery} onSearchChange={setSearchQuery}
-            sortOption={sortOption} onSortChange={setSortOption}
-            selectedBrand={selectedBrand} onBrandChange={setSelectedBrand}
-            selectedSkinType={selectedSkinType} onSkinTypeChange={setSelectedSkinType}
-            maxPrice={maxPrice} onMaxPriceChange={setMaxPrice}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
+            selectedBrand={selectedBrand}
+            onBrandChange={setSelectedBrand}
+            selectedSkinType={selectedSkinType}
+            onSkinTypeChange={setSelectedSkinType}
+            maxPrice={maxPrice}
+            onMaxPriceChange={setMaxPrice}
             onClearFilters={clearFilters}
             resultCount={filteredProducts.length}
           />
 
           {filteredProducts.length > 0 ? (
             <div
-              className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10"
+              className="mt-8 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               role="list"
               aria-label="Products"
             >
@@ -151,12 +184,11 @@ export default function ShopPage() {
         />
       )}
 
-      {/* Toast notification */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 bg-stone-900 text-white text-sm font-medium rounded-sm shadow-xl animate-fade-in"
+          className="fixed bottom-6 left-1/2 z-[200] -translate-x-1/2 rounded-sm bg-stone-900 px-6 py-3 text-sm font-medium text-white shadow-xl animate-fade-in"
         >
           {toastMessage}
         </div>
@@ -164,4 +196,3 @@ export default function ShopPage() {
     </section>
   );
 }
-
