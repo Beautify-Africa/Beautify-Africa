@@ -53,6 +53,7 @@ export const GATE_CONTENT = {
       label: 'Password',
       placeholder: 'Password',
       autoComplete: 'current-password',
+      minLength: 8,
     },
   },
 

@@ -10,6 +10,9 @@ export default function FloatingLabelInput({ field, value, onChange, required = 
         className="peer w-full border-b border-stone-300 bg-transparent pt-4 py-2 text-stone-900 transition-colors placeholder-transparent focus:border-stone-900 focus:outline-none"
         placeholder={field.placeholder}
         autoComplete={field.autoComplete}
+        minLength={field.minLength}
+        maxLength={field.maxLength}
+        pattern={field.pattern}
         required={required}
       />
 

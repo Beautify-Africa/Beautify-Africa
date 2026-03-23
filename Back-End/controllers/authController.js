@@ -16,6 +16,22 @@ function sanitizeUser(userDoc) {
   };
 }
 
+function handleAuthError(res, error) {
+  if (error.name === 'ValidationError') {
+    const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid user data';
+
+    return res.status(400).json({
+      status: 'error',
+      message: firstMessage,
+    });
+  }
+
+  return res.status(500).json({
+    status: 'error',
+    message: error.message,
+  });
+}
+
 async function register(req, res) {
   try {
     const { name, email, password } = req.body;
@@ -49,10 +65,7 @@ async function register(req, res) {
       user: sanitizeUser(user),
     });
   } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
+    return handleAuthError(res, error);
   }
 }
 
@@ -92,10 +105,7 @@ async function login(req, res) {
       user: sanitizeUser(user),
     });
   } catch (error) {
-    return res.status(500).json({
-      status: 'error',
-      message: error.message,
-    });
+    return handleAuthError(res, error);
   }
 }
 
