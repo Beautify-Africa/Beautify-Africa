@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { CloseIcon } from '../Shared/Icons';
 import {
@@ -96,44 +97,71 @@ function TermsCheckbox({ checked, onChange }) {
  */
 export default function AuthModal({ isOpen, onClose }) {
   const navigate = useNavigate();
+  const { register, login, loading, error, clearError } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const trapRef = useFocusTrap(isOpen);
 
+  const resetForm = useCallback(() => {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setTermsAccepted(false);
+    clearError();
+  }, [clearError]);
+
+  const handleClose = useCallback(() => {
+    if (loading) return;
+
+    resetForm();
+    onClose();
+  }, [loading, onClose, resetForm]);
+
   // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+
+    const handler = (e) => {
+      if (e.key === 'Escape') handleClose();
+    };
+
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
+  }, [handleClose, isOpen]);
 
   const content = isLogin ? AUTH_CONTENT.login : AUTH_CONTENT.register;
 
   const toggleMode = useCallback(() => {
+    if (loading) return;
+
     setIsLogin((prev) => !prev);
-    // Reset form when switching modes
-    setEmail('');
-    setPassword('');
-    setTermsAccepted(false);
-  }, []);
+    resetForm();
+  }, [loading, resetForm]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement actual authentication logic
-    console.log(isLogin ? 'Login' : 'Register', { email, password });
 
-    // On successful auth, close modal and navigate to shop
-    onClose();
-    navigate('/shop');
+    try {
+      if (isLogin) {
+        await login({ email, password });
+      } else {
+        await register({ name, email, password });
+      }
+
+      handleClose();
+      navigate('/shop');
+    } catch {
+      // AuthContext stores the error for display in the modal.
+    }
   };
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
-      onClose();
+      handleClose();
     }
   };
 
@@ -157,8 +185,9 @@ export default function AuthModal({ isOpen, onClose }) {
       <div ref={trapRef} className="relative w-full max-w-4xl bg-[#faf9f6] rounded-sm shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-fade-in-up">
         {/* Close Button */}
         <button
-          onClick={onClose}
-          className="absolute top-6 right-6 z-20 text-stone-400 hover:text-stone-900 transition-colors p-2"
+          onClick={handleClose}
+          disabled={loading}
+          className="absolute top-6 right-6 z-20 p-2 text-stone-400 transition-colors hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:text-stone-400"
           aria-label="Close authentication dialog"
         >
           <CloseIcon className="w-6 h-6" />
@@ -182,6 +211,14 @@ export default function AuthModal({ isOpen, onClose }) {
           </header>
 
           <form className="space-y-8" onSubmit={handleSubmit}>
+            {!isLogin && (
+              <FloatingInput
+                field={FORM_FIELDS.name}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            )}
+
             <FloatingInput
               field={FORM_FIELDS.email}
               value={email}
@@ -189,7 +226,10 @@ export default function AuthModal({ isOpen, onClose }) {
             />
 
             <FloatingInput
-              field={FORM_FIELDS.password}
+              field={{
+                ...FORM_FIELDS.password,
+                autoComplete: isLogin ? 'current-password' : 'new-password',
+              }}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -201,11 +241,21 @@ export default function AuthModal({ isOpen, onClose }) {
               />
             )}
 
+            {error && (
+              <p
+                role="alert"
+                className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+              >
+                {error}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full bg-stone-900 text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              disabled={loading}
+              className="w-full bg-stone-900 text-white py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:bg-stone-900"
             >
-              {content.submitLabel}
+              {loading ? 'Please wait...' : content.submitLabel}
             </button>
           </form>
 
@@ -215,7 +265,8 @@ export default function AuthModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={toggleMode}
-                className="font-bold text-stone-900 underline hover:text-amber-700 transition-colors ml-1"
+                disabled={loading}
+                className="ml-1 font-bold text-stone-900 underline transition-colors hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-stone-900"
               >
                 {content.switchLabel}
               </button>

@@ -29,6 +29,13 @@ export const AUTH_IMAGE = {
 };
 
 export const FORM_FIELDS = {
+  name: {
+    id: 'auth-name',
+    type: 'text',
+    label: 'Full Name',
+    placeholder: 'Full Name',
+    autoComplete: 'name',
+  },
   email: {
     id: 'auth-email',
     type: 'email',
