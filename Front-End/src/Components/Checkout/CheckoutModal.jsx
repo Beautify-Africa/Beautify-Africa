@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import StepIndicator from './StepIndicator';
-import AuthGateStep from './AuthGateStep';
+import AuthGateStep from '../Auth/AuthGateStep';
 import ShippingStep from './ShippingStep';
 import PaymentStep from './PaymentStep';
 import ConfirmationStep from './ConfirmationStep';

@@ -20,7 +20,7 @@ function SectionLoader() {
 /**
  * HomePage - Landing page with all marketing sections
  */
-export default function HomePage({ onOpenAuth }) {
+export default function HomePage() {
   return (
     <>
       <Seo
@@ -48,7 +48,7 @@ export default function HomePage({ onOpenAuth }) {
           },
         }}
       />
-      <Navbar onOpenAuth={onOpenAuth} />
+      <Navbar />
       <main id="main-content">
         <HeroSection />
         <MarqueeText />

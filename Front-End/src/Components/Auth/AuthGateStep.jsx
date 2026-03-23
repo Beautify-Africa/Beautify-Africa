@@ -6,7 +6,7 @@ import CheckoutInlineAuthForm from './CheckoutInlineAuthForm';
 const G = GATE_CONTENT;
 
 /**
- * Step 0 — Auth gate: lets users sign in, register, or continue as guest
+ * Step 0 of checkout auth: lets users sign in, register, or continue as guest.
  * @param {function} onContinue - called with { isGuest: boolean } when ready to proceed
  */
 export default function AuthGateStep({ onContinue }) {

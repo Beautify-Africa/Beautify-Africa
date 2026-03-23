@@ -7,8 +7,6 @@ import AppLink from './Components/Shared/AppLink';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ShopPageLayout = lazy(() => import('./pages/ShopPageLayout'));
 
-// Eagerly load modals (small, used frequently)
-import AuthModal from './Components/Auth/AuthModal';
 import CartDrawer from './Components/Cart/CartDrawer';
 
 /**
@@ -26,11 +24,8 @@ function PageLoader() {
 }
 
 function App() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const openAuth = useCallback(() => setIsAuthOpen(true), []);
-  const closeAuth = useCallback(() => setIsAuthOpen(false), []);
   const openCart = useCallback(() => setIsCartOpen(true), []);
   const closeCart = useCallback(() => setIsCartOpen(false), []);
 
@@ -47,11 +42,8 @@ function App() {
 
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<HomePage onOpenAuth={openAuth} />} />
-            <Route
-              path="/shop"
-              element={<ShopPageLayout onOpenAuth={openAuth} onOpenCart={openCart} />}
-            />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/shop" element={<ShopPageLayout onOpenCart={openCart} />} />
             {/* 404 catch-all */}
             <Route
               path="*"
@@ -72,7 +64,6 @@ function App() {
         </Suspense>
 
         {/* Global modals */}
-        <AuthModal isOpen={isAuthOpen} onClose={closeAuth} />
         <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
       </BrowserRouter>
     </HelmetProvider>

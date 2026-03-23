@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const componentsMap = {
-  AuthModal: 'Auth',
+  AuthGateStep: 'Auth',
+  CheckoutAuthOptionCard: 'Auth',
+  CheckoutInlineAuthForm: 'Auth',
   CartDrawer: 'Cart',
   FeaturedCollections: 'Home',
   Hero: 'Home',

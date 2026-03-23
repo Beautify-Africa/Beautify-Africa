@@ -6,7 +6,7 @@ import Footer from '../Components/Shared/Footer';
 /**
  * ShopPageLayout - Product catalogue page with navigation
  */
-export default function ShopPageLayout({ onOpenAuth, onOpenCart }) {
+export default function ShopPageLayout({ onOpenCart }) {
   return (
     <>
       <Seo
@@ -28,7 +28,7 @@ export default function ShopPageLayout({ onOpenAuth, onOpenCart }) {
           },
         }}
       />
-      <Navbar onOpenAuth={onOpenAuth} onOpenCart={onOpenCart} />
+      <Navbar onOpenCart={onOpenCart} />
       <main id="main-content">
         <ShopPage />
       </main>
