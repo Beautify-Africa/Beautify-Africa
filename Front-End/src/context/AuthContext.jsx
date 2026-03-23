@@ -8,21 +8,33 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isRestoringSession, setIsRestoringSession] = useState(() =>
+    Boolean(localStorage.getItem('token'))
+  );
 
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
   useEffect(() => {
-    if (token) {
-      fetchMe(token)
-        .then((data) => setUser(data.user))
-        .catch(() => {
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('token');
-        });
+    if (!token) {
+      setUser(null);
+      setIsRestoringSession(false);
+      return;
     }
+
+    setIsRestoringSession(true);
+
+    fetchMe(token)
+      .then((data) => setUser(data.user))
+      .catch(() => {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('token');
+      })
+      .finally(() => {
+        setIsRestoringSession(false);
+      });
   }, [token]);
 
   const register = async (userData) => {
@@ -33,6 +45,7 @@ export function AuthProvider({ children }) {
       setToken(data.token);
       localStorage.setItem('token', data.token);
       setUser(data.user);
+      setIsRestoringSession(false);
       return data;
     } catch (err) {
       setError(err.message);
@@ -50,6 +63,7 @@ export function AuthProvider({ children }) {
       setToken(data.token);
       localStorage.setItem('token', data.token);
       setUser(data.user);
+      setIsRestoringSession(false);
       return data;
     } catch (err) {
       setError(err.message);
@@ -62,13 +76,27 @@ export function AuthProvider({ children }) {
   const logout = () => {
     setUser(null);
     setToken(null);
+    setIsRestoringSession(false);
     clearError();
     localStorage.removeItem('token');
   };
 
+  const isAuthenticated = Boolean(user && token);
+
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, error, register, login, logout, clearError }}
+      value={{
+        user,
+        token,
+        loading,
+        error,
+        isAuthenticated,
+        isRestoringSession,
+        register,
+        login,
+        logout,
+        clearError,
+      }}
     >
       {children}
     </AuthContext.Provider>
