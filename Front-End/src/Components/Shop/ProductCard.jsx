@@ -144,7 +144,7 @@ export default function ProductCard({
           )}
         </div>
 
-        <StarRating rating={product.rating} reviews={product.reviews} />
+        <StarRating rating={product.rating} reviews={product.numReviews} />
       </div>
     </article>
   );
