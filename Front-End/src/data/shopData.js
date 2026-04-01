@@ -7,37 +7,37 @@
  * Hierarchical navigation categories with subcategories for the shop nav bar
  */
 export const NAV_CATEGORIES = [
-  { id: 'all',          label: 'All',                   subcategories: [] },
+  { id: 'all', label: 'All', subcategories: [] },
   {
-    id: 'skincare',     label: 'Skincare',
+    id: 'skincare', label: 'Skincare',
     subcategories: ['Cleansers & Toners', 'Serums & Treatments', 'Moisturizers', 'Eye Care', 'SPF & Sun Care', 'Masks & Exfoliants'],
   },
   {
-    id: 'makeup',       label: 'Makeup',
+    id: 'makeup', label: 'Makeup',
     subcategories: ['Foundation & Concealer', 'Lip Color', 'Eye Makeup', 'Blush & Bronzer', 'Setting & Primers'],
   },
   {
-    id: 'haircare',     label: 'Haircare',
+    id: 'haircare', label: 'Haircare',
     subcategories: ['Shampoo & Conditioner', 'Hair Masks & Treatments', 'Scalp Care', 'Styling', 'Hair Oils & Serums'],
   },
   {
-    id: 'fragrance',    label: 'Fragrance',
+    id: 'fragrance', label: 'Fragrance',
     subcategories: ['Eau de Parfum', 'Eau de Toilette', 'Body Mist', 'Solid Perfume'],
   },
   {
-    id: 'nail-care',    label: 'Nail Care',
+    id: 'nail-care', label: 'Nail Care',
     subcategories: ['Nail Polish & Gel', 'Base & Top Coats', 'Nail Polish Remover', 'Nail Treatments', 'Tools (Clippers, Files)'],
   },
   {
-    id: 'gifts',        label: 'Gifts & Sets',
+    id: 'gifts', label: 'Gifts & Sets',
     subcategories: ['Skincare Sets', 'Makeup Palettes & Sets', 'Fragrance Gift Sets', 'E-Gift Cards'],
   },
   {
-    id: 'wellness',     label: 'Wellness',
+    id: 'wellness', label: 'Wellness',
     subcategories: ['Hair & Nail Vitamins', 'Collagen Powders', 'Sleep & Relaxation Aids', 'Aromatherapy & Essential Oils'],
   },
   {
-    id: 'travel',       label: 'Mini & Travel',
+    id: 'travel', label: 'Mini & Travel',
     subcategories: ['Travel Skincare', 'Mini Makeup', 'Travel Haircare', 'TSA-Friendly Liquids'],
   },
   {
