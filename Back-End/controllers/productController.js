@@ -1,69 +1,66 @@
-const path = require('path');
-const { pathToFileURL } = require('url');
-
-// Reads PRODUCTS from [shopData.js](http://_vscodecontentref_/4)
-async function loadProducts() {
-  const dataPath = path.resolve(__dirname, '../../Front-End/src/data/shopData.js');
-  const dataUrl = pathToFileURL(dataPath).href;
-  const moduleData = await import(dataUrl);
-
-  if (!Array.isArray(moduleData.PRODUCTS)) {
-    throw new Error('PRODUCTS array was not found in Front-End/src/data/shopData.js');
-  }
-
-  return moduleData.PRODUCTS;
-}
+// controllers/productController.js
+const Product = require('../models/Product');
 
 // GET /api/products
+// Supports query parameters: category, brand, skinType, inStock, minPrice, maxPrice, q, sort
 async function getProducts(req, res) {
   try {
-    let products = await loadProducts();
+    const { category, brand, skinType, inStock, minPrice, maxPrice, q, sort } = req.query;
 
-    // Optional query filters:
-    // /api/products?category=Skincare&brand=Lumière&inStock=true
-    const { category, brand, inStock, minPrice, maxPrice, q, sort } = req.query;
+    // Build a MongoDB filter object dynamically
+    // Only add filters for query params that were actually provided
+    const filter = {};
 
     if (category) {
-      products = products.filter(
-        (p) => String(p.category).toLowerCase() === String(category).toLowerCase()
-      );
+      // Case-insensitive exact match: "skincare" matches "Skincare"
+      filter.category = { $regex: new RegExp(`^${category}$`, 'i') };
     }
 
     if (brand) {
-      products = products.filter(
-        (p) => String(p.brand).toLowerCase() === String(brand).toLowerCase()
-      );
+      // Case-insensitive exact match: "lumière" matches "Lumière"
+      filter.brand = { $regex: new RegExp(`^${brand}$`, 'i') };
+    }
+
+    if (skinType) {
+      // Matches products where skinType array contains this value
+      filter.skinType = skinType;
     }
 
     if (inStock === 'true' || inStock === 'false') {
-      const stockValue = inStock === 'true';
-      products = products.filter((p) => p.inStock === stockValue);
+      filter.inStock = inStock === 'true';
     }
 
-    if (minPrice !== undefined && !Number.isNaN(Number(minPrice))) {
-      products = products.filter((p) => Number(p.price) >= Number(minPrice));
+    // Price range filter
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.price = {};
+      if (minPrice !== undefined && !Number.isNaN(Number(minPrice))) {
+        filter.price.$gte = Number(minPrice); // greater than or equal
+      }
+      if (maxPrice !== undefined && !Number.isNaN(Number(maxPrice))) {
+        filter.price.$lte = Number(maxPrice); // less than or equal
+      }
     }
 
-    if (maxPrice !== undefined && !Number.isNaN(Number(maxPrice))) {
-      products = products.filter((p) => Number(p.price) <= Number(maxPrice));
-    }
-
+    // Text search across name, description, and brand
     if (q) {
-      const query = String(q).toLowerCase();
-      products = products.filter((p) => {
-        const name = String(p.name || '').toLowerCase();
-        const description = String(p.description || '').toLowerCase();
-        return name.includes(query) || description.includes(query);
-      });
+      const searchRegex = new RegExp(q, 'i'); // case-insensitive
+      filter.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { brand: searchRegex },
+      ];
     }
 
-    if (sort === 'price-low') {
-      products = [...products].sort((a, b) => a.price - b.price);
-    } else if (sort === 'price-high') {
-      products = [...products].sort((a, b) => b.price - a.price);
-    } else if (sort === 'rating') {
-      products = [...products].sort((a, b) => b.rating - a.rating);
-    }
+    // Build sort option — default is newest first
+    let sortOption = { createdAt: -1 };
+
+    if (sort === 'price-low')    sortOption = { price: 1 };    // ascending
+    if (sort === 'price-high')   sortOption = { price: -1 };   // descending
+    if (sort === 'rating')       sortOption = { rating: -1 };  // highest first
+    if (sort === 'best-selling') sortOption = { isBestSeller: -1, reviews: -1 };
+
+    // Query MongoDB with the filter and sort
+    const products = await Product.find(filter).sort(sortOption);
 
     return res.status(200).json({
       status: 'success',
@@ -78,25 +75,23 @@ async function getProducts(req, res) {
   }
 }
 
-function toSlug(value) {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 // GET /api/products/:idOrSlug
+// Find a single product by its MongoDB _id or by its slug
 async function getProductByIdOrSlug(req, res) {
   try {
-    const products = await loadProducts();
-    const key = String(req.params.idOrSlug).toLowerCase();
+    const key = req.params.idOrSlug;
+    let product = null;
 
-    const product = products.find((p) => {
-      const idMatch = String(p.id) === key;
-      const slugMatch = toSlug(p.name) === key;
-      return idMatch || slugMatch;
-    });
+    // Check if the key looks like a MongoDB ObjectId (24 hex characters)
+    // If so, try finding by _id first
+    if (key.match(/^[0-9a-fA-F]{24}$/)) {
+      product = await Product.findById(key);
+    }
+
+    // If not found by _id (or key wasn't an ObjectId), try finding by slug
+    if (!product) {
+      product = await Product.findOne({ slug: key.toLowerCase() });
+    }
 
     if (!product) {
       return res.status(404).json({

@@ -2,13 +2,14 @@
 const productRoutes = require('./routes/productRoutes');
 const express = require('express');
 const dotenv = require('dotenv');
+const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 
 // Load environment variables
-dotenv.config({ quiet: true });
+dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
@@ -23,7 +24,7 @@ const app = express();
 // Middleware to parse JSON (needed for e-commerce POST requests)
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || ['http://localhost:5173', 'http://localhost:4173'],
     credentials: true,
   })
 );
