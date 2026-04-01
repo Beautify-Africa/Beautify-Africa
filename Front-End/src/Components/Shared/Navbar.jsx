@@ -4,14 +4,18 @@ import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../../data/navigation';
 import { CartIcon, MenuIcon, CloseIcon } from './Icons';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useCart } from '../../hooks/useCart';
+import { useAuth } from '../../hooks/useAuth';
 import CustomerProfileMenu from '../Auth/CustomerProfileMenu';
+import AccountAuthDialog from '../Auth/AccountAuthDialog';
 
 const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { cartCount } = useCart();
+  const { isAuthenticated, isRestoringSession } = useAuth();
 
   // Show landing-page items only when NOT on the shop page
   const isShopPage = location.pathname === '/shop';
@@ -55,6 +59,16 @@ const Navbar = ({ onOpenCart }) => {
 
   const openMobileMenu = () => setIsMobileMenuOpen(true);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const openAuthDialog = () => setIsAuthDialogOpen(true);
+
+  const closeAuthDialog = useCallback(() => {
+    setIsAuthDialogOpen(false);
+  }, []);
+
+  const openAuthDialogFromMobileMenu = useCallback(() => {
+    closeMobileMenu();
+    setIsAuthDialogOpen(true);
+  }, []);
 
   // Focus trap for mobile menu
   const mobileMenuRef = useFocusTrap(isMobileMenuOpen);
@@ -133,7 +147,6 @@ const Navbar = ({ onOpenCart }) => {
 
           {/* Action Icons */}
           <div className="flex-1 flex justify-end items-center gap-6 md:gap-8">
-            {/* Search — visible on landing page only */}
             {isShopPage && (
               <button
                 type="button"
@@ -154,6 +167,26 @@ const Navbar = ({ onOpenCart }) => {
             )}
 
             {isShopPage && <CustomerProfileMenu />}
+
+            {isShopPage && !isRestoringSession && !isAuthenticated && (
+              <button
+                type="button"
+                onClick={openAuthDialog}
+                className="rounded-sm border border-stone-900 bg-stone-900 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:border-amber-900 hover:bg-amber-900"
+              >
+                Sign In
+              </button>
+            )}
+
+            {!isShopPage && !isRestoringSession && !isAuthenticated && (
+              <button
+                type="button"
+                onClick={openAuthDialog}
+                className="hidden lg:block rounded-sm border border-stone-900 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-amber-900 hover:bg-amber-900 hover:text-white"
+              >
+                Sign In
+              </button>
+            )}
 
             {/* Shop Now CTA — visible on landing page only */}
             {!isShopPage && (
@@ -240,6 +273,20 @@ const Navbar = ({ onOpenCart }) => {
             </Link>
           )}
 
+          {!isRestoringSession && !isAuthenticated && (
+            <button
+              type="button"
+              onClick={openAuthDialogFromMobileMenu}
+              className={`px-10 py-4 text-[12px] font-bold uppercase tracking-[0.3em] transition-colors ${
+                isShopPage
+                  ? 'mb-16 border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white'
+                  : 'mb-16 bg-stone-900 text-white hover:bg-amber-900'
+              }`}
+            >
+              Sign In
+            </button>
+          )}
+
           {/* Social Links */}
           <ul className="flex gap-8" aria-label="Social media links">
             {SOCIAL_LINKS.map((social) => (
@@ -258,6 +305,8 @@ const Navbar = ({ onOpenCart }) => {
           </ul>
         </div>
       </div>
+
+      <AccountAuthDialog isOpen={isAuthDialogOpen} onClose={closeAuthDialog} />
     </header>
   );
 };

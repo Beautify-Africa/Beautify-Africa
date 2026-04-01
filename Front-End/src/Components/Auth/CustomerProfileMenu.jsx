@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { CloseIcon, ProfileIcon } from '../Shared/Icons';
-import AccountAuthDialog from './AccountAuthDialog';
+
 
 function getInitials(name) {
   const parts = name?.trim().split(/\s+/).filter(Boolean) || [];
@@ -29,7 +29,7 @@ function InfoRow({ label, value, subtle = false }) {
 export default function CustomerProfileMenu() {
   const { user, logout, isAuthenticated, isRestoringSession } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
   const wrapperRef = useRef(null);
   const panelRef = useFocusTrap(isOpen);
 
@@ -41,7 +41,7 @@ export default function CustomerProfileMenu() {
     return new Intl.DateTimeFormat('en-US', {
       month: 'long',
       year: 'numeric',
-    }).format(new Date(user.createdAt));
+    }).format(new Date(user?.createdAt));
   }, [user?.createdAt]);
 
   const closeMenu = useCallback(() => {
@@ -57,14 +57,7 @@ export default function CustomerProfileMenu() {
     setIsOpen(false);
   }, [logout]);
 
-  const handleOpenAuthDialog = useCallback(() => {
-    setIsOpen(false);
-    setIsAuthDialogOpen(true);
-  }, []);
 
-  const handleCloseAuthDialog = useCallback(() => {
-    setIsAuthDialogOpen(false);
-  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -175,15 +168,7 @@ export default function CustomerProfileMenu() {
               {isRestoringSession ? 'Checking status' : isAuthenticated ? 'Signed in' : 'Not signed in'}
             </div>
 
-            {!isRestoringSession && !isAuthenticated && (
-              <button
-                type="button"
-                onClick={handleOpenAuthDialog}
-                className="mt-4 inline-flex items-center justify-center rounded-full border border-stone-900 bg-stone-900 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-amber-900 hover:bg-amber-900"
-              >
-                Sign In
-              </button>
-            )}
+
           </div>
 
           <div className="space-y-4 px-5 py-5">
@@ -224,7 +209,7 @@ export default function CustomerProfileMenu() {
         </section>
       )}
 
-      <AccountAuthDialog isOpen={isAuthDialogOpen} onClose={handleCloseAuthDialog} />
+
     </div>
   );
 }

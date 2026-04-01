@@ -1,14 +1,26 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { GATE_CONTENT } from '../../data/checkoutGateContent';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import AuthModeForm from './AuthModeForm';
 import { CloseIcon } from '../Shared/Icons';
 
 const ACCOUNT_AUTH_COPY = {
-  badge: 'Member Access',
-  title: 'Sign in before you are ready to buy',
-  description: 'Keep your account active while you browse, then head to checkout whenever it feels right.',
-  submitLabel: 'Sign In',
+  login: {
+    badge: 'Member Access',
+    title: 'Sign in while you shop',
+    description: 'Keep your account active while you browse, then head to checkout whenever it feels right.',
+    submitLabel: 'Sign In',
+    switchText: 'Do not have an account?',
+    switchLabel: 'Create one',
+  },
+  register: {
+    badge: 'Join Beautify Africa',
+    title: 'Create your account',
+    description: 'Register once to save your details, speed up checkout, and track your orders.',
+    submitLabel: 'Create Account',
+    switchText: 'Already have an account?',
+    switchLabel: 'Sign in',
+  },
 };
 
 const TERMS_COPY = {
@@ -20,14 +32,22 @@ const TERMS_COPY = {
 };
 
 export default function AccountAuthDialog({ isOpen, onClose }) {
+  const [mode, setMode] = useState('login');
   const trapRef = useFocusTrap(isOpen);
+
+  const isRegisterMode = mode === 'register';
+
+  const handleCloseDialog = useCallback(() => {
+    setMode('login');
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
 
     const handleEscape = (event) => {
       if (event.key === 'Escape') {
-        onClose();
+        handleCloseDialog();
       }
     };
 
@@ -39,11 +59,15 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [handleCloseDialog, isOpen]);
 
   const handleSuccess = useCallback(() => {
-    onClose();
-  }, [onClose]);
+    handleCloseDialog();
+  }, [handleCloseDialog]);
+
+  const handleSwitchMode = useCallback(() => {
+    setMode((prev) => (prev === 'login' ? 'register' : 'login'));
+  }, []);
 
   if (!isOpen) return null;
 
@@ -52,11 +76,11 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
       className="fixed inset-0 z-[180] flex items-center justify-center px-4 py-8"
       role="dialog"
       aria-modal="true"
-      aria-label="Sign in to your account"
+      aria-label={isRegisterMode ? 'Create your account' : 'Sign in to your account'}
     >
       <div
         className="absolute inset-0 bg-black/55 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleCloseDialog}
         aria-hidden="true"
       />
 
@@ -68,15 +92,19 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">My Account</p>
-              <h2 className="mt-2 font-serif text-3xl text-stone-900">Stay signed in while you shop</h2>
+              <h2 className="mt-2 font-serif text-3xl text-stone-900">
+                {isRegisterMode ? 'Create your account' : 'Stay signed in while you shop'}
+              </h2>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-500">
-                This keeps your account ready without sending you into checkout before you want to go there.
+                {isRegisterMode
+                  ? 'Open your account now and save your details for a faster checkout next time.'
+                  : 'This keeps your account ready without sending you into checkout before you want to go there.'}
               </p>
             </div>
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseDialog}
               className="rounded-full p-2 text-stone-400 transition-colors hover:bg-white hover:text-stone-900"
               aria-label="Close account dialog"
             >
@@ -88,11 +116,12 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
 
         <div className="px-6 py-6 sm:px-8">
           <AuthModeForm
-            mode="login"
-            content={ACCOUNT_AUTH_COPY}
+            mode={mode}
+            content={ACCOUNT_AUTH_COPY[mode]}
             fields={GATE_CONTENT.formFields}
             terms={TERMS_COPY}
             onSuccess={handleSuccess}
+            onSecondaryAction={handleSwitchMode}
             inputIdPrefix="account"
           />
         </div>
