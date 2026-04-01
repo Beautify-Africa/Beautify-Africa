@@ -57,7 +57,7 @@ async function getProducts(req, res) {
     if (sort === 'price-low')    sortOption = { price: 1 };    // ascending
     if (sort === 'price-high')   sortOption = { price: -1 };   // descending
     if (sort === 'rating')       sortOption = { rating: -1 };  // highest first
-    if (sort === 'best-selling') sortOption = { isBestSeller: -1, reviews: -1 };
+    if (sort === 'best-selling') sortOption = { isBestSeller: -1, numReviews: -1 };
 
     // Query MongoDB with the filter and sort
     const products = await Product.find(filter).sort(sortOption);
@@ -112,7 +112,48 @@ async function getProductByIdOrSlug(req, res) {
   }
 }
 
+// POST /api/products/:id/reviews
+// Create new review. Private route.
+async function createProductReview(req, res) {
+  try {
+    const { rating, comment } = req.body;
+
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      const alreadyReviewed = product.reviews.find(
+        (r) => r.user.toString() === req.user._id.toString()
+      );
+
+      if (alreadyReviewed) {
+        return res.status(400).json({ status: 'error', message: 'Product already reviewed' });
+      }
+
+      const review = {
+        name: req.user.name,
+        rating: Number(rating),
+        comment,
+        user: req.user._id,
+      };
+
+      product.reviews.push(review);
+      product.numReviews = product.reviews.length;
+      product.rating =
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+        product.reviews.length;
+
+      await product.save();
+      return res.status(201).json({ status: 'success', message: 'Review added' });
+    } else {
+      return res.status(404).json({ status: 'error', message: 'Product not found' });
+    }
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: error.message });
+  }
+}
+
 module.exports = {
   getProducts,
   getProductByIdOrSlug,
+  createProductReview,
 };

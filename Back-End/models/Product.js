@@ -1,5 +1,20 @@
-// models/Product.js
 const mongoose = require('mongoose');
+
+const reviewSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    comment: { type: String, required: true },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'User',
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const productSchema = new mongoose.Schema(
   {
@@ -35,10 +50,9 @@ const productSchema = new mongoose.Schema(
     rating: {
       type: Number,
       default: 0,
-      min: 0,
-      max: 5,
     },
-    reviews: {
+    reviews: [reviewSchema],
+    numReviews: {
       type: Number,
       default: 0,
     },
@@ -74,7 +88,7 @@ const productSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    isNew: {
+    isNewProduct: {
       type: Boolean,
       default: false,
     },

@@ -21,3 +21,33 @@ export async function fetchProducts() {
   const json = await res.json();
   return json.data; // the API returns { status, count, data: [...products] }
 }
+
+export async function fetchProductByIdOrSlug(idOrSlug) {
+  const response = await fetch(`${API_URL}/products/${idOrSlug}`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch product');
+  }
+  
+  const data = await response.json();
+  return data.data;
+}
+
+export async function createReviewApi(token, productId, reviewPayload) {
+  if (!token) throw new Error('Authentication required to submit review.');
+
+  const response = await fetch(`${API_URL}/products/${productId}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(reviewPayload),
+  });
+
+  const json = await response.json();
+  if (!response.ok) {
+    throw new Error(json.message || 'Failed to submit review');
+  }
+  return json;
+}
