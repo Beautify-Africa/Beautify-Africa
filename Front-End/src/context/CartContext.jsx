@@ -18,7 +18,7 @@ function getStoredCartItems() {
 
 function mapProductToCartItem(product, quantity = 1) {
   return {
-    id: product.id,
+    id: product._id,
     name: product.name,
     price: product.price,
     image: product.image,

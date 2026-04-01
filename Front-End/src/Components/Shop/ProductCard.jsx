@@ -116,7 +116,7 @@ export default function ProductCard({
         <ProductBadges product={product} />
         <HoverActions product={product} onAddToCart={onAddToCart} />
         <WishlistButton
-          productId={product.id}
+          productId={product._id}
           isInWishlist={isInWishlist}
           onToggle={onToggleWishlist}
         />

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import StepIndicator from './StepIndicator';
-import AuthGateStep from '../Auth/AuthGateStep';
 import ShippingStep from './ShippingStep';
 import PaymentStep from './PaymentStep';
 import ConfirmationStep from './ConfirmationStep';
+import { useAuth } from '../../hooks/useAuth';
 import {
   validateShipping,
   validatePayment,
@@ -14,12 +14,28 @@ import {
 } from '../../data/checkoutUtils';
 
 export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
-  const [step, setStep] = useState(0);
-  const [isGuest, setIsGuest] = useState(true);
+  const { user, isAuthenticated } = useAuth();
+
+  const getInitialShipping = () => {
+    if (!isAuthenticated || !user) return INITIAL_SHIPPING;
+
+    const nameParts = user.name?.trim().split(/\s+/).filter(Boolean) || [];
+    const [firstName = '', ...lastNameParts] = nameParts;
+
+    return {
+      ...INITIAL_SHIPPING,
+      firstName,
+      lastName: lastNameParts.join(' '),
+      email: user.email || '',
+    };
+  };
+
+  const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [orderNumber, setOrderNumber] = useState('');
-  const [shipping, setShipping] = useState(INITIAL_SHIPPING);
+  const [shipping, setShipping] = useState(() => getInitialShipping());
   const [payment, setPayment] = useState(INITIAL_PAYMENT);
+  const isGuest = !isAuthenticated;
 
   const trapRef = useFocusTrap(isOpen);
 
@@ -43,22 +59,6 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
         return nextErrors;
       });
     }
-  };
-
-  const handleAuthContinue = ({ isGuest: guest, user }) => {
-    setIsGuest(guest);
-    if (user) {
-      const nameParts = user.name?.trim().split(/\s+/).filter(Boolean) || [];
-      const [firstName = '', ...lastNameParts] = nameParts;
-
-      setShipping((prev) => ({
-        ...prev,
-        firstName: prev.firstName || firstName,
-        lastName: prev.lastName || lastNameParts.join(' '),
-        email: prev.email || user.email || '',
-      }));
-    }
-    setStep(1);
   };
 
   const handleShippingNext = () => {
@@ -88,10 +88,9 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
     onClose();
 
     window.setTimeout(() => {
-      setStep(0);
-      setIsGuest(true);
+      setStep(1);
       setErrors({});
-      setShipping(INITIAL_SHIPPING);
+      setShipping(getInitialShipping());
       setPayment(INITIAL_PAYMENT);
       setOrderNumber('');
     }, 400);
@@ -113,9 +112,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
       >
         <div className="sticky top-0 z-10 border-b border-stone-100 bg-white px-8 pt-8 pb-4">
           <div className="mb-6 flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400">
-              {step === 0 ? 'Welcome' : 'Checkout'}
-            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400">Checkout</span>
             {step < 3 && (
               <button
                 onClick={handleClose}
@@ -132,8 +129,6 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
         </div>
 
         <div className="px-8 py-6">
-          {step === 0 && <AuthGateStep onContinue={handleAuthContinue} />}
-
           {step === 1 && (
             <>
               <ShippingStep data={shipping} onChange={updateShipping} errors={errors} />

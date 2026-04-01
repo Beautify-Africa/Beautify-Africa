@@ -5,7 +5,8 @@ import PromoBanner from './PromoBanner';
 import ShopNavBar from './ShopNavBar';
 import ShopFilterBar from './ShopFilterBar';
 import { useCart } from '../../hooks/useCart';
-import { PRODUCTS, PRICE_RANGE, SHOP_CONTENT } from '../../data/shopData';
+import { PRICE_RANGE, SHOP_CONTENT } from '../../data/shopData';
+import { fetchProducts } from '../../services/productsApi';
 
 function EmptyState({ onClearFilters }) {
   return (
@@ -24,6 +25,8 @@ function EmptyState({ onClearFilters }) {
 
 export default function ShopPage() {
   const { addItem } = useCart();
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [selectedSkinType, setSelectedSkinType] = useState('All');
@@ -38,6 +41,32 @@ export default function ShopPage() {
   const toastTimeoutRef = useRef(null);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
+  // Fetch products from the back-end API when the page loads
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProducts() {
+      try {
+        const data = await fetchProducts();
+        if (!cancelled) {
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error('Failed to load products:', error.message);
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleSelectCategory = useCallback((label) => {
     setSelectedCategory(label);
     setSelectedSubcategory(null);
@@ -49,7 +78,7 @@ export default function ShopPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return PRODUCTS.filter((product) => {
+    return products.filter((product) => {
       const matchCategory = selectedCategory === 'All' || product.category === selectedCategory;
       const matchSubcategory =
         !selectedSubcategory || !product.subcategory || product.subcategory === selectedSubcategory;
@@ -80,6 +109,7 @@ export default function ShopPage() {
       }
     });
   }, [
+    products,
     selectedCategory,
     selectedSubcategory,
     selectedSkinType,
@@ -157,7 +187,11 @@ export default function ShopPage() {
             resultCount={filteredProducts.length}
           />
 
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="py-20 text-center">
+              <p className="font-serif text-xl text-stone-400">Loading products...</p>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div
               className="mt-8 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
               role="list"
@@ -165,9 +199,9 @@ export default function ShopPage() {
             >
               {filteredProducts.map((product) => (
                 <ProductCard
-                  key={product.id}
+                  key={product._id}
                   product={product}
-                  isInWishlist={wishlist.includes(product.id)}
+                  isInWishlist={wishlist.includes(product._id)}
                   onToggleWishlist={toggleWishlist}
                   onAddToCart={addToCart}
                   onProductClick={setSelectedProduct}
