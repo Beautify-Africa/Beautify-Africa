@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { fetchMyOrders } from '../../services/ordersApi';
 import { CloseIcon, ProfileIcon } from '../Shared/Icons';
 
 
@@ -27,8 +28,11 @@ function InfoRow({ label, value, subtle = false }) {
 }
 
 export default function CustomerProfileMenu() {
-  const { user, logout, isAuthenticated, isRestoringSession } = useAuth();
+  const { user, token, logout, isAuthenticated, isRestoringSession } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
 
   const wrapperRef = useRef(null);
   const panelRef = useFocusTrap(isOpen);
@@ -57,7 +61,31 @@ export default function CustomerProfileMenu() {
     setIsOpen(false);
   }, [logout]);
 
+  useEffect(() => {
+    let active = true;
 
+    async function loadOrders() {
+      if (!isOpen || !isAuthenticated || !token) return;
+      
+      setIsLoadingOrders(true);
+      setOrdersError(null);
+      
+      try {
+        const data = await fetchMyOrders(token);
+        if (active) setOrders(data);
+      } catch (err) {
+        if (active) setOrdersError(err.message);
+      } finally {
+        if (active) setIsLoadingOrders(false);
+      }
+    }
+
+    loadOrders();
+
+    return () => {
+      active = false;
+    };
+  }, [isOpen, isAuthenticated, token]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -182,7 +210,35 @@ export default function CustomerProfileMenu() {
                 <InfoRow label="Email" value={user.email || 'Not available'} />
                 <InfoRow label="Member Since" value={memberSince} />
 
-                <p className="text-sm leading-relaxed text-stone-500">
+                <div className="mt-6 border-t border-stone-100 pt-5">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-3">
+                    Recent Orders
+                  </h4>
+                  {isLoadingOrders ? (
+                    <p className="text-xs text-stone-500">Loading orders...</p>
+                  ) : ordersError ? (
+                    <p className="text-xs text-red-500">{ordersError}</p>
+                  ) : orders.length > 0 ? (
+                    <ul className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                      {orders.map((order) => (
+                        <li key={order._id} className="rounded-sm border border-stone-100 bg-stone-50 p-3 flex justify-between items-center text-xs">
+                          <div>
+                            <p className="font-bold text-stone-900 mb-0.5">#{order._id.substring(18).toUpperCase()}</p>
+                            <p className="text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-stone-900 mb-0.5">${order.totalPrice.toFixed(2)}</p>
+                            <p className="text-[9px] uppercase tracking-wider text-amber-600">{order.isDelivered ? 'Delivered' : 'Processing'}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-stone-500">No recent orders found.</p>
+                  )}
+                </div>
+
+                <p className="text-sm mt-5 leading-relaxed text-stone-500">
                   This account card updates from your sign-in and checkout auth flows, so your
                   saved details stay visible here.
                 </p>
