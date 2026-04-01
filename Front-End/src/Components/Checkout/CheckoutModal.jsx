@@ -5,16 +5,20 @@ import ShippingStep from './ShippingStep';
 import PaymentStep from './PaymentStep';
 import ConfirmationStep from './ConfirmationStep';
 import { useAuth } from '../../hooks/useAuth';
+import { useCart } from '../../hooks/useCart';
+import { createOrder } from '../../services/ordersApi';
+import { clearCartApi } from '../../services/cartApi';
 import {
   validateShipping,
   validatePayment,
-  generateOrderNumber,
   INITIAL_SHIPPING,
   INITIAL_PAYMENT,
 } from '../../data/checkoutUtils';
 
 export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
+  const { clearCart, subtotal } = useCart();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const getInitialShipping = () => {
     if (!isAuthenticated || !user) return INITIAL_SHIPPING;
@@ -72,7 +76,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
     setStep(2);
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const validationErrors = validatePayment(payment);
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
@@ -80,8 +84,39 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
     }
 
     setErrors({});
-    setOrderNumber(generateOrderNumber());
-    setStep(3);
+    setIsPlacingOrder(true);
+
+    try {
+      const orderData = {
+        orderItems: cartItems.map(item => ({
+          product: item.id,
+          name: item.name,
+          qty: item.quantity,
+          image: item.image,
+          price: item.price
+        })),
+        shippingAddress: shipping,
+        paymentMethod: 'Credit Card',
+        itemsPrice: subtotal,
+        taxPrice: 0,
+        shippingPrice: subtotal > 50000 ? 0 : 5000, // Standard simple shipping logic
+        totalPrice: subtotal + (subtotal > 50000 ? 0 : 5000),
+      };
+
+      const order = await createOrder(orderData, token);
+      
+      if (isAuthenticated && token) {
+        await clearCartApi(token).catch(e => console.error('Failed to clear Server Cart:', e));
+      }
+
+      setOrderNumber(order._id);
+      clearCart();
+      setStep(3);
+    } catch (err) {
+      setErrors({ form: err.message || 'Failed to place order.' });
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   const handleClose = () => {
@@ -144,21 +179,24 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
           {step === 2 && (
             <>
               <PaymentStep data={payment} onChange={updatePayment} errors={errors} />
+              {errors.form && <div className="mt-4 text-center text-sm font-semibold text-red-600">{errors.form}</div>}
               <div className="mt-6 flex gap-4">
                 <button
                   onClick={() => {
                     setStep(1);
                     setErrors({});
                   }}
-                  className="flex-none rounded-sm border border-stone-200 px-6 py-4 text-[11px] font-bold uppercase tracking-[0.15em] text-stone-700 transition-colors hover:border-stone-900"
+                  disabled={isPlacingOrder}
+                  className="flex-none rounded-sm border border-stone-200 px-6 py-4 text-[11px] font-bold uppercase tracking-[0.15em] text-stone-700 transition-colors hover:border-stone-900 disabled:opacity-50"
                 >
                   Back
                 </button>
                 <button
                   onClick={handlePlaceOrder}
-                  className="flex-1 rounded-sm bg-stone-900 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900"
+                  disabled={isPlacingOrder}
+                  className="flex-1 rounded-sm bg-stone-900 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900 disabled:opacity-50"
                 >
-                  Place Order
+                  {isPlacingOrder ? 'Processing...' : 'Place Order'}
                 </button>
               </div>
             </>
