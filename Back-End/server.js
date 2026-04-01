@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
@@ -46,6 +48,8 @@ app.get('/health', (req, res) => {
 
 app.use('/api', productRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/cart', cartRoutes);
 
 const PORT = process.env.PORT || 5000;
 let server;
