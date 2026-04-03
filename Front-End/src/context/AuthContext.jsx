@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import React, { useCallback, useEffect, useState } from 'react';
-import { registerUser, loginUser, fetchMe } from '../services/authApi';
+import { registerUser, loginUser, fetchMe, updateUser } from '../services/authApi';
 import { AuthContext } from './auth-context';
 
 export function AuthProvider({ children }) {
@@ -73,6 +73,22 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (userData) => {
+    setLoading(true);
+    clearError();
+    try {
+      if (!token) throw new Error('Not authenticated');
+      const data = await updateUser(userData, token);
+      setUser(data.user); // Dynamically update the global state
+      return data;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -94,6 +110,7 @@ export function AuthProvider({ children }) {
         isRestoringSession,
         register,
         login,
+        updateProfile,
         logout,
         clearError,
       }}

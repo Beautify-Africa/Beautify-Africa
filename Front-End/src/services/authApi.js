@@ -32,3 +32,17 @@ export async function fetchMe(token) {
   if (!res.ok) throw new Error((await res.json()).message || 'Fetch user failed');
   return res.json();
 }
+
+export async function updateUser(userData, token) {
+  const res = await fetch(`${API_URL}/auth/profile`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(userData),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || 'Update failed');
+  return json;
+}
