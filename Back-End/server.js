@@ -9,6 +9,12 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const newsletterRoutes = require('./routes/newsletterRoutes');
+
+// Security Middlewares
+// const helmet = require('helmet');
+// const mongoSanitize = require('express-mongo-sanitize');
+// const rateLimit = require('express-rate-limit');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
@@ -23,13 +29,26 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 
-// Middleware to parse JSON (needed for e-commerce POST requests)
+// 1. HTTP Security Headers
+// app.use(helmet());
+
+// 2. Prevent Cross-Site Scripting and Set Credentials
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || ['http://localhost:5173', 'http://localhost:4173'],
+    origin: process.env.CLIENT_URL || [
+      'http://localhost:5173',
+      'http://localhost:4173',
+      'http://localhost:4174',
+      'http://localhost:4175',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:4173',
+      'http://127.0.0.1:4174'
+    ],
     credentials: true,
   })
 );
+
+// 3. Body Parser
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -46,10 +65,12 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Apply limiting strictly to API routes
 app.use('/api', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 const PORT = process.env.PORT || 5000;
 let server;

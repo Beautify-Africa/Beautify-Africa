@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { fetchMyOrders } from '../../services/ordersApi';
 import { CloseIcon, ProfileIcon } from '../Shared/Icons';
-
+import AppLink from '../Shared/AppLink';
 
 function getInitials(name) {
   const parts = name?.trim().split(/\s+/).filter(Boolean) || [];
@@ -239,17 +239,26 @@ export default function CustomerProfileMenu() {
                 </div>
 
                 <p className="text-sm mt-5 leading-relaxed text-stone-500">
-                  This account card updates from your sign-in and checkout auth flows, so your
-                  saved details stay visible here.
+                  Manage your personal details and view your complete order history in your account dashboard.
                 </p>
 
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full rounded-sm border border-stone-900 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors hover:bg-stone-900 hover:text-white"
-                >
-                  Sign Out
-                </button>
+                <div className="pt-2 flex flex-col gap-3">
+                  <AppLink
+                    href="/profile"
+                    onClick={closeMenu}
+                    className="block text-center w-full rounded-sm bg-stone-900 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-amber-900"
+                  >
+                    Manage Account
+                  </AppLink>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full rounded-sm border border-stone-900 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors hover:bg-stone-50"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               </>
             ) : (
               <>

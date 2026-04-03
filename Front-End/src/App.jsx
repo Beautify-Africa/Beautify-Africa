@@ -6,12 +6,9 @@ import AppLink from './Components/Shared/AppLink';
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ShopPageLayout = lazy(() => import('./pages/ShopPageLayout'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 
 import CartDrawer from './Components/Cart/CartDrawer';
-
-/**
- * Loading fallback for lazy-loaded pages
- */
 function PageLoader() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#faf9f6]">
@@ -44,6 +41,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage onOpenCart={openCart} />} />
             <Route path="/shop" element={<ShopPageLayout onOpenCart={openCart} />} />
+            <Route path="/profile" element={<ProfilePage />} />
             {/* 404 catch-all */}
             <Route
               path="*"
