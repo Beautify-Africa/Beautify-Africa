@@ -1,5 +1,6 @@
 // controllers/cartController.js
 const Cart = require('../models/Cart');
+const Product = require('../models/Product');
 
 // @desc    Get user cart
 // @route   GET /api/cart
@@ -25,6 +26,14 @@ const addToCart = async (req, res) => {
   const { product, name, price, image, variant, quantity } = req.body;
 
   try {
+    const dbProduct = await Product.findById(product);
+    if (!dbProduct) {
+      return res.status(404).json({ status: 'error', message: 'Product not found' });
+    }
+    if (!dbProduct.inStock) {
+      return res.status(400).json({ status: 'error', message: 'Product is fully out of stock' });
+    }
+
     let cart = await Cart.findOne({ user: req.user._id });
     if (!cart) cart = await Cart.create({ user: req.user._id, cartItems: [] });
 
@@ -32,10 +41,23 @@ const addToCart = async (req, res) => {
       (item) => item.product.toString() === product.toString()
     );
 
+    const requestedQty = Number(quantity);
+
     if (existingItemIndex >= 0) {
-      cart.cartItems[existingItemIndex].quantity += Number(quantity);
+      // Backend cap to prevent integer overflow abuse
+      const maxAllowed = 100;
+      const newQty = cart.cartItems[existingItemIndex].quantity + requestedQty;
+      cart.cartItems[existingItemIndex].quantity = Math.min(newQty, maxAllowed);
     } else {
-      cart.cartItems.push({ product, name, price, image, variant, quantity });
+      // Zero-Trust Pricing mapping
+      cart.cartItems.push({ 
+        product, 
+        name: dbProduct.name, 
+        price: dbProduct.price, // Trust Database Pricing
+        image: dbProduct.image, 
+        variant, 
+        quantity: Math.min(requestedQty, 100) 
+      });
     }
 
     const updatedCart = await cart.save();
@@ -56,15 +78,20 @@ const updateCartItemQty = async (req, res) => {
     let cart = await Cart.findOne({ user: req.user._id });
     if (!cart) return res.status(404).json({ status: 'error', message: 'Cart not found' });
 
+    const dbProduct = await Product.findById(productId);
+    if (!dbProduct) return res.status(404).json({ status: 'error', message: 'Product not found' });
+    if (!dbProduct.inStock) return res.status(400).json({ status: 'error', message: 'Product is currently out of stock' });
+
     const existingItemIndex = cart.cartItems.findIndex(
       (item) => item.product.toString() === productId.toString()
     );
 
     if (existingItemIndex >= 0) {
-      if (Number(quantity) < 1) {
+      const parsedQty = Number(quantity);
+      if (parsedQty < 1) {
         cart.cartItems.splice(existingItemIndex, 1);
       } else {
-        cart.cartItems[existingItemIndex].quantity = Number(quantity);
+        cart.cartItems[existingItemIndex].quantity = Math.min(parsedQty, 100);
       }
       const updatedCart = await cart.save();
       res.status(200).json({ status: 'success', data: updatedCart.cartItems });
@@ -118,7 +145,7 @@ const clearCart = async (req, res) => {
 // @route   POST /api/cart/sync
 // @access  Private
 const syncCart = async (req, res) => {
-  const { localItems } = req.body; // Expects an array
+  const { localItems } = req.body;
 
   if (!Array.isArray(localItems)) {
     return res.status(400).json({ status: 'error', message: 'Expected an array of items' });
@@ -132,23 +159,28 @@ const syncCart = async (req, res) => {
       if (!currentItem.product && !currentItem.id) continue;
       
       const pId = currentItem.product || currentItem.id;
+      
+      // Zero-Trust Check against DB
+      const dbProd = await Product.findById(pId).catch(() => null);
+      if (!dbProd || !dbProd.inStock) continue; // Skip invalid or out-of-stock items safely
+
       const existingItemIndex = cart.cartItems.findIndex(
         (ci) => ci.product.toString() === pId.toString()
       );
 
+      const parsedQty = Number(currentItem.quantity || 1);
+
       if (existingItemIndex >= 0) {
-        // If it exists in both, we combine quantities (or overwrite). 
-        // We'll combine to strictly maintain intent.
-        cart.cartItems[existingItemIndex].quantity += Number(currentItem.quantity || 1);
+        const newQty = cart.cartItems[existingItemIndex].quantity + parsedQty;
+        cart.cartItems[existingItemIndex].quantity = Math.min(newQty, 100);
       } else {
-        // Map Local -> Schema
         cart.cartItems.push({
           product: pId,
-          name: currentItem.name,
-          price: currentItem.price,
-          image: currentItem.image,
+          name: dbProd.name,
+          price: dbProd.price, // Guarantee Database Price over LocalStorage spoofing
+          image: dbProd.image,
           variant: currentItem.variant,
-          quantity: currentItem.quantity || 1,
+          quantity: Math.min(parsedQty, 100),
         });
       }
     }

@@ -38,10 +38,24 @@ async function seed() {
     //    the pre('save') hook that auto-generates the slug field
     const inserted = [];
     for (const productData of products) {
-      // Remove the static numeric "id" field (e.g., id: 1, id: 2)
-      // MongoDB will generate its own _id automatically
-      const { id, ...rest } = productData;
-      const product = await Product.create(rest);
+      // Map front-end-only fields to the Product schema before creating docs.
+      // shopData uses "reviews" as a number and "isNew" as a boolean, while
+      // the schema expects "reviews" as an array and uses "numReviews" / "isNewProduct".
+      const {
+        id,
+        reviews,
+        isNew,
+        ...rest
+      } = productData;
+
+      const normalizedProduct = {
+        ...rest,
+        numReviews: typeof reviews === 'number' ? reviews : 0,
+        isNewProduct: Boolean(isNew),
+        reviews: [],
+      };
+
+      const product = await Product.create(normalizedProduct);
       inserted.push(product);
     }
 

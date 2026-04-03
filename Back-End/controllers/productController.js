@@ -1,4 +1,5 @@
 // controllers/productController.js
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 
 // GET /api/products
@@ -117,6 +118,20 @@ async function getProductByIdOrSlug(req, res) {
 async function createProductReview(req, res) {
   try {
     const { rating, comment } = req.body;
+    const normalizedRating = Number(rating);
+    const normalizedComment = typeof comment === 'string' ? comment.trim().substring(0, 500) : '';
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
+    }
+
+    if (!Number.isFinite(normalizedRating) || normalizedRating < 1 || normalizedRating > 5) {
+      return res.status(400).json({ status: 'error', message: 'Rating must be a number between 1 and 5' });
+    }
+
+    if (!normalizedComment) {
+      return res.status(400).json({ status: 'error', message: 'Comment is required' });
+    }
 
     const product = await Product.findById(req.params.id);
 
@@ -131,16 +146,17 @@ async function createProductReview(req, res) {
 
       const review = {
         name: req.user.name,
-        rating: Number(rating),
-        comment,
+        rating: normalizedRating,
+        comment: normalizedComment,
         user: req.user._id,
       };
 
       product.reviews.push(review);
       product.numReviews = product.reviews.length;
-      product.rating =
-        product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-        product.reviews.length;
+      
+      const rawRating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+      // Guarantee exactly 1 decimal point mathematically
+      product.rating = Math.round(rawRating * 10) / 10;
 
       await product.save();
       return res.status(201).json({ status: 'success', message: 'Review added' });
@@ -148,6 +164,11 @@ async function createProductReview(req, res) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid review data';
+      return res.status(400).json({ status: 'error', message: firstMessage });
+    }
+
     return res.status(500).json({ status: 'error', message: error.message });
   }
 }
