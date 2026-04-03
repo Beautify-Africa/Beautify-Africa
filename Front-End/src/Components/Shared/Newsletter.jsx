@@ -1,15 +1,33 @@
 import { useState } from 'react';
 import { NEWSLETTER_CONTENT } from '../../data/newsletterContent';
 import FadeIn from './FadeIn';
+import { subscribeToNewsletter } from '../../services/newsletterApi';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatusMessage('Newsletter signup will be available soon.');
-    setEmail('');
+    if (!email) return;
+
+    setIsSubmitting(true);
+    setStatusMessage('');
+    setIsSuccess(false);
+
+    try {
+      const response = await subscribeToNewsletter(email);
+      setIsSuccess(true);
+      setStatusMessage(response.message || 'Thank you for subscribing!');
+      setEmail('');
+    } catch (err) {
+      setIsSuccess(false);
+      setStatusMessage(err.message || 'Error subscribing. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -109,9 +127,10 @@ const Newsletter = () => {
 
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-stone-900 text-white text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm sm:rounded-none"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-stone-900 text-white text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm sm:rounded-none disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px]"
                   >
-                    {NEWSLETTER_CONTENT.submitLabel}
+                    {isSubmitting ? 'SUBSCRIBING...' : NEWSLETTER_CONTENT.submitLabel}
                   </button>
                 </div>
 
@@ -120,7 +139,7 @@ const Newsletter = () => {
                 </p>
 
                 {statusMessage && (
-                  <p role="status" className="mt-3 text-xs text-stone-500">
+                  <p role="status" className={`mt-3 text-xs md:text-sm font-semibold tracking-wide ${isSuccess ? 'text-green-600' : 'text-red-500'}`}>
                     {statusMessage}
                   </p>
                 )}
