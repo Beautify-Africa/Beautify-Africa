@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { SearchIcon } from '../Shared/Icons';
+import ShopExpandedFilters from './ShopExpandedFilters';
 import {
     ALL_FILTER_OPTION,
     DEFAULT_PRICE_RANGE,
@@ -7,27 +8,6 @@ import {
     SHOP_CONTENT,
     SORT_OPTIONS,
 } from './shopConfig';
-
-/**
- * Price range slider used inside the filter panel
- */
-function PriceRangeSlider({ value, max, onChange }) {
-    return (
-        <div>
-            <input
-                type="range" min="0" max={max} value={value}
-                onChange={(e) => onChange(parseInt(e.target.value))}
-                className="w-full accent-stone-900 h-1 bg-stone-300 rounded-lg appearance-none cursor-pointer"
-                aria-label="Maximum price"
-                aria-valuemin={0} aria-valuemax={max} aria-valuenow={value}
-            />
-            <div className="flex justify-between text-xs text-stone-600 mt-2 font-mono">
-                <span>$0</span>
-                <span>${value}</span>
-            </div>
-        </div>
-    );
-}
 
 /**
  * Search bar + inline filter panel + sort dropdown
@@ -72,12 +52,6 @@ export default function ShopFilterBar({
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [showFilters]);
-
-    const chipClass = (active) =>
-        `px-3 py-1.5 text-[10px] sm:text-xs rounded-full border transition-all ${active
-            ? 'bg-stone-900 text-white border-stone-900'
-            : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-        }`;
 
     return (
         <div className="mb-10" ref={filterRef}>
@@ -149,63 +123,22 @@ export default function ShopFilterBar({
             </div>
 
             {/* Expandable filter panel */}
-            <div
-                id="filter-panel"
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${showFilters ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'
-                    }`}
-                aria-hidden={!showFilters}
-            >
-                <div className="bg-white rounded-lg shadow-md border border-stone-200 p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Brand */}
-                        <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{filterLabels.brand}</h3>
-                            <div className="flex flex-wrap gap-1.5">
-                                {brandOptions.map((brand) => (
-                                    <button key={brand} onClick={() => onBrandChange(brand)}
-                                        className={chipClass(selectedBrand === brand)} aria-pressed={selectedBrand === brand}>
-                                        {brand}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        {/* Skin Type */}
-                        <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{filterLabels.skinType}</h3>
-                            <div className="flex flex-wrap gap-1.5">
-                                {skinTypeOptions.map((type) => (
-                                    <button key={type} onClick={() => onSkinTypeChange(type)}
-                                        className={chipClass(selectedSkinType === type)} aria-pressed={selectedSkinType === type}>
-                                        {type}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        {/* Price Range */}
-                        <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{filterLabels.priceRange}</h3>
-                            <PriceRangeSlider value={maxPrice} max={maxPriceCap} onChange={onMaxPriceChange} />
-                        </div>
-                    </div>
-
-                    {/* Mobile sort */}
-                    <div className="sm:hidden mt-4 pt-4 border-t border-stone-100">
-                        <label htmlFor="sort-select-mobile" className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-2 block">
-                            Sort by
-                        </label>
-                        <select
-                            id="sort-select-mobile"
-                            value={sortOption}
-                            onChange={(e) => onSortChange(e.target.value)}
-                            className="w-full bg-white border border-stone-200 px-3 py-2 text-sm rounded-md outline-none focus:border-stone-900 cursor-pointer text-stone-900"
-                        >
-                            {sortableOptions.map((o) => (
-                                <option key={o.value} value={o.value}>{o.label}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            </div>
+            <ShopExpandedFilters
+                showFilters={showFilters}
+                filterLabels={filterLabels}
+                brandOptions={brandOptions}
+                selectedBrand={selectedBrand}
+                onBrandChange={onBrandChange}
+                skinTypeOptions={skinTypeOptions}
+                selectedSkinType={selectedSkinType}
+                onSkinTypeChange={onSkinTypeChange}
+                maxPrice={maxPrice}
+                maxPriceCap={maxPriceCap}
+                onMaxPriceChange={onMaxPriceChange}
+                sortOption={sortOption}
+                onSortChange={onSortChange}
+                sortableOptions={sortableOptions}
+            />
         </div>
     );
 }

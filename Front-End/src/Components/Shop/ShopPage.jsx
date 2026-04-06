@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ProductDetailsModal from './ProductDetailsModal';
 import PromoBanner from './PromoBanner';
 import ShopNavBar from './ShopNavBar';
@@ -9,10 +9,8 @@ import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { useWishlistState } from './hooks/useWishlistState';
 import { useShopProducts } from './hooks/useShopProducts';
-import { filterAndSortProducts } from './utils/filterAndSortProducts';
+import { useShopFilters } from './hooks/useShopFilters';
 import {
-  ALL_FILTER_OPTION,
-  DEFAULT_PRICE_RANGE,
   FILTER_LABELS,
   SHOP_CONTENT,
   SORT_OPTIONS,
@@ -23,105 +21,33 @@ export default function ShopPage() {
   const { token, isAuthenticated } = useAuth();
   const { wishlistSet, toggleWishlist } = useWishlistState({ isAuthenticated, token });
   const { products, isLoading, shopCatalog } = useShopProducts();
-  const [activeCollection, setActiveCollection] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState(ALL_FILTER_OPTION);
-  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
-  const [selectedSkinType, setSelectedSkinType] = useState(ALL_FILTER_OPTION);
-  const [selectedBrand, setSelectedBrand] = useState(ALL_FILTER_OPTION);
-  const [maxPrice, setMaxPrice] = useState(DEFAULT_PRICE_RANGE.max);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState('newest');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
   const toastTimeoutRef = useRef(null);
-  const deferredSearchQuery = useDeferredValue(searchQuery);
-
-  const effectiveSelectedCategory = useMemo(() => {
-    const hasSelectedCategory = shopCatalog.categories.some(
-      (category) => category.label === selectedCategory
-    );
-
-    return hasSelectedCategory ? selectedCategory : ALL_FILTER_OPTION;
-  }, [shopCatalog.categories, selectedCategory]);
-
-  const effectiveSelectedSubcategory = useMemo(() => {
-    if (!selectedSubcategory) return null;
-
-    const activeCategory = shopCatalog.categories.find(
-      (category) => category.label === effectiveSelectedCategory
-    );
-    const hasSelectedSubcategory = activeCategory?.subcategories?.includes(selectedSubcategory);
-
-    return hasSelectedSubcategory ? selectedSubcategory : null;
-  }, [shopCatalog.categories, effectiveSelectedCategory, selectedSubcategory]);
-
-  const effectiveSelectedBrand = useMemo(() => {
-    return shopCatalog.brands.includes(selectedBrand) ? selectedBrand : ALL_FILTER_OPTION;
-  }, [shopCatalog.brands, selectedBrand]);
-
-  const effectiveSelectedSkinType = useMemo(() => {
-    return shopCatalog.skinTypes.includes(selectedSkinType)
-      ? selectedSkinType
-      : ALL_FILTER_OPTION;
-  }, [shopCatalog.skinTypes, selectedSkinType]);
-
-  const effectiveMaxPrice = useMemo(() => {
-    if (maxPrice === DEFAULT_PRICE_RANGE.max) {
-      return shopCatalog.priceRange.max;
-    }
-
-    return maxPrice > shopCatalog.priceRange.max ? shopCatalog.priceRange.max : maxPrice;
-  }, [maxPrice, shopCatalog.priceRange.max]);
-
-  const effectiveSortOption = useMemo(() => {
-    const sortOptionExists = SORT_OPTIONS.some((option) => option.value === sortOption);
-    return sortOptionExists ? sortOption : 'newest';
-  }, [sortOption]);
-
-  const handleSelectCategory = useCallback((label) => {
-    setSelectedCategory(label);
-    setSelectedSubcategory(null);
-  }, []);
-
-  const handleSelectSubcategory = useCallback((categoryLabel, subcategory) => {
-    setSelectedCategory(categoryLabel);
-    setSelectedSubcategory(subcategory);
-  }, []);
-
-  const filteredProducts = useMemo(() => {
-    return filterAndSortProducts({
-      products,
-      selectedCategory: effectiveSelectedCategory,
-      selectedSubcategory: effectiveSelectedSubcategory,
-      selectedSkinType: effectiveSelectedSkinType,
-      selectedBrand: effectiveSelectedBrand,
-      maxPrice: effectiveMaxPrice,
-      searchQuery: deferredSearchQuery,
-      sortOption: effectiveSortOption,
-    });
-  }, [
-    products,
-    effectiveSelectedCategory,
-    effectiveSelectedSubcategory,
-    effectiveSelectedSkinType,
-    effectiveSelectedBrand,
-    effectiveMaxPrice,
-    deferredSearchQuery,
-    effectiveSortOption,
-  ]);
-
-  const savedProducts = useMemo(
-    () => filteredProducts.filter((product) => wishlistSet.has(product._id)),
-    [filteredProducts, wishlistSet]
-  );
-
-  const savedProductCount = useMemo(
-    () => products.filter((product) => wishlistSet.has(product._id)).length,
-    [products, wishlistSet]
-  );
-
-  const displayedProducts = activeCollection === 'saved' ? savedProducts : filteredProducts;
+  const {
+    activeCollection,
+    isSavedCollection,
+    selectedCategory,
+    selectedSubcategory,
+    selectedBrand,
+    selectedSkinType,
+    maxPrice,
+    searchQuery,
+    sortOption,
+    displayedProducts,
+    savedProductCount,
+    setSearchQuery,
+    setSortOption,
+    setSelectedBrand,
+    setSelectedSkinType,
+    setMaxPrice,
+    setActiveCollection,
+    handleSelectCategory,
+    handleSelectSubcategory,
+    clearFilters,
+    showAllProducts,
+  } = useShopFilters({ products, shopCatalog, wishlistSet });
 
   useEffect(() => {
     return () => {
@@ -141,21 +67,6 @@ export default function ShopPage() {
     setToastMessage(`${product.name} added to cart`);
     toastTimeoutRef.current = window.setTimeout(() => setToastMessage(''), 2500);
   }, [addItem]);
-
-  const clearFilters = useCallback(() => {
-    setSelectedCategory(ALL_FILTER_OPTION);
-    setSelectedSubcategory(null);
-    setSelectedBrand(ALL_FILTER_OPTION);
-    setSelectedSkinType(ALL_FILTER_OPTION);
-    setSearchQuery('');
-    setMaxPrice(shopCatalog.priceRange.max);
-  }, [shopCatalog.priceRange.max]);
-
-  const showAllProducts = useCallback(() => {
-    setActiveCollection('all');
-  }, []);
-
-  const isSavedCollection = activeCollection === 'saved';
 
   return (
     <section className="min-h-screen bg-[#faf9f6] pt-24 pb-12" aria-labelledby="shop-heading">
@@ -177,8 +88,8 @@ export default function ShopPage() {
 
         <ShopNavBar
           categories={shopCatalog.categories}
-          selectedCategory={effectiveSelectedCategory}
-          selectedSubcategory={effectiveSelectedSubcategory}
+          selectedCategory={selectedCategory}
+          selectedSubcategory={selectedSubcategory}
           onSelectCategory={handleSelectCategory}
           onSelectSubcategory={handleSelectSubcategory}
         />
@@ -187,11 +98,11 @@ export default function ShopPage() {
           <ShopFilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            sortOption={effectiveSortOption}
+            sortOption={sortOption}
             onSortChange={setSortOption}
-            selectedBrand={effectiveSelectedBrand}
+            selectedBrand={selectedBrand}
             onBrandChange={setSelectedBrand}
-            selectedSkinType={effectiveSelectedSkinType}
+            selectedSkinType={selectedSkinType}
             onSkinTypeChange={setSelectedSkinType}
             brands={shopCatalog.brands}
             skinTypes={shopCatalog.skinTypes}
@@ -199,7 +110,7 @@ export default function ShopPage() {
             priceRange={shopCatalog.priceRange}
             filterLabels={FILTER_LABELS}
             searchPlaceholder={SHOP_CONTENT.searchPlaceholder}
-            maxPrice={effectiveMaxPrice}
+            maxPrice={maxPrice}
             onMaxPriceChange={setMaxPrice}
             onClearFilters={clearFilters}
             resultCount={displayedProducts.length}
