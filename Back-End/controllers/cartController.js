@@ -1,17 +1,27 @@
 // controllers/cartController.js
-const Cart = require('../models/Cart');
-const Product = require('../models/Product');
+const {
+  findCartByUser,
+  findOrCreateCart,
+  findInStockProduct,
+  addOrMergeCartItem,
+  updateCartItemQuantity,
+  removeCartItemByProductId,
+  syncLocalCartItems,
+} = require('../services/cartService');
+
+function sendServiceError(res, error) {
+  return res.status(error.statusCode).json({
+    status: 'error',
+    message: error.message,
+  });
+}
 
 // @desc    Get user cart
 // @route   GET /api/cart
 // @access  Private
 const getCart = async (req, res) => {
   try {
-    let cart = await Cart.findOne({ user: req.user._id });
-
-    if (!cart) {
-      cart = await Cart.create({ user: req.user._id, cartItems: [] });
-    }
+    const cart = await findOrCreateCart(req.user._id);
 
     res.status(200).json({ status: 'success', data: cart.cartItems });
   } catch (error) {
@@ -23,42 +33,23 @@ const getCart = async (req, res) => {
 // @route   POST /api/cart
 // @access  Private
 const addToCart = async (req, res) => {
-  const { product, name, price, image, variant, quantity } = req.body;
+  const { product, variant, quantity } = req.body;
 
   try {
-    const dbProduct = await Product.findById(product);
-    if (!dbProduct) {
-      return res.status(404).json({ status: 'error', message: 'Product not found' });
-    }
-    if (!dbProduct.inStock) {
-      return res.status(400).json({ status: 'error', message: 'Product is fully out of stock' });
-    }
-
-    let cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) cart = await Cart.create({ user: req.user._id, cartItems: [] });
-
-    const existingItemIndex = cart.cartItems.findIndex(
-      (item) => item.product.toString() === product.toString()
+    const { product: dbProduct, error: productError } = await findInStockProduct(
+      product,
+      'Product is fully out of stock'
     );
+    if (productError) return sendServiceError(res, productError);
 
-    const requestedQty = Number(quantity);
+    const cart = await findOrCreateCart(req.user._id);
 
-    if (existingItemIndex >= 0) {
-      // Backend cap to prevent integer overflow abuse
-      const maxAllowed = 100;
-      const newQty = cart.cartItems[existingItemIndex].quantity + requestedQty;
-      cart.cartItems[existingItemIndex].quantity = Math.min(newQty, maxAllowed);
-    } else {
-      // Zero-Trust Pricing mapping
-      cart.cartItems.push({ 
-        product, 
-        name: dbProduct.name, 
-        price: dbProduct.price, // Trust Database Pricing
-        image: dbProduct.image, 
-        variant, 
-        quantity: Math.min(requestedQty, 100) 
-      });
-    }
+    addOrMergeCartItem(cart, {
+      productId: product,
+      dbProduct,
+      variant,
+      quantity,
+    });
 
     const updatedCart = await cart.save();
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
@@ -75,29 +66,24 @@ const updateCartItemQty = async (req, res) => {
   const productId = req.params.productId;
 
   try {
-    let cart = await Cart.findOne({ user: req.user._id });
+    const cart = await findCartByUser(req.user._id);
     if (!cart) return res.status(404).json({ status: 'error', message: 'Cart not found' });
 
-    const dbProduct = await Product.findById(productId);
-    if (!dbProduct) return res.status(404).json({ status: 'error', message: 'Product not found' });
-    if (!dbProduct.inStock) return res.status(400).json({ status: 'error', message: 'Product is currently out of stock' });
-
-    const existingItemIndex = cart.cartItems.findIndex(
-      (item) => item.product.toString() === productId.toString()
+    const { error: productError } = await findInStockProduct(
+      productId,
+      'Product is currently out of stock'
     );
+    if (productError) return sendServiceError(res, productError);
 
-    if (existingItemIndex >= 0) {
-      const parsedQty = Number(quantity);
-      if (parsedQty < 1) {
-        cart.cartItems.splice(existingItemIndex, 1);
-      } else {
-        cart.cartItems[existingItemIndex].quantity = Math.min(parsedQty, 100);
-      }
-      const updatedCart = await cart.save();
-      res.status(200).json({ status: 'success', data: updatedCart.cartItems });
-    } else {
+    const updated = updateCartItemQuantity(cart, productId, quantity);
+
+    if (!updated) {
       res.status(404).json({ status: 'error', message: 'Item not found in cart' });
+      return;
     }
+
+    const updatedCart = await cart.save();
+    res.status(200).json({ status: 'success', data: updatedCart.cartItems });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
@@ -110,12 +96,10 @@ const removeFromCart = async (req, res) => {
   const productId = req.params.productId;
 
   try {
-    let cart = await Cart.findOne({ user: req.user._id });
+    const cart = await findCartByUser(req.user._id);
     if (!cart) return res.status(404).json({ status: 'error', message: 'Cart not found' });
 
-    cart.cartItems = cart.cartItems.filter(
-      (item) => item.product.toString() !== productId.toString()
-    );
+    removeCartItemByProductId(cart, productId);
     
     const updatedCart = await cart.save();
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
@@ -129,7 +113,7 @@ const removeFromCart = async (req, res) => {
 // @access  Private
 const clearCart = async (req, res) => {
   try {
-    let cart = await Cart.findOne({ user: req.user._id });
+    const cart = await findCartByUser(req.user._id);
     if (!cart) return res.status(200).json({ status: 'success', data: [] });
 
     cart.cartItems = [];
@@ -152,38 +136,9 @@ const syncCart = async (req, res) => {
   }
 
   try {
-    let cart = await Cart.findOne({ user: req.user._id });
-    if (!cart) cart = await Cart.create({ user: req.user._id, cartItems: [] });
+    const cart = await findOrCreateCart(req.user._id);
 
-    for (let currentItem of localItems) {
-      if (!currentItem.product && !currentItem.id) continue;
-      
-      const pId = currentItem.product || currentItem.id;
-      
-      // Zero-Trust Check against DB
-      const dbProd = await Product.findById(pId).catch(() => null);
-      if (!dbProd || !dbProd.inStock) continue; // Skip invalid or out-of-stock items safely
-
-      const existingItemIndex = cart.cartItems.findIndex(
-        (ci) => ci.product.toString() === pId.toString()
-      );
-
-      const parsedQty = Number(currentItem.quantity || 1);
-
-      if (existingItemIndex >= 0) {
-        const newQty = cart.cartItems[existingItemIndex].quantity + parsedQty;
-        cart.cartItems[existingItemIndex].quantity = Math.min(newQty, 100);
-      } else {
-        cart.cartItems.push({
-          product: pId,
-          name: dbProd.name,
-          price: dbProd.price, // Guarantee Database Price over LocalStorage spoofing
-          image: dbProd.image,
-          variant: currentItem.variant,
-          quantity: Math.min(parsedQty, 100),
-        });
-      }
-    }
+    await syncLocalCartItems(cart, localItems);
 
     const updatedCart = await cart.save();
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
