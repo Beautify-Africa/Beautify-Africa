@@ -1,10 +1,5 @@
 // src/services/ordersApi.js
-
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const normalizedApiUrl = rawApiUrl.replace(/\/+$/, '');
-const API_URL = normalizedApiUrl.endsWith('/api')
-  ? normalizedApiUrl
-  : `${normalizedApiUrl}/api`;
+import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
 
 /**
  * Submit an order to the backend API.
@@ -12,25 +7,13 @@ const API_URL = normalizedApiUrl.endsWith('/api')
  * @param {string|null} token - Optional JWT token for authenticated users.
  */
 export async function createOrder(orderData, token = null) {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${API_URL}/orders`, {
+  const response = await fetch(`${API_URL}/orders`, {
     method: 'POST',
-    headers,
+    headers: jsonHeaders(token),
     body: JSON.stringify(orderData),
   });
 
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.message || 'Failed to place order.');
-  }
+  const json = await parseResponse(response, 'Failed to place order.');
 
   return json.data;
 }
@@ -42,19 +25,12 @@ export async function createOrder(orderData, token = null) {
 export async function fetchMyOrders(token) {
   if (!token) throw new Error('Authentication token required.');
 
-  const res = await fetch(`${API_URL}/orders/myorders`, {
+  const response = await fetch(`${API_URL}/orders/myorders`, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers: jsonHeaders(token),
   });
 
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.message || 'Failed to fetch orders.');
-  }
+  const json = await parseResponse(response, 'Failed to fetch orders.');
 
   return json.data;
 }

@@ -1,79 +1,76 @@
 // src/services/cartApi.js
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const normalizedApiUrl = rawApiUrl.replace(/\/+$/, '');
-const API_URL = normalizedApiUrl.endsWith('/api')
-  ? normalizedApiUrl
-  : `${normalizedApiUrl}/api`;
-
-const getHeaders = (token) => ({
-  'Content-Type': 'application/json',
-  Authorization: `Bearer ${token}`,
-});
+import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
 
 export async function fetchCart(token) {
   if (!token) return [];
-  const res = await fetch(`${API_URL}/cart`, {
-    headers: getHeaders(token),
+
+  const response = await fetch(`${API_URL}/cart`, {
+    headers: jsonHeaders(token),
   });
-  if (!res.ok) throw new Error('Failed to fetch user cart');
-  const json = await res.json();
+
+  const json = await parseResponse(response, 'Failed to fetch user cart');
   return json.data;
 }
 
 export async function syncCartApi(token, localItems) {
   if (!token) throw new Error('Auth token required');
-  const res = await fetch(`${API_URL}/cart/sync`, {
+
+  const response = await fetch(`${API_URL}/cart/sync`, {
     method: 'POST',
-    headers: getHeaders(token),
+    headers: jsonHeaders(token),
     body: JSON.stringify({ localItems }),
   });
-  if (!res.ok) throw new Error('Failed to sync cart');
-  const json = await res.json();
+
+  const json = await parseResponse(response, 'Failed to sync cart');
   return json.data;
 }
 
 export async function addToCartApi(token, productPayload) {
   if (!token) throw new Error('Auth token required');
-  const res = await fetch(`${API_URL}/cart`, {
+
+  const response = await fetch(`${API_URL}/cart`, {
     method: 'POST',
-    headers: getHeaders(token),
+    headers: jsonHeaders(token),
     body: JSON.stringify(productPayload),
   });
-  if (!res.ok) throw new Error('Failed to add to cart');
-  const json = await res.json();
+
+  const json = await parseResponse(response, 'Failed to add to cart');
   return json.data;
 }
 
 export async function updateCartQtyApi(token, productId, quantity) {
   if (!token) throw new Error('Auth token required');
-  const res = await fetch(`${API_URL}/cart/${productId}`, {
+
+  const response = await fetch(`${API_URL}/cart/${productId}`, {
     method: 'PUT',
-    headers: getHeaders(token),
+    headers: jsonHeaders(token),
     body: JSON.stringify({ quantity }),
   });
-  if (!res.ok) throw new Error('Failed to update cart quantity');
-  const json = await res.json();
+
+  const json = await parseResponse(response, 'Failed to update cart quantity');
   return json.data;
 }
 
 export async function removeCartItemApi(token, productId) {
   if (!token) throw new Error('Auth token required');
-  const res = await fetch(`${API_URL}/cart/${productId}`, {
+
+  const response = await fetch(`${API_URL}/cart/${productId}`, {
     method: 'DELETE',
-    headers: getHeaders(token),
+    headers: jsonHeaders(token),
   });
-  if (!res.ok) throw new Error('Failed to remove cart item');
-  const json = await res.json();
+
+  const json = await parseResponse(response, 'Failed to remove cart item');
   return json.data;
 }
 
 export async function clearCartApi(token) {
   if (!token) throw new Error('Auth token required');
-  const res = await fetch(`${API_URL}/cart`, {
+
+  const response = await fetch(`${API_URL}/cart`, {
     method: 'DELETE',
-    headers: getHeaders(token),
+    headers: jsonHeaders(token),
   });
-  if (!res.ok) throw new Error('Failed to clear cart');
-  const json = await res.json();
+
+  const json = await parseResponse(response, 'Failed to clear cart');
   return json.data;
 }

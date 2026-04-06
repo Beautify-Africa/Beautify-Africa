@@ -1,48 +1,40 @@
 // src/services/authApi.js
-const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const normalizedApiUrl = rawApiUrl.replace(/\/+$/, '');
-const API_URL = normalizedApiUrl.endsWith('/api')
-  ? normalizedApiUrl
-  : `${normalizedApiUrl}/api`;
+import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
 
 export async function registerUser(userData) {
-  const res = await fetch(`${API_URL}/auth/register`, {
+  const response = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders(),
     body: JSON.stringify(userData),
   });
-  if (!res.ok) throw new Error((await res.json()).message || 'Registration failed');
-  return res.json();
+
+  return parseResponse(response, 'Registration failed');
 }
 
 export async function loginUser(userData) {
-  const res = await fetch(`${API_URL}/auth/login`, {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: jsonHeaders(),
     body: JSON.stringify(userData),
   });
-  if (!res.ok) throw new Error((await res.json()).message || 'Login failed');
-  return res.json();
+
+  return parseResponse(response, 'Login failed');
 }
 
 export async function fetchMe(token) {
-  const res = await fetch(`${API_URL}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const response = await fetch(`${API_URL}/auth/me`, {
+    headers: jsonHeaders(token),
   });
-  if (!res.ok) throw new Error((await res.json()).message || 'Fetch user failed');
-  return res.json();
+
+  return parseResponse(response, 'Fetch user failed');
 }
 
 export async function updateUser(userData, token) {
-  const res = await fetch(`${API_URL}/auth/profile`, {
+  const response = await fetch(`${API_URL}/auth/profile`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: jsonHeaders(token),
     body: JSON.stringify(userData),
   });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.message || 'Update failed');
-  return json;
+
+  return parseResponse(response, 'Update failed');
 }
