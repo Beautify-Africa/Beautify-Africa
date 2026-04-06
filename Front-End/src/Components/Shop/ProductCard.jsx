@@ -21,6 +21,8 @@ function StarRating({ rating, reviews }) {
  * Product badges (New, Sale, Sold Out)
  */
 function ProductBadges({ product }) {
+  const isNewProduct = product.isNewProduct ?? product.isNew;
+
   return (
     <div className="absolute top-3 left-3 flex flex-col gap-1">
       {!product.inStock && (
@@ -28,7 +30,7 @@ function ProductBadges({ product }) {
           Sold Out
         </span>
       )}
-      {product.isNew && (
+      {isNewProduct && (
         <span className="bg-white/90 text-stone-900 text-[9px] uppercase tracking-widest px-2 py-1 backdrop-blur-sm">
           New
         </span>
@@ -69,15 +71,19 @@ function HoverActions({ product, onAddToCart }) {
 function WishlistButton({ productId, isInWishlist, onToggle }) {
   return (
     <button
+      type="button"
       onClick={(e) => onToggle(productId, e)}
-      className="absolute top-3 right-3 p-2 bg-white/50 backdrop-blur-sm rounded-full text-stone-900 hover:bg-white transition-colors"
+      className="absolute top-3 right-3 z-20 inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white/95 px-2.5 py-1.5 text-stone-900 shadow-sm backdrop-blur-sm transition-colors hover:bg-white"
       aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
       aria-pressed={isInWishlist}
     >
       <HeartIcon
-        className={`w-4 h-4 ${isInWishlist ? 'fill-red-600 text-red-600' : ''}`}
+        className={`h-4 w-4 ${isInWishlist ? 'fill-red-600 text-red-600' : ''}`}
         filled={isInWishlist}
       />
+      <span className="text-[9px] font-semibold uppercase tracking-[0.14em]">
+        {isInWishlist ? 'Saved' : 'Save'}
+      </span>
     </button>
   );
 }
