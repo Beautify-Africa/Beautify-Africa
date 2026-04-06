@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { CloseIcon, StarIcon } from '../Shared/Icons';
 import { useAuth } from '../../hooks/useAuth';
-import { createReviewApi } from '../../services/productsApi';
 import ProductDetailsTab from './ProductDetailsTab';
 import ProductReviewForm from './ProductReviewForm';
 import ProductReviewList from './ProductReviewList';
+import { useProductReviewState } from './hooks/useProductReviewState';
+import { useProductDetailsModalState } from './hooks/useProductDetailsModalState';
 
 /**
  * Product image with badge
@@ -67,50 +67,18 @@ function RatingDisplay({ rating, reviews }) {
  */
 export default function ProductDetailsModal({ product: initialProduct, onClose, onAddToCart }) {
   const { isAuthenticated, token } = useAuth();
-  const [product, setProduct] = useState({ 
-    ...initialProduct, 
-    reviews: initialProduct.reviews || [], 
-    numReviews: initialProduct.numReviews || 0 
-  });
-  const [activeTab, setActiveTab] = useState('details');
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const submitReview = async (e) => {
-    e.preventDefault();
-    if (!rating || !comment.trim()) {
-      setError('Please provide a rating and a comment.');
-      return;
-    }
-    setError('');
-    setIsSubmitting(true);
-    try {
-      const response = await createReviewApi(token, product._id, { rating, comment });
-      setSuccess('Review submitted successfully!');
-
-      const updatedReviewData = response?.data || {};
-      setProduct((previousProduct) => ({
-        ...previousProduct,
-        ...updatedReviewData,
-      }));
-
-      setComment('');
-      setRating(5);
-    } catch (err) {
-      setError(err.message || 'Failed to submit review');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const {
+    product,
+    rating,
+    comment,
+    isSubmitting,
+    error,
+    success,
+    setRating,
+    setComment,
+    submitReview,
+  } = useProductReviewState(initialProduct, token);
+  const { activeTab, setActiveTab, handleBackdropClick } = useProductDetailsModalState();
 
   return (
     <div
@@ -118,7 +86,7 @@ export default function ProductDetailsModal({ product: initialProduct, onClose, 
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-modal-title"
-      onClick={handleBackdropClick}
+      onClick={(event) => handleBackdropClick(event, onClose)}
     >
       {/* Backdrop */}
       <div
