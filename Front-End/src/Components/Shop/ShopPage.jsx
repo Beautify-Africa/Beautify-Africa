@@ -1,71 +1,83 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
-import ProductCard from './ProductCard';
 import ProductDetailsModal from './ProductDetailsModal';
 import PromoBanner from './PromoBanner';
 import ShopNavBar from './ShopNavBar';
 import ShopFilterBar from './ShopFilterBar';
+import ShopCollectionToggle from './ShopCollectionToggle';
+import ShopProductGrid from './ShopProductGrid';
 import { useCart } from '../../hooks/useCart';
-import { PRICE_RANGE, SHOP_CONTENT } from '../../data/shopData';
-import { fetchProducts } from '../../services/productsApi';
-
-function EmptyState({ onClearFilters }) {
-  return (
-    <div className="py-20 text-center">
-      <p className="font-serif text-xl text-stone-500">{SHOP_CONTENT.noResultsMessage}</p>
-      <button
-        type="button"
-        onClick={onClearFilters}
-        className="mt-4 border-b border-stone-900 text-xs font-bold uppercase tracking-widest text-stone-900"
-      >
-        {SHOP_CONTENT.clearFiltersLabel}
-      </button>
-    </div>
-  );
-}
+import { useAuth } from '../../hooks/useAuth';
+import { useWishlistState } from './hooks/useWishlistState';
+import { useShopProducts } from './hooks/useShopProducts';
+import { filterAndSortProducts } from './utils/filterAndSortProducts';
+import {
+  ALL_FILTER_OPTION,
+  DEFAULT_PRICE_RANGE,
+  FILTER_LABELS,
+  SHOP_CONTENT,
+  SORT_OPTIONS,
+} from './shopConfig';
 
 export default function ShopPage() {
   const { addItem } = useCart();
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const { token, isAuthenticated } = useAuth();
+  const { wishlistSet, toggleWishlist } = useWishlistState({ isAuthenticated, token });
+  const { products, isLoading, shopCatalog } = useShopProducts();
+  const [activeCollection, setActiveCollection] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(ALL_FILTER_OPTION);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
-  const [selectedSkinType, setSelectedSkinType] = useState('All');
-  const [selectedBrand, setSelectedBrand] = useState('All');
-  const [maxPrice, setMaxPrice] = useState(PRICE_RANGE.max);
+  const [selectedSkinType, setSelectedSkinType] = useState(ALL_FILTER_OPTION);
+  const [selectedBrand, setSelectedBrand] = useState(ALL_FILTER_OPTION);
+  const [maxPrice, setMaxPrice] = useState(DEFAULT_PRICE_RANGE.max);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('newest');
-  const [wishlist, setWishlist] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
   const toastTimeoutRef = useRef(null);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
-  // Fetch products from the back-end API when the page loads
-  useEffect(() => {
-    let cancelled = false;
+  const effectiveSelectedCategory = useMemo(() => {
+    const hasSelectedCategory = shopCatalog.categories.some(
+      (category) => category.label === selectedCategory
+    );
 
-    async function loadProducts() {
-      try {
-        const data = await fetchProducts();
-        if (!cancelled) {
-          setProducts(data);
-        }
-      } catch (error) {
-        console.error('Failed to load products:', error.message);
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
+    return hasSelectedCategory ? selectedCategory : ALL_FILTER_OPTION;
+  }, [shopCatalog.categories, selectedCategory]);
+
+  const effectiveSelectedSubcategory = useMemo(() => {
+    if (!selectedSubcategory) return null;
+
+    const activeCategory = shopCatalog.categories.find(
+      (category) => category.label === effectiveSelectedCategory
+    );
+    const hasSelectedSubcategory = activeCategory?.subcategories?.includes(selectedSubcategory);
+
+    return hasSelectedSubcategory ? selectedSubcategory : null;
+  }, [shopCatalog.categories, effectiveSelectedCategory, selectedSubcategory]);
+
+  const effectiveSelectedBrand = useMemo(() => {
+    return shopCatalog.brands.includes(selectedBrand) ? selectedBrand : ALL_FILTER_OPTION;
+  }, [shopCatalog.brands, selectedBrand]);
+
+  const effectiveSelectedSkinType = useMemo(() => {
+    return shopCatalog.skinTypes.includes(selectedSkinType)
+      ? selectedSkinType
+      : ALL_FILTER_OPTION;
+  }, [shopCatalog.skinTypes, selectedSkinType]);
+
+  const effectiveMaxPrice = useMemo(() => {
+    if (maxPrice === DEFAULT_PRICE_RANGE.max) {
+      return shopCatalog.priceRange.max;
     }
 
-    loadProducts();
+    return maxPrice > shopCatalog.priceRange.max ? shopCatalog.priceRange.max : maxPrice;
+  }, [maxPrice, shopCatalog.priceRange.max]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const effectiveSortOption = useMemo(() => {
+    const sortOptionExists = SORT_OPTIONS.some((option) => option.value === sortOption);
+    return sortOptionExists ? sortOption : 'newest';
+  }, [sortOption]);
 
   const handleSelectCategory = useCallback((label) => {
     setSelectedCategory(label);
@@ -78,51 +90,38 @@ export default function ShopPage() {
   }, []);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      const matchCategory = selectedCategory === 'All' || product.category === selectedCategory;
-      const matchSubcategory =
-        !selectedSubcategory || !product.subcategory || product.subcategory === selectedSubcategory;
-      const matchBrand = selectedBrand === 'All' || product.brand === selectedBrand;
-      const matchSkinType =
-        selectedSkinType === 'All' ||
-        product.skinType.includes('All') ||
-        product.skinType.includes(selectedSkinType);
-      const matchPrice = product.price <= maxPrice;
-      const normalizedQuery = deferredSearchQuery.toLowerCase();
-      const matchSearch =
-        product.name.toLowerCase().includes(normalizedQuery) ||
-        product.brand.toLowerCase().includes(normalizedQuery);
-
-      return matchCategory && matchSubcategory && matchBrand && matchSkinType && matchPrice && matchSearch;
-    }).sort((a, b) => {
-      switch (sortOption) {
-        case 'price-low':
-          return a.price - b.price;
-        case 'price-high':
-          return b.price - a.price;
-        case 'rating':
-          return b.rating - a.rating;
-        case 'best-selling':
-          return Number(b.isBestSeller) - Number(a.isBestSeller);
-        default:
-          return Number(b.isNew) - Number(a.isNew);
-      }
+    return filterAndSortProducts({
+      products,
+      selectedCategory: effectiveSelectedCategory,
+      selectedSubcategory: effectiveSelectedSubcategory,
+      selectedSkinType: effectiveSelectedSkinType,
+      selectedBrand: effectiveSelectedBrand,
+      maxPrice: effectiveMaxPrice,
+      searchQuery: deferredSearchQuery,
+      sortOption: effectiveSortOption,
     });
   }, [
     products,
-    selectedCategory,
-    selectedSubcategory,
-    selectedSkinType,
-    selectedBrand,
-    maxPrice,
+    effectiveSelectedCategory,
+    effectiveSelectedSubcategory,
+    effectiveSelectedSkinType,
+    effectiveSelectedBrand,
+    effectiveMaxPrice,
     deferredSearchQuery,
-    sortOption,
+    effectiveSortOption,
   ]);
 
-  const toggleWishlist = useCallback((id, e) => {
-    e.stopPropagation();
-    setWishlist((prev) => (prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]));
-  }, []);
+  const savedProducts = useMemo(
+    () => filteredProducts.filter((product) => wishlistSet.has(product._id)),
+    [filteredProducts, wishlistSet]
+  );
+
+  const savedProductCount = useMemo(
+    () => products.filter((product) => wishlistSet.has(product._id)).length,
+    [products, wishlistSet]
+  );
+
+  const displayedProducts = activeCollection === 'saved' ? savedProducts : filteredProducts;
 
   useEffect(() => {
     return () => {
@@ -144,13 +143,19 @@ export default function ShopPage() {
   }, [addItem]);
 
   const clearFilters = useCallback(() => {
-    setSelectedCategory('All');
+    setSelectedCategory(ALL_FILTER_OPTION);
     setSelectedSubcategory(null);
-    setSelectedBrand('All');
-    setSelectedSkinType('All');
+    setSelectedBrand(ALL_FILTER_OPTION);
+    setSelectedSkinType(ALL_FILTER_OPTION);
     setSearchQuery('');
-    setMaxPrice(PRICE_RANGE.max);
+    setMaxPrice(shopCatalog.priceRange.max);
+  }, [shopCatalog.priceRange.max]);
+
+  const showAllProducts = useCallback(() => {
+    setActiveCollection('all');
   }, []);
+
+  const isSavedCollection = activeCollection === 'saved';
 
   return (
     <section className="min-h-screen bg-[#faf9f6] pt-24 pb-12" aria-labelledby="shop-heading">
@@ -162,11 +167,18 @@ export default function ShopPage() {
             {SHOP_CONTENT.heading}
           </h1>
           <p className="max-w-xl font-light leading-relaxed text-stone-700">{SHOP_CONTENT.description}</p>
+          <ShopCollectionToggle
+            isSavedCollection={isSavedCollection}
+            savedProductCount={savedProductCount}
+            onShowAll={() => setActiveCollection('all')}
+            onShowSaved={() => setActiveCollection('saved')}
+          />
         </header>
 
         <ShopNavBar
-          selectedCategory={selectedCategory}
-          selectedSubcategory={selectedSubcategory}
+          categories={shopCatalog.categories}
+          selectedCategory={effectiveSelectedCategory}
+          selectedSubcategory={effectiveSelectedSubcategory}
           onSelectCategory={handleSelectCategory}
           onSelectSubcategory={handleSelectSubcategory}
         />
@@ -175,42 +187,37 @@ export default function ShopPage() {
           <ShopFilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            sortOption={sortOption}
+            sortOption={effectiveSortOption}
             onSortChange={setSortOption}
-            selectedBrand={selectedBrand}
+            selectedBrand={effectiveSelectedBrand}
             onBrandChange={setSelectedBrand}
-            selectedSkinType={selectedSkinType}
+            selectedSkinType={effectiveSelectedSkinType}
             onSkinTypeChange={setSelectedSkinType}
-            maxPrice={maxPrice}
+            brands={shopCatalog.brands}
+            skinTypes={shopCatalog.skinTypes}
+            sortOptions={SORT_OPTIONS}
+            priceRange={shopCatalog.priceRange}
+            filterLabels={FILTER_LABELS}
+            searchPlaceholder={SHOP_CONTENT.searchPlaceholder}
+            maxPrice={effectiveMaxPrice}
             onMaxPriceChange={setMaxPrice}
             onClearFilters={clearFilters}
-            resultCount={filteredProducts.length}
+            resultCount={displayedProducts.length}
           />
 
-          {isLoading ? (
-            <div className="py-20 text-center">
-              <p className="font-serif text-xl text-stone-400">Loading products...</p>
-            </div>
-          ) : filteredProducts.length > 0 ? (
-            <div
-              className="mt-8 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              role="list"
-              aria-label="Products"
-            >
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  isInWishlist={wishlist.includes(product._id)}
-                  onToggleWishlist={toggleWishlist}
-                  onAddToCart={addToCart}
-                  onProductClick={setSelectedProduct}
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState onClearFilters={clearFilters} />
-          )}
+          <ShopProductGrid
+            isLoading={isLoading}
+            displayedProducts={displayedProducts}
+            isSavedCollection={isSavedCollection}
+            wishlistSet={wishlistSet}
+            onToggleWishlist={toggleWishlist}
+            onAddToCart={addToCart}
+            onProductClick={setSelectedProduct}
+            mode={activeCollection}
+            savedProductCount={savedProductCount}
+            onClearFilters={clearFilters}
+            onShowAllProducts={showAllProducts}
+          />
         </div>
       </div>
 
