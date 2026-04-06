@@ -38,6 +38,7 @@ export function useWishlistState({ isAuthenticated, token }) {
           if (active) {
             setWishlist(serverWishlist.map((item) => item._id));
             initialWishlistSyncDone.current = true;
+            localStorage.removeItem(WISHLIST_STORAGE_KEY);
           }
         } catch (error) {
           console.error('Failed to sync wishlist:', error);
@@ -58,20 +59,25 @@ export function useWishlistState({ isAuthenticated, token }) {
   }, [isAuthenticated, token]);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      localStorage.removeItem(WISHLIST_STORAGE_KEY);
+      return;
+    }
+
     localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlist));
-  }, [wishlist]);
+  }, [wishlist, isAuthenticated]);
 
   const toggleWishlist = useCallback(
     async (productId, event) => {
       event?.stopPropagation?.();
 
-      setWishlist((previousWishlist) =>
-        previousWishlist.includes(productId)
-          ? previousWishlist.filter((itemId) => itemId !== productId)
-          : [...previousWishlist, productId]
-      );
-
       if (!isAuthenticated || !token) {
+        setWishlist((previousWishlist) =>
+          previousWishlist.includes(productId)
+            ? previousWishlist.filter((itemId) => itemId !== productId)
+            : [...previousWishlist, productId]
+        );
+
         return;
       }
 
