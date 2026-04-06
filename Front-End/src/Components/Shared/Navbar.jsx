@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../../data/navigation';
 import { CartIcon, MenuIcon } from './Icons';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
+import { useNavbarState } from './hooks/useNavbarState';
 import CustomerProfileMenu from '../Auth/CustomerProfileMenu';
 import AccountAuthDialog from '../Auth/AccountAuthDialog';
 import NavbarBrandLogo from './NavbarBrandLogo';
@@ -14,87 +14,31 @@ import NavbarMobileMenu from './NavbarMobileMenu';
 const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { cartCount } = useCart();
   const { isAuthenticated, isRestoringSession } = useAuth();
+
+  const {
+    isScrolled,
+    isMobileMenuOpen,
+    isAuthDialogOpen,
+    scrollToSection,
+    openMobileMenu,
+    closeMobileMenu,
+    openAuthDialog,
+    closeAuthDialog,
+    openAuthDialogFromMobileMenu,
+  } = useNavbarState({
+    locationPathname: location.pathname,
+    navigate,
+    scrollThreshold: NAV_CONFIG.scrollThreshold,
+    scrollOffset: NAV_CONFIG.scrollOffset,
+  });
 
   // Show landing-page items only when NOT on the shop page
   const isShopPage = location.pathname === '/shop';
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > NAV_CONFIG.scrollThreshold);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToSection = useCallback((e, id) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-
-    const isHomePage = location.pathname === '/';
-    if (!isHomePage) {
-      navigate('/');
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          window.scrollTo({
-            top: element.offsetTop - NAV_CONFIG.scrollOffset,
-            behavior: 'smooth',
-          });
-        }
-      }, 100);
-      return;
-    }
-
-    const element = document.getElementById(id);
-    if (element) {
-      window.scrollTo({
-        top: element.offsetTop - NAV_CONFIG.scrollOffset,
-        behavior: 'smooth',
-      });
-    }
-  }, [location.pathname, navigate]);
-
-  const openMobileMenu = () => setIsMobileMenuOpen(true);
-  const closeMobileMenu = () => setIsMobileMenuOpen(false);
-  const openAuthDialog = () => setIsAuthDialogOpen(true);
-
-  const closeAuthDialog = useCallback(() => {
-    setIsAuthDialogOpen(false);
-  }, []);
-
-  const openAuthDialogFromMobileMenu = useCallback(() => {
-    closeMobileMenu();
-    setIsAuthDialogOpen(true);
-  }, []);
-
   // Focus trap for mobile menu
   const mobileMenuRef = useFocusTrap(isMobileMenuOpen);
-
-  // Lock body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [isMobileMenuOpen]);
-
-  // Close mobile menu on Escape key
-  useEffect(() => {
-    if (!isMobileMenuOpen) return;
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') closeMobileMenu();
-    };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isMobileMenuOpen]);
 
   return (
     <header>
