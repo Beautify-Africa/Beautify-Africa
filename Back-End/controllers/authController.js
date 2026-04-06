@@ -1,40 +1,24 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
-function signToken(userId) {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  });
-}
-
-function sanitizeUser(userDoc) {
-  return {
-    id: userDoc._id,
-    name: userDoc.name,
-    email: userDoc.email,
-    createdAt: userDoc.createdAt,
-  };
-}
+const {
+  normalizeEmail,
+  sanitizeUser,
+  signToken,
+  getAuthErrorResponse,
+} = require('../services/authService');
 
 function handleAuthError(res, error) {
-  if (error.name === 'ValidationError') {
-    const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid user data';
+  const { statusCode, message } = getAuthErrorResponse(error);
 
-    return res.status(400).json({
-      status: 'error',
-      message: firstMessage,
-    });
-  }
-
-  return res.status(500).json({
+  return res.status(statusCode).json({
     status: 'error',
-    message: error.message,
+    message,
   });
 }
 
 async function register(req, res) {
   try {
     const { name, email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email || '');
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -43,7 +27,7 @@ async function register(req, res) {
       });
     }
 
-    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) {
       return res.status(409).json({
         status: 'error',
@@ -53,7 +37,7 @@ async function register(req, res) {
 
     const user = await User.create({
       name: name.trim(),
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       password,
     });
 
@@ -72,6 +56,7 @@ async function register(req, res) {
 async function login(req, res) {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = normalizeEmail(email || '');
 
     if (!email || !password) {
       return res.status(400).json({
@@ -80,7 +65,7 @@ async function login(req, res) {
       });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user) {
       return res.status(401).json({
@@ -127,14 +112,15 @@ async function updateUserProfile(req, res) {
 
     if (user) {
       user.name = req.body.name || user.name;
+      const normalizedEmail = normalizeEmail(req.body.email || '');
       
       // Check if email changed and if it already exists in another user
-      if (req.body.email && req.body.email.toLowerCase().trim() !== req.user.email) {
-        const existingEmail = await User.findOne({ email: req.body.email.toLowerCase().trim() });
+      if (req.body.email && normalizedEmail !== req.user.email) {
+        const existingEmail = await User.findOne({ email: normalizedEmail });
         if (existingEmail) {
            return res.status(409).json({ status: 'error', message: 'Email is already taken by another account.' });
         }
-        user.email = req.body.email.toLowerCase().trim();
+        user.email = normalizedEmail;
       }
 
       if (req.body.password) {
