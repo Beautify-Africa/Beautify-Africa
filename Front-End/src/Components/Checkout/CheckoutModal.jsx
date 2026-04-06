@@ -11,28 +11,16 @@ import { clearCartApi } from '../../services/cartApi';
 import {
   validateShipping,
   validatePayment,
-  INITIAL_SHIPPING,
   INITIAL_PAYMENT,
 } from '../../data/checkoutUtils';
+import { buildInitialShipping, buildOrderPayload } from './checkoutModalUtils';
 
 export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
   const { user, isAuthenticated, token } = useAuth();
-  const { clearCart, subtotal } = useCart();
+  const { clearCart } = useCart();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  const getInitialShipping = () => {
-    if (!isAuthenticated || !user) return INITIAL_SHIPPING;
-
-    const nameParts = user.name?.trim().split(/\s+/).filter(Boolean) || [];
-    const [firstName = '', ...lastNameParts] = nameParts;
-
-    return {
-      ...INITIAL_SHIPPING,
-      firstName,
-      lastName: lastNameParts.join(' '),
-      email: user.email || '',
-    };
-  };
+  const getInitialShipping = () => buildInitialShipping(isAuthenticated, user);
 
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
@@ -87,21 +75,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
     setIsPlacingOrder(true);
 
     try {
-      const orderData = {
-        orderItems: cartItems.map(item => ({
-          product: item.id,
-          name: item.name,
-          qty: item.quantity,
-          image: item.image,
-          price: item.price
-        })),
-        shippingAddress: shipping,
-        paymentMethod: 'Credit Card',
-        itemsPrice: subtotal,
-        taxPrice: 0,
-        shippingPrice: subtotal > 50000 ? 0 : 5000, // Standard simple shipping logic
-        totalPrice: subtotal + (subtotal > 50000 ? 0 : 5000),
-      };
+      const orderData = buildOrderPayload(cartItems, shipping);
 
       const order = await createOrder(orderData, token);
       
