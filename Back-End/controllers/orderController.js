@@ -1,5 +1,8 @@
 const Order = require('../models/Order');
-const Product = require('../models/Product');
+const {
+  buildVerifiedOrderItems,
+  calculateOrderTotals,
+} = require('../services/orderService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -12,39 +15,19 @@ const addOrderItems = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'No order items' });
     }
 
-    // Zero-Trust Pricing: Retrieve canonical product data from MongoDB
-    const verifiedOrderItems = [];
-    let itemsPrice = 0;
+    const {
+      verifiedOrderItems,
+      itemsPrice,
+      error: verificationError,
+    } = await buildVerifiedOrderItems(orderItems);
 
-    for (const item of orderItems) {
-      const productId = item.product || item.id;
-      const dbProduct = await Product.findById(productId);
-
-      if (!dbProduct) {
-        return res.status(404).json({ status: 'error', message: `Product not found: ${item.name}` });
-      }
-
-      if (!dbProduct.inStock) {
-        return res.status(400).json({ status: 'error', message: `Product is completely out of stock: ${dbProduct.name}` });
-      }
-
-      // Calculate strictly based on DB pricing
-      const itemTotal = dbProduct.price * item.qty;
-      itemsPrice += itemTotal;
-
-      verifiedOrderItems.push({
-        name: dbProduct.name,
-        qty: item.qty,
-        image: dbProduct.image,
-        price: dbProduct.price,
-        product: dbProduct._id,
-      });
+    if (verificationError) {
+      return res
+        .status(verificationError.statusCode)
+        .json({ status: 'error', message: verificationError.message });
     }
 
-    // Backend securely builds final totals decoupled from frontend payload
-    const shippingPrice = itemsPrice > 100 ? 0 : 15;
-    const taxPrice = Number((0.15 * itemsPrice).toFixed(2));
-    const totalPrice = Number((itemsPrice + shippingPrice + taxPrice).toFixed(2));
+    const { shippingPrice, taxPrice, totalPrice } = calculateOrderTotals(itemsPrice);
 
     const order = new Order({
       orderItems: verifiedOrderItems,
