@@ -84,8 +84,12 @@ function GuestConversion({ shipping }) {
   );
 }
 
-export default function ConfirmationStep({ orderNumber, cartItems, shipping, isGuest, onClose }) {
-  const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+export default function ConfirmationStep({ order, isGuest, onClose }) {
+  const orderItems = Array.isArray(order?.orderItems) ? order.orderItems : [];
+  const shipping = order?.shippingAddress || {};
+  const orderNumber = order?._id || 'Pending';
+  const total = Number(order?.totalPrice || 0);
+
   const delivery = new Date();
   delivery.setDate(delivery.getDate() + C.deliveryDaysOffset);
   const deliveryStr = delivery.toLocaleDateString('en-GB', {
@@ -104,7 +108,7 @@ export default function ConfirmationStep({ orderNumber, cartItems, shipping, isG
 
       <h3 className="mb-1 font-serif text-2xl text-stone-900">{C.title}</h3>
       <p className="mb-6 text-sm text-stone-500">
-        {C.emailNote} <strong className="text-stone-900">{shipping.email}</strong>
+        {C.emailNote} <strong className="text-stone-900">{shipping.email || 'guest@email.com'}</strong>
       </p>
 
       <div className="mb-6 rounded-sm border border-stone-100 bg-stone-50 px-6 py-4 text-left" aria-label="Order summary">
@@ -112,12 +116,12 @@ export default function ConfirmationStep({ orderNumber, cartItems, shipping, isG
           <span className="text-[10px] uppercase tracking-[0.2em] text-stone-400">{C.orderLabel}</span>
           <span className="font-mono text-sm font-bold text-stone-900">{orderNumber}</span>
         </div>
-        {cartItems.map((item) => (
-          <div key={item.id} className="flex justify-between border-t border-stone-100 py-1.5 text-sm text-stone-700 first:border-0">
+        {orderItems.map((item) => (
+          <div key={item._id || item.product || item.name} className="flex justify-between border-t border-stone-100 py-1.5 text-sm text-stone-700 first:border-0">
             <span>
-              {item.name} <span className="text-stone-400">x{item.quantity}</span>
+              {item.name} <span className="text-stone-400">x{item.qty}</span>
             </span>
-            <span>${(item.price * item.quantity).toFixed(2)}</span>
+            <span>${(item.price * item.qty).toFixed(2)}</span>
           </div>
         ))}
         <div className="mt-2 flex justify-between border-t border-stone-200 pt-3 text-sm font-bold text-stone-900">
