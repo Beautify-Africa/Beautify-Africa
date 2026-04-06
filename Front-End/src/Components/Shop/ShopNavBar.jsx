@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { NAV_CATEGORIES } from '../../data/shopData';
+import { ALL_FILTER_OPTION } from './shopConfig';
 
 /**
  * Single nav tab button (no dropdown rendered here)
@@ -69,6 +69,7 @@ function SubcategoryDropdown({ category, isOpen, activeSubcategory, onSelectSubc
  * ShopNavBar — horizontal sticky category navigation with click-driven dropdowns
  */
 export default function ShopNavBar({
+  categories = [],
   selectedCategory,
   selectedSubcategory,
   onSelectCategory,
@@ -78,6 +79,9 @@ export default function ShopNavBar({
   const [dropdownLeft, setDropdownLeft] = useState(0);
   const navRef = useRef(null);
   const tabRefs = useRef([]);
+  const safeCategories = categories.length > 0
+    ? categories
+    : [{ id: 'all', label: ALL_FILTER_OPTION, subcategories: [] }];
 
   const setTabRef = useCallback((el, i) => { tabRefs.current[i] = el; }, []);
 
@@ -99,7 +103,10 @@ export default function ShopNavBar({
     return () => document.removeEventListener('mousedown', handler);
   }, [openIndex]);
 
-  const openCat = openIndex !== null ? NAV_CATEGORIES[openIndex] : null;
+  const normalizedOpenIndex =
+    openIndex !== null && openIndex < safeCategories.length ? openIndex : null;
+
+  const openCat = normalizedOpenIndex !== null ? safeCategories[normalizedOpenIndex] : null;
 
   return (
     <nav
@@ -113,7 +120,7 @@ export default function ShopNavBar({
           role="menubar"
           aria-label="Product categories"
         >
-          {NAV_CATEGORIES.map((cat, i) => {
+          {safeCategories.map((cat, i) => {
             const hasDropdown = cat.subcategories.length > 0;
             return (
               <li key={cat.id} ref={(el) => setTabRef(el, i)} className="flex-shrink-0">

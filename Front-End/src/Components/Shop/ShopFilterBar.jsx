@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { SearchIcon } from '../Shared/Icons';
-import { BRANDS, SKIN_TYPES, SORT_OPTIONS, PRICE_RANGE, FILTER_LABELS } from '../../data/shopData';
+import {
+    ALL_FILTER_OPTION,
+    DEFAULT_PRICE_RANGE,
+    FILTER_LABELS,
+    SHOP_CONTENT,
+    SORT_OPTIONS,
+} from './shopConfig';
 
 /**
  * Price range slider used inside the filter panel
@@ -33,18 +39,28 @@ export default function ShopFilterBar({
     selectedSkinType, onSkinTypeChange,
     maxPrice, onMaxPriceChange,
     onClearFilters, resultCount,
+    brands = [ALL_FILTER_OPTION],
+    skinTypes = [ALL_FILTER_OPTION],
+    sortOptions = SORT_OPTIONS,
+    priceRange = DEFAULT_PRICE_RANGE,
+    filterLabels = FILTER_LABELS,
+    searchPlaceholder = SHOP_CONTENT.searchPlaceholder,
 }) {
     const [showFilters, setShowFilters] = useState(false);
     const filterRef = useRef(null);
+    const maxPriceCap = Number.isFinite(priceRange?.max) ? priceRange.max : DEFAULT_PRICE_RANGE.max;
+    const brandOptions = Array.isArray(brands) && brands.length > 0 ? brands : [ALL_FILTER_OPTION];
+    const skinTypeOptions = Array.isArray(skinTypes) && skinTypes.length > 0 ? skinTypes : [ALL_FILTER_OPTION];
+    const sortableOptions = Array.isArray(sortOptions) && sortOptions.length > 0 ? sortOptions : SORT_OPTIONS;
 
     const hasActiveFilters =
-        selectedBrand !== 'All' ||
-        selectedSkinType !== 'All' || maxPrice < PRICE_RANGE.max;
+        selectedBrand !== ALL_FILTER_OPTION ||
+        selectedSkinType !== ALL_FILTER_OPTION || maxPrice < maxPriceCap;
 
     const activeFilterCount = [
-        selectedBrand !== 'All',
-        selectedSkinType !== 'All',
-        maxPrice < PRICE_RANGE.max,
+        selectedBrand !== ALL_FILTER_OPTION,
+        selectedSkinType !== ALL_FILTER_OPTION,
+        maxPrice < maxPriceCap,
     ].filter(Boolean).length;
 
     // Close panel on outside click
@@ -72,7 +88,7 @@ export default function ShopFilterBar({
                 <input
                     type="search"
                     id="product-search"
-                    placeholder="Search products, brands, categories..."
+                    placeholder={searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     className="flex-1 bg-transparent text-sm md:text-base text-stone-900 placeholder-stone-400 outline-none"
@@ -109,7 +125,7 @@ export default function ShopFilterBar({
                         onChange={(e) => onSortChange(e.target.value)}
                         className="bg-transparent text-xs font-medium text-stone-700 outline-none cursor-pointer pr-2"
                     >
-                        {SORT_OPTIONS.map((o) => (
+                        {sortableOptions.map((o) => (
                             <option key={o.value} value={o.value}>{o.label}</option>
                         ))}
                     </select>
@@ -143,9 +159,9 @@ export default function ShopFilterBar({
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* Brand */}
                         <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{FILTER_LABELS.brand}</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{filterLabels.brand}</h3>
                             <div className="flex flex-wrap gap-1.5">
-                                {BRANDS.map((brand) => (
+                                {brandOptions.map((brand) => (
                                     <button key={brand} onClick={() => onBrandChange(brand)}
                                         className={chipClass(selectedBrand === brand)} aria-pressed={selectedBrand === brand}>
                                         {brand}
@@ -155,9 +171,9 @@ export default function ShopFilterBar({
                         </div>
                         {/* Skin Type */}
                         <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{FILTER_LABELS.skinType}</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{filterLabels.skinType}</h3>
                             <div className="flex flex-wrap gap-1.5">
-                                {SKIN_TYPES.map((type) => (
+                                {skinTypeOptions.map((type) => (
                                     <button key={type} onClick={() => onSkinTypeChange(type)}
                                         className={chipClass(selectedSkinType === type)} aria-pressed={selectedSkinType === type}>
                                         {type}
@@ -167,8 +183,8 @@ export default function ShopFilterBar({
                         </div>
                         {/* Price Range */}
                         <div>
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{FILTER_LABELS.priceRange}</h3>
-                            <PriceRangeSlider value={maxPrice} max={PRICE_RANGE.max} onChange={onMaxPriceChange} />
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 mb-3">{filterLabels.priceRange}</h3>
+                            <PriceRangeSlider value={maxPrice} max={maxPriceCap} onChange={onMaxPriceChange} />
                         </div>
                     </div>
 
@@ -183,7 +199,7 @@ export default function ShopFilterBar({
                             onChange={(e) => onSortChange(e.target.value)}
                             className="w-full bg-white border border-stone-200 px-3 py-2 text-sm rounded-md outline-none focus:border-stone-900 cursor-pointer text-stone-900"
                         >
-                            {SORT_OPTIONS.map((o) => (
+                            {sortableOptions.map((o) => (
                                 <option key={o.value} value={o.value}>{o.label}</option>
                             ))}
                         </select>
