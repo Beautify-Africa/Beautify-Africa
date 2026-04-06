@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-const { pathToFileURL } = require('url');
+const seedProducts = require('../data/seedProducts');
 
 // Load environment variables from Back-End/.env
 // path.resolve(__dirname, '../.env') means: go up one folder from scripts/, find .env
@@ -17,17 +17,13 @@ async function seed() {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('Connected to MongoDB');
 
-    // 2. Load the static product data from the front-end file
-    const dataPath = path.resolve(__dirname, '../../Front-End/src/data/shopData.js');
-    const dataUrl = pathToFileURL(dataPath).href;
-    const shopModule = await import(dataUrl);
-
-    if (!Array.isArray(shopModule.PRODUCTS)) {
-      throw new Error('PRODUCTS array not found in shopData.js');
+    // 2. Load static seed products from a backend-owned data module
+    if (!Array.isArray(seedProducts)) {
+      throw new Error('Seed products array not found in Back-End/data/seedProducts.js');
     }
 
-    const products = shopModule.PRODUCTS;
-    console.log('Found ' + products.length + ' products in shopData.js');
+    const products = seedProducts;
+    console.log('Found ' + products.length + ' products in Back-End/data/seedProducts.js');
 
     // 3. Clear any existing products in MongoDB
     const deleteResult = await Product.deleteMany({});
@@ -39,7 +35,7 @@ async function seed() {
     const inserted = [];
     for (const productData of products) {
       // Map front-end-only fields to the Product schema before creating docs.
-      // shopData uses "reviews" as a number and "isNew" as a boolean, while
+      // Seed data uses "reviews" as a number and "isNew" as a boolean, while
       // the schema expects "reviews" as an array and uses "numReviews" / "isNewProduct".
       const {
         id,
