@@ -7,31 +7,16 @@ import {
   addToCartApi,
   updateCartQtyApi,
   removeCartItemApi,
+  clearCartApi,
 } from '../services/cartApi';
-
-const CART_STORAGE_KEY = 'beautify-cart-items';
-
-function getStoredCartItems() {
-  try {
-    const storedItems = localStorage.getItem(CART_STORAGE_KEY);
-    if (!storedItems) return [];
-    const parsedItems = JSON.parse(storedItems);
-    return Array.isArray(parsedItems) ? parsedItems : [];
-  } catch {
-    return [];
-  }
-}
-
-function mapProductToCartItem(product, quantity = 1) {
-  return {
-    id: product._id || product.id || product.product,
-    name: product.name,
-    price: product.price,
-    image: product.image,
-    variant: product.brand || product.category || product.variant || 'Beautify Collection',
-    quantity,
-  };
-}
+import {
+  getStoredCartItems,
+  clearStoredCartItems,
+  persistGuestCartItems,
+  mapProductToCartItem,
+  mapServerCartItems,
+  buildServerCartPayload,
+} from './cartStateUtils';
 
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState(getStoredCartItems);
@@ -54,10 +39,9 @@ export function CartProvider({ children }) {
           }
 
           if (active) {
-            // Map MongoDB schema formats back into standard format
-            const mappedCart = serverCart.map((item) => mapProductToCartItem(item, item.quantity));
-            setCartItems(mappedCart);
+            setCartItems(mapServerCartItems(serverCart));
             initialSyncDone.current = true;
+            clearStoredCartItems();
           }
         } catch (e) {
           console.error('Failed to sync with server cart:', e);
@@ -66,7 +50,7 @@ export function CartProvider({ children }) {
         // If they explicitly logged out in this session, clear their cart for privacy
         if (initialSyncDone.current && active) {
           setCartItems([]);
-          localStorage.removeItem(CART_STORAGE_KEY);
+          clearStoredCartItems();
           initialSyncDone.current = false;
         }
       }
@@ -80,13 +64,28 @@ export function CartProvider({ children }) {
   }, [isAuthenticated, token]);
 
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isAuthenticated) {
+      clearStoredCartItems();
+      return;
+    }
+
+    persistGuestCartItems(cartItems);
+  }, [cartItems, isAuthenticated]);
 
   const addItem = useCallback(
     (product, quantity = 1) => {
       const productId = product?._id || product?.id || product?.product;
       if (!productId || quantity < 1) return;
+
+      if (isAuthenticated && token) {
+        const payload = buildServerCartPayload(product, quantity);
+
+        addToCartApi(token, payload)
+          .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+          .catch((error) => console.error('Add to cart API error:', error));
+
+        return;
+      }
 
       setCartItems((prev) => {
         const existingItem = prev.find((item) => item.id === productId);
@@ -97,53 +96,59 @@ export function CartProvider({ children }) {
         }
         return [...prev, mapProductToCartItem(product, quantity)];
       });
-
-      if (isAuthenticated && token) {
-        addToCartApi(token, {
-          product: productId,
-          name: product.name,
-          price: product.price,
-          image: product.image,
-          variant: product.brand || product.category || 'Beautify Collection',
-          quantity,
-        }).catch((e) => console.error('Add to Cart API Error', e));
-      }
     },
     [isAuthenticated, token]
   );
 
   const updateQuantity = useCallback(
     (id, quantity) => {
+      if (isAuthenticated && token) {
+        const request = quantity < 1
+          ? removeCartItemApi(token, id)
+          : updateCartQtyApi(token, id, quantity);
+
+        request
+          .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+          .catch((error) => console.error('Update cart API error:', error));
+
+        return;
+      }
+
       setCartItems((prev) => {
         if (quantity < 1) return prev.filter((item) => item.id !== id);
         return prev.map((item) => (item.id === id ? { ...item, quantity } : item));
       });
-
-      if (isAuthenticated && token) {
-        if (quantity < 1) {
-          removeCartItemApi(token, id).catch((e) => console.error(e));
-        } else {
-          updateCartQtyApi(token, id, quantity).catch((e) => console.error(e));
-        }
-      }
     },
     [isAuthenticated, token]
   );
 
   const removeItem = useCallback(
     (id) => {
-      setCartItems((prev) => prev.filter((item) => item.id !== id));
-
       if (isAuthenticated && token) {
-        removeCartItemApi(token, id).catch((e) => console.error(e));
+        removeCartItemApi(token, id)
+          .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+          .catch((error) => console.error('Remove cart item API error:', error));
+
+        return;
       }
+
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
     },
     [isAuthenticated, token]
   );
 
   const clearCart = useCallback(() => {
+    if (isAuthenticated && token) {
+      clearCartApi(token)
+        .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+        .catch((error) => console.error('Clear cart API error:', error));
+
+      return;
+    }
+
     setCartItems([]);
-  }, []);
+    clearStoredCartItems();
+  }, [isAuthenticated, token]);
 
   const cartCount = useMemo(() => cartItems.reduce((total, item) => total + item.quantity, 0), [
     cartItems,
