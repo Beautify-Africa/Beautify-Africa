@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../../data/navigation';
-import { CartIcon, MenuIcon, CloseIcon } from './Icons';
+import { CartIcon, MenuIcon } from './Icons';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import CustomerProfileMenu from '../Auth/CustomerProfileMenu';
 import AccountAuthDialog from '../Auth/AccountAuthDialog';
+import NavbarBrandLogo from './NavbarBrandLogo';
+import NavbarDesktopLinks from './NavbarDesktopLinks';
+import NavbarMobileMenu from './NavbarMobileMenu';
 
 const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
@@ -105,45 +108,10 @@ const Navbar = ({ onOpenCart }) => {
         aria-label="Main navigation"
       >
         <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex-1 flex justify-start">
-            <Link
-              to="/"
-              className="text-2xl md:text-3xl font-serif tracking-[0.2em] font-bold text-stone-900 group"
-              aria-label={`${NAV_CONFIG.brandName} - Home`}
-            >
-              BEAUT
-              <span className="relative inline-block">
-                I
-                <span
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-amber-500"
-                  aria-hidden="true"
-                />
-              </span>
-              FY
-            </Link>
-          </div>
+          <NavbarBrandLogo brandName={NAV_CONFIG.brandName} />
 
           {/* Desktop Navigation Links — visible on landing page only */}
-          {!isShopPage && (
-            <ul className="hidden lg:flex items-center gap-14 text-[10px] uppercase tracking-[0.4em] font-bold text-stone-600">
-              {NAV_LINKS.map((link) => (
-                <li key={link.id}>
-                  <a
-                    href={`#${link.id}`}
-                    onClick={(e) => scrollToSection(e, link.id)}
-                    className="hover:text-amber-800 transition-colors relative group"
-                  >
-                    {link.name}
-                    <span
-                      className="absolute -bottom-1 left-0 w-0 h-[1px] bg-amber-800 transition-all duration-500 group-hover:w-full"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          {!isShopPage && <NavbarDesktopLinks links={NAV_LINKS} onLinkClick={scrollToSection} />}
 
           {/* Action Icons */}
           <div className="flex-1 flex justify-end items-center gap-6 md:gap-8">
@@ -213,98 +181,19 @@ const Navbar = ({ onOpenCart }) => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      <div
-        id="mobile-menu"
-        ref={mobileMenuRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile navigation menu"
-        className={`
-          fixed inset-0 z-[110] bg-white transition-all duration-700 
-          ease-[cubic-bezier(0.85,0,0.15,1)]
-          ${isMobileMenuOpen ? 'translate-y-0' : '-translate-y-full'}
-        `}
-      >
-        {/* Close Button */}
-        <button
-          type="button"
-          className="absolute top-8 right-8 text-stone-900 p-2"
-          onClick={closeMobileMenu}
-          aria-label="Close menu"
-        >
-          <CloseIcon />
-        </button>
-
-        {/* Mobile Menu Content */}
-        <div className="h-full flex flex-col justify-center items-center px-12 text-center">
-          <span className="text-[10px] uppercase tracking-[0.5em] text-stone-400 mb-12">
-            {NAV_CONFIG.tagline}
-          </span>
-
-          {/* Mobile Nav Links — visible on landing page only */}
-          {!isShopPage && (
-            <nav aria-label="Mobile navigation">
-              <ul className="flex flex-col gap-8 mb-20">
-                {NAV_LINKS.map((link, index) => (
-                  <li key={link.id}>
-                    <a
-                      href={`#${link.id}`}
-                      onClick={(e) => scrollToSection(e, link.id)}
-                      className="text-4xl sm:text-5xl font-serif text-stone-900 hover:text-amber-800 transition-colors duration-500"
-                      style={{ transitionDelay: `${index * 100}ms` }}
-                    >
-                      {link.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
-
-          {/* Mobile Shop Now CTA — visible on landing page only */}
-          {!isShopPage && (
-            <Link
-              to="/shop"
-              onClick={closeMobileMenu}
-              className="mb-16 px-10 py-4 bg-stone-900 text-white text-[12px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors"
-            >
-              Shop Now
-            </Link>
-          )}
-
-          {!isRestoringSession && !isAuthenticated && (
-            <button
-              type="button"
-              onClick={openAuthDialogFromMobileMenu}
-              className={`px-10 py-4 text-[12px] font-bold uppercase tracking-[0.3em] transition-colors ${
-                isShopPage
-                  ? 'mb-16 border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white'
-                  : 'mb-16 bg-stone-900 text-white hover:bg-amber-900'
-              }`}
-            >
-              Sign In
-            </button>
-          )}
-
-          {/* Social Links */}
-          <ul className="flex gap-8" aria-label="Social media links">
-            {SOCIAL_LINKS.map((social) => (
-              <li key={social.abbr}>
-                <a
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold tracking-widest text-stone-400 hover:text-stone-900 transition-colors"
-                  aria-label={social.name}
-                >
-                  {social.abbr}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <NavbarMobileMenu
+        isOpen={isMobileMenuOpen}
+        mobileMenuRef={mobileMenuRef}
+        isShopPage={isShopPage}
+        closeMobileMenu={closeMobileMenu}
+        onScrollToSection={scrollToSection}
+        navLinks={NAV_LINKS}
+        socialLinks={SOCIAL_LINKS}
+        tagline={NAV_CONFIG.tagline}
+        isRestoringSession={isRestoringSession}
+        isAuthenticated={isAuthenticated}
+        onOpenAuthDialogFromMobileMenu={openAuthDialogFromMobileMenu}
+      />
 
       <AccountAuthDialog isOpen={isAuthDialogOpen} onClose={closeAuthDialog} />
     </header>
