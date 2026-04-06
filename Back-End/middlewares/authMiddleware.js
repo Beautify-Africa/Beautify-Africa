@@ -1,6 +1,17 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+async function resolveUserFromAuthHeader(authHeader) {
+  if (!authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.split(' ')[1];
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  return User.findById(decoded.id);
+}
+
 async function protect(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
@@ -12,10 +23,7 @@ async function protect(req, res, next) {
       });
     }
 
-    const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded.id);
+    const user = await resolveUserFromAuthHeader(authHeader);
     if (!user) {
       return res.status(401).json({
         status: 'error',
@@ -33,4 +41,18 @@ async function protect(req, res, next) {
   }
 }
 
-module.exports = { protect };
+async function optionalProtect(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const user = await resolveUserFromAuthHeader(authHeader);
+    if (user) {
+      req.user = user;
+    }
+  } catch (error) {
+    // Continue as guest when auth header is missing or invalid.
+  }
+
+  next();
+}
+
+module.exports = { protect, optionalProtect };
