@@ -6,7 +6,13 @@ import FadeIn from './FadeIn';
  */
 const generateContentBlock = () => {
   return [...Array(MARQUEE_CONFIG.repeatCount)].map((_, index) => (
-    <span key={index} className="inline-flex items-center">
+    <span
+      key={index}
+      className="inline-flex items-center"
+      style={{
+        paddingInline: `clamp(${MARQUEE_CONFIG.itemPaddingInlineMobileRem}rem, 0.6vw, ${MARQUEE_CONFIG.itemPaddingInlineDesktopRem}rem)`,
+      }}
+    >
       {MARQUEE_TEXT}
       <span className="inline-block mx-6 text-amber-700 text-2xl" aria-hidden="true">
         {MARQUEE_CONFIG.separator}
@@ -21,7 +27,7 @@ const MarqueeText = () => {
   const textStyles = `
     flex items-center text-4xl md:text-6xl lg:text-7xl font-serif font-bold 
     text-transparent bg-clip-text bg-gradient-to-r from-stone-200 via-amber-100 to-stone-400 
-    opacity-90 tracking-tight
+    opacity-90
   `;
 
   return (
@@ -49,7 +55,14 @@ const MarqueeText = () => {
         >
           {/* Render multiple blocks for seamless looping */}
           {[...Array(MARQUEE_CONFIG.blockCount)].map((_, index) => (
-            <p key={index} className={textStyles}>
+            <p
+              key={index}
+              className={textStyles}
+              style={{
+                letterSpacing: `${MARQUEE_CONFIG.textLetterSpacingEm}em`,
+                lineHeight: MARQUEE_CONFIG.textLineHeight,
+              }}
+            >
               {contentBlock}
             </p>
           ))}
@@ -60,4 +73,3 @@ const MarqueeText = () => {
 };
 
 export default MarqueeText;
-

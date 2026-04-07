@@ -88,6 +88,13 @@ export const HERO_ROTATING_WORDS = [
 export const HERO_ROTATION_CONFIG = {
   intervalMs: 3000,
   transitionMs: 400,
+  // Adds slight character spacing to avoid compressed/cut-looking glyph edges
+  textLetterSpacingEm: 0.02,
+  // Keeps rotating word ascenders/descenders fully visible within tight heading rhythm
+  textLineHeight: 1.05,
+  // Responsive inline padding so first/last letters don't appear clipped during animation
+  textPaddingInlineMobileEm: 0.08,
+  textPaddingInlineDesktopEm: 0.12,
 };
 
 /** All editorial copy shown in the hero section */
