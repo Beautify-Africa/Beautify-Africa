@@ -38,12 +38,14 @@ const RotatingWord = () => {
 
   return (
     <span
-      className="inline-block px-[0.08em] md:px-[0.12em] leading-[1.05]"
+      className="inline-block"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0) scale(1)' : 'translateY(-12px) scale(0.88)',
         transition: `opacity ${HERO_ROTATION_CONFIG.transitionMs}ms ease, transform ${HERO_ROTATION_CONFIG.transitionMs}ms ease`,
-        letterSpacing: '0.02em',
+        letterSpacing: `${HERO_ROTATION_CONFIG.textLetterSpacingEm}em`,
+        lineHeight: HERO_ROTATION_CONFIG.textLineHeight,
+        paddingInline: `clamp(${HERO_ROTATION_CONFIG.textPaddingInlineMobileEm}em, 0.4vw, ${HERO_ROTATION_CONFIG.textPaddingInlineDesktopEm}em)`,
         backgroundImage: 'linear-gradient(135deg, #78350f, #b45309, #d97706, #92400e)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
