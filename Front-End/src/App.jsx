@@ -7,6 +7,9 @@ import AppLink from './Components/Shared/AppLink';
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ShopPageLayout = lazy(() => import('./pages/ShopPageLayout'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const TrackOrdersPage = lazy(() => import('./pages/TrackOrdersPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
 
 import CartDrawer from './Components/Cart/CartDrawer';
 function PageLoader() {
@@ -42,6 +45,9 @@ function App() {
             <Route path="/" element={<HomePage onOpenCart={openCart} />} />
             <Route path="/shop" element={<ShopPageLayout onOpenCart={openCart} />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/track-orders" element={<TrackOrdersPage onOpenCart={openCart} />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
             {/* 404 catch-all */}
             <Route
               path="*"

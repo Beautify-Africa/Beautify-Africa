@@ -19,6 +19,8 @@ export default function AuthModeForm({
   onBack,
   backLabel,
   onSecondaryAction,
+  onForgotPassword,
+  forgotPasswordLabel = 'Forgot your password?',
   inputIdPrefix = 'auth',
 }) {
   const { register, login, loading, error, clearError } = useAuth();
@@ -60,6 +62,13 @@ export default function AuthModeForm({
     clearError();
     onSecondaryAction();
   }, [clearError, loading, onSecondaryAction]);
+
+  const handleForgotPassword = useCallback(() => {
+    if (loading || !onForgotPassword) return;
+
+    clearError();
+    onForgotPassword();
+  }, [clearError, loading, onForgotPassword]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -123,6 +132,19 @@ export default function AuthModeForm({
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
+
+        {mode === 'login' && onForgotPassword && (
+          <div className="-mt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              disabled={loading}
+              className="text-[11px] font-semibold text-stone-500 underline transition-colors hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-stone-500"
+            >
+              {forgotPasswordLabel}
+            </button>
+          </div>
+        )}
 
         {mode === 'register' && terms && (
           <TermsConsentCheckbox

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { GATE_CONTENT } from '../../data/checkoutGateContent';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import AuthModeForm from './AuthModeForm';
+import ForgotPasswordForm from './ForgotPasswordForm';
 import { CloseIcon } from '../Shared/Icons';
 
 const ACCOUNT_AUTH_COPY = {
@@ -36,6 +37,7 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
   const trapRef = useFocusTrap(isOpen);
 
   const isRegisterMode = mode === 'register';
+  const isForgotMode = mode === 'forgot';
 
   const handleCloseDialog = useCallback(() => {
     setMode('login');
@@ -69,6 +71,14 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
     setMode((prev) => (prev === 'login' ? 'register' : 'login'));
   }, []);
 
+  const openForgotPasswordMode = useCallback(() => {
+    setMode('forgot');
+  }, []);
+
+  const returnToLoginMode = useCallback(() => {
+    setMode('login');
+  }, []);
+
   if (!isOpen) return null;
 
   return (
@@ -76,7 +86,7 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
       className="fixed inset-0 z-[180] flex items-center justify-center px-4 py-8"
       role="dialog"
       aria-modal="true"
-      aria-label={isRegisterMode ? 'Create your account' : 'Sign in to your account'}
+      aria-label={isForgotMode ? 'Reset your password' : isRegisterMode ? 'Create your account' : 'Sign in to your account'}
     >
       <div
         className="absolute inset-0 bg-black/55 backdrop-blur-sm"
@@ -93,10 +103,12 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">My Account</p>
               <h2 className="mt-2 font-serif text-3xl text-stone-900">
-                {isRegisterMode ? 'Create your account' : 'Stay signed in while you shop'}
+                {isForgotMode ? 'Recover your account' : isRegisterMode ? 'Create your account' : 'Stay signed in while you shop'}
               </h2>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-500">
-                {isRegisterMode
+                {isForgotMode
+                  ? 'Request a secure reset link and set a brand new password in a few steps.'
+                  : isRegisterMode
                   ? 'Open your account now and save your details for a faster checkout next time.'
                   : 'This keeps your account ready without sending you into checkout before you want to go there.'}
               </p>
@@ -115,15 +127,24 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
         </div>
 
         <div className="px-6 py-6 sm:px-8">
-          <AuthModeForm
-            mode={mode}
-            content={ACCOUNT_AUTH_COPY[mode]}
-            fields={GATE_CONTENT.formFields}
-            terms={TERMS_COPY}
-            onSuccess={handleSuccess}
-            onSecondaryAction={handleSwitchMode}
-            inputIdPrefix="account"
-          />
+          {isForgotMode ? (
+            <ForgotPasswordForm
+              emailTemplate={GATE_CONTENT.formFields.email}
+              inputIdPrefix="account-forgot"
+              onBack={returnToLoginMode}
+            />
+          ) : (
+            <AuthModeForm
+              mode={mode}
+              content={ACCOUNT_AUTH_COPY[mode]}
+              fields={GATE_CONTENT.formFields}
+              terms={TERMS_COPY}
+              onSuccess={handleSuccess}
+              onSecondaryAction={handleSwitchMode}
+              onForgotPassword={openForgotPasswordMode}
+              inputIdPrefix="account"
+            />
+          )}
         </div>
       </section>
     </div>
