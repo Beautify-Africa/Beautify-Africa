@@ -2,28 +2,33 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-  // Gracefully handle missing SMTP credentials to prevent server crashes
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('\x1b[33m%s\x1b[0m', 'SMTP Credentials missing! Simulating email dispatch to: ' + options.email);
-    return;
+  const smtpUser = String(process.env.EMAIL_USER || '').trim();
+  // Support Gmail app passwords copied with visual spacing (e.g. "abcd efgh ijkl mnop").
+  const smtpPass = String(process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+  const smtpHost = String(process.env.EMAIL_HOST || 'smtp.gmail.com').trim();
+  const smtpPort = Number(process.env.EMAIL_PORT || 587);
+
+  if (!smtpUser || !smtpPass) {
+    throw new Error('SMTP credentials are not configured. Set EMAIL_USER and EMAIL_PASS.');
   }
 
   // 1. Create a transporter
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
-    secure: false, // true for 465, false for other ports
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: smtpUser,
+      pass: smtpPass,
     },
   });
 
   // 2. Define the email options
   const mailOptions = {
-    from: `"Beautify Africa" <${process.env.EMAIL_USER}>`,
+    from: `"Beautify Africa" <${smtpUser}>`,
     to: options.email,
     subject: options.subject,
+    text: options.text,
     html: options.html,
   };
 
