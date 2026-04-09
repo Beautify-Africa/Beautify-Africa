@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CloseIcon } from './Icons';
+import { CloseIcon, TrackingIcon } from './Icons';
 
 export default function NavbarMobileMenu({
   isOpen,
@@ -67,6 +67,19 @@ export default function NavbarMobileMenu({
             Shop Now
           </Link>
         )}
+
+        <Link
+          to="/track-orders"
+          onClick={closeMobileMenu}
+          className={`mb-10 inline-flex items-center gap-3 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors ${
+            isShopPage
+              ? 'border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white'
+              : 'border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-900'
+          }`}
+        >
+          <TrackingIcon className="h-4 w-4" />
+          Track Your Order
+        </Link>
 
         {!isRestoringSession && !isAuthenticated && (
           <button

@@ -11,8 +11,8 @@ export default function ProfileDetailsForm({
   onSubmit,
 }) {
   return (
-    <section className="lg:col-span-5">
-      <div className="sticky top-32 border-b border-stone-200 pb-12 lg:pr-8 lg:pb-0 lg:border-b-0 lg:border-r">
+    <section className="rounded-sm border border-stone-200 bg-white p-8 shadow-sm">
+      <div>
         <h2 className="mb-8 font-serif text-3xl">Personal Details</h2>
 
         <form onSubmit={onSubmit} className="space-y-6">

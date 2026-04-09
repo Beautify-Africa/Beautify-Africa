@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { NAV_LINKS, SOCIAL_LINKS, NAV_CONFIG } from '../../data/navigation';
-import { CartIcon, MenuIcon } from './Icons';
+import { CartIcon, MenuIcon, TrackingIcon } from './Icons';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
@@ -34,8 +35,21 @@ const Navbar = ({ onOpenCart }) => {
     scrollOffset: NAV_CONFIG.scrollOffset,
   });
 
+  useEffect(() => {
+    const shouldOpenAuthDialog =
+      location.pathname === '/shop' &&
+      new URLSearchParams(location.search).get('auth') === '1' &&
+      !isRestoringSession &&
+      !isAuthenticated;
+
+    if (shouldOpenAuthDialog) {
+      openAuthDialog();
+    }
+  }, [location.pathname, location.search, isRestoringSession, isAuthenticated, openAuthDialog]);
+
   // Show landing-page items only when NOT on the shop page
   const isShopPage = location.pathname === '/shop';
+  const isTrackOrdersPage = location.pathname === '/track-orders';
 
   // Focus trap for mobile menu
   const mobileMenuRef = useFocusTrap(isMobileMenuOpen);
@@ -59,6 +73,19 @@ const Navbar = ({ onOpenCart }) => {
 
           {/* Action Icons */}
           <div className="flex-1 flex justify-end items-center gap-6 md:gap-8">
+            <Link
+              to="/track-orders"
+              className={`group inline-flex items-center gap-2 rounded-full border px-3 py-2 transition-colors ${
+                isTrackOrdersPage
+                  ? 'border-amber-300 bg-amber-50 text-amber-900'
+                  : 'border-stone-200 text-stone-700 hover:border-stone-900 hover:text-stone-900'
+              }`}
+              aria-label="Track your order"
+            >
+              <TrackingIcon className="h-4 w-4" />
+              <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-[0.2em]">Track Order</span>
+            </Link>
+
             {isShopPage && (
               <button
                 type="button"

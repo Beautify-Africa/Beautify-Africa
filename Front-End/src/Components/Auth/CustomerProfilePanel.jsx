@@ -129,7 +129,7 @@ export default function CustomerProfilePanel({
             </div>
 
             <p className="mt-5 text-sm leading-relaxed text-stone-500">
-              Manage your personal details and view your complete order history in your account dashboard.
+              Manage your profile details here, then use Track Your Order for full purchase history and live shipment progress.
             </p>
 
             <div className="flex flex-col gap-3 pt-2">
@@ -139,6 +139,14 @@ export default function CustomerProfilePanel({
                 className="block w-full rounded-sm bg-stone-900 px-4 py-3 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-amber-900"
               >
                 Manage Account
+              </AppLink>
+
+              <AppLink
+                href="/track-orders"
+                onClick={closeMenu}
+                className="block w-full rounded-sm border border-stone-900 px-4 py-3 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors hover:bg-stone-50"
+              >
+                Track Your Order
               </AppLink>
 
               <button

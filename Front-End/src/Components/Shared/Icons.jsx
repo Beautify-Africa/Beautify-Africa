@@ -54,6 +54,26 @@ export const ProfileIcon = ({ className = "w-5 h-5" }) => (
   </svg>
 );
 
+export const TrackingIcon = ({ className = "w-5 h-5" }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.2"
+      d="M4.5 7.5h15m-12 4.5h9m-7.5 4.5h6"
+    />
+    <circle cx="7.5" cy="7.5" r="1.25" fill="currentColor" />
+    <circle cx="12" cy="12" r="1.25" fill="currentColor" />
+    <circle cx="15" cy="16.5" r="1.25" fill="currentColor" />
+  </svg>
+);
+
 export const MenuIcon = ({ className = "w-6 h-6" }) => (
   <svg 
     className={className} 
