@@ -6,6 +6,11 @@ import ConfirmationStep from './ConfirmationStep';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
 import { useCheckoutFlow } from './useCheckoutFlow';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Init Stripe globally
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
   const { user, isAuthenticated, token } = useAuth();
@@ -17,13 +22,12 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
     errors,
     order,
     shipping,
-    payment,
+    clientSecret,
     isPlacingOrder,
     updateShipping,
-    updatePayment,
     handleShippingNext,
     handleBackToShipping,
-    handlePlaceOrder,
+    completePaymentFlow,
     resetFlow,
   } = useCheckoutFlow({
     cartItems,
@@ -37,7 +41,6 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
 
   const handleClose = () => {
     onClose();
-
     window.setTimeout(() => {
       resetFlow();
     }, 400);
@@ -79,36 +82,31 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
           {step === 1 && (
             <>
               <ShippingStep data={shipping} onChange={updateShipping} errors={errors} />
+              {errors.form && <div className="mt-4 text-center text-sm font-semibold text-red-600">{errors.form}</div>}
+              
               <button
                 onClick={handleShippingNext}
-                className="mt-6 w-full rounded-sm bg-stone-900 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900"
+                disabled={isPlacingOrder}
+                className="mt-6 w-full rounded-sm bg-stone-900 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Continue to Payment
+                {isPlacingOrder ? (
+                  <>
+                     <svg className="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                     Initializing...
+                  </>
+                ) : 'Continue to Payment'}
               </button>
             </>
           )}
 
-          {step === 2 && (
-            <>
-              <PaymentStep data={payment} onChange={updatePayment} errors={errors} />
-              {errors.form && <div className="mt-4 text-center text-sm font-semibold text-red-600">{errors.form}</div>}
-              <div className="mt-6 flex gap-4">
-                <button
-                  onClick={handleBackToShipping}
-                  disabled={isPlacingOrder}
-                  className="flex-none rounded-sm border border-stone-200 px-6 py-4 text-[11px] font-bold uppercase tracking-[0.15em] text-stone-700 transition-colors hover:border-stone-900 disabled:opacity-50"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={isPlacingOrder}
-                  className="flex-1 rounded-sm bg-stone-900 py-4 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-500 hover:bg-amber-900 disabled:opacity-50"
-                >
-                  {isPlacingOrder ? 'Processing...' : 'Place Order'}
-                </button>
-              </div>
-            </>
+          {step === 2 && clientSecret && (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <PaymentStep 
+                    clientSecret={clientSecret} 
+                    onBack={handleBackToShipping} 
+                    onSuccess={completePaymentFlow} 
+                />
+            </Elements>
           )}
 
           {step === 3 && (
