@@ -17,9 +17,31 @@ const newsletterSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    unsubscribeToken: {
+      type: String,
+      default: null,
+      select: false,
+    },
+    unsubscribeTokenExpires: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    unsubscribedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
+  }
+);
+
+// Speeds up unsubscribe token confirmation queries.
+newsletterSchema.index(
+  { unsubscribeToken: 1, unsubscribeTokenExpires: 1 },
+  {
+    partialFilterExpression: { unsubscribeToken: { $type: 'string' } },
   }
 );
 
