@@ -1,6 +1,7 @@
 // controllers/newsletterController.js
 const Newsletter = require('../models/Newsletter');
 const sendEmail = require('../utils/sendEmail');
+const validator = require('validator');
 
 // @desc    Subscribe to the newsletter
 // @route   POST /api/newsletter/subscribe
@@ -8,7 +9,7 @@ const sendEmail = require('../utils/sendEmail');
 const subscribeNewsletter = async (req, res) => {
   const { email } = req.body;
 
-  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+  if (!email || !validator.isEmail(email)) {
     return res.status(400).json({ status: 'error', message: 'Please provide a valid email address.' });
   }
 
@@ -73,7 +74,8 @@ const subscribeNewsletter = async (req, res) => {
 
     res.status(201).json({ status: 'success', message: 'Successfully subscribed. Welcome email sent!' });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message || 'Server error' });
+    console.error('subscribeNewsletter error:', error);
+    res.status(500).json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
   }
 };
 
