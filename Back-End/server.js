@@ -1,21 +1,26 @@
 // server.js
-const productRoutes = require('./routes/productRoutes');
+
+// --- Built-in ---
+const path = require('path');
+
+// --- Third-party ---
 const express = require('express');
 const dotenv = require('dotenv');
-const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+// --- Local ---
 const connectDB = require('./config/db');
+const { sanitizeRequest } = require('./middlewares/requestSanitizer');
+const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
-
-// Security Middlewares
-// const helmet = require('helmet');
-// const mongoSanitize = require('express-mongo-sanitize');
-// const rateLimit = require('express-rate-limit');
+const stripeRoutes = require('./routes/stripeRoutes');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
@@ -30,10 +35,31 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 
-// 1. HTTP Security Headers
-// app.use(helmet());
+// 1. HTTP Security Headers (XSS, clickjacking, MIME sniffing, etc.)
+app.use(helmet());
 
-// 2. Prevent Cross-Site Scripting and Set Credentials
+// Use Express' simple query parser so querystrings stay flat strings/arrays.
+app.set('query parser', 'simple');
+
+// 3. Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { status: 'error', message: 'Too many requests, please try again later.' },
+});
+
+// Stricter limit for auth endpoints to deter brute-force attacks
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { status: 'error', message: 'Too many authentication attempts, please try again later.' },
+});
+
+// 4. CORS
 app.use(
   cors({
     origin: process.env.CLIENT_URL || [
@@ -43,14 +69,29 @@ app.use(
       'http://localhost:4175',
       'http://127.0.0.1:5173',
       'http://127.0.0.1:4173',
-      'http://127.0.0.1:4174'
+      'http://127.0.0.1:4174',
     ],
     credentials: true,
   })
 );
 
-// 3. Body Parser
+// 5. HTTP Request Logging (dev only — morgan is not needed in production)
+if (process.env.NODE_ENV !== 'production') {
+  const morgan = require('morgan');
+  app.use(morgan('dev'));
+}
+
+// 6. Mount Stripe routes deeply before global body parsing
+// Webhooks demand raw stream requests (unparsed JSON)
+app.use('/api/stripe', stripeRoutes);
+
+// 7. Body Parser
 app.use(express.json());
+
+// 8. Strip Mongo operator-style keys from mutable request payloads.
+app.use(sanitizeRequest);
+
+// --- Utility Routes ---
 
 app.get('/', (req, res) => {
   res.send('E-commerce API is running...');
@@ -66,13 +107,16 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Apply limiting strictly to API routes
-app.use('/api', productRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/wishlist', wishlistRoutes);
-app.use('/api/newsletter', newsletterRoutes);
+// --- API Routes ---
+
+app.use('/api/products', apiLimiter, productRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/orders', apiLimiter, orderRoutes);
+app.use('/api/cart', apiLimiter, cartRoutes);
+app.use('/api/wishlist', apiLimiter, wishlistRoutes);
+app.use('/api/newsletter', apiLimiter, newsletterRoutes);
+
+// --- Server Startup ---
 
 const PORT = process.env.PORT || 5000;
 let server;
@@ -101,13 +145,8 @@ const startServer = async () => {
   }
 };
 
-process.on('SIGINT', () => {
-  shutdown('SIGINT');
-});
-
-process.on('SIGTERM', () => {
-  shutdown('SIGTERM');
-});
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 process.on('unhandledRejection', (reason) => {
   console.error(`Unhandled promise rejection: ${reason}`);
