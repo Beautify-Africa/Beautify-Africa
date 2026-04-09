@@ -76,6 +76,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
+    fulfillmentStatus: {
+      type: String,
+      enum: ['processing', 'packed', 'shipped', 'delivered'],
+      default: 'processing',
+    },
     deliveredAt: {
       type: Date,
     },

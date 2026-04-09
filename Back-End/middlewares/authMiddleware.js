@@ -1,6 +1,7 @@
 // middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { isAdminUser } = require('../services/authService');
 
 // Protects routes — rejects requests without a valid JWT
 async function protect(req, res, next) {
@@ -61,4 +62,15 @@ async function optionalProtect(req, res, next) {
   next();
 }
 
-module.exports = { protect, optionalProtect };
+function requireAdmin(req, res, next) {
+  if (!req.user || !isAdminUser(req.user)) {
+    return res.status(403).json({
+      status: 'error',
+      message: 'Admin access required',
+    });
+  }
+
+  return next();
+}
+
+module.exports = { protect, optionalProtect, requireAdmin };

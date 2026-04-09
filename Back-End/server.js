@@ -21,6 +21,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
@@ -115,6 +116,7 @@ app.use('/api/orders', apiLimiter, orderRoutes);
 app.use('/api/cart', apiLimiter, cartRoutes);
 app.use('/api/wishlist', apiLimiter, wishlistRoutes);
 app.use('/api/newsletter', apiLimiter, newsletterRoutes);
+app.use('/api/admin', apiLimiter, adminRoutes);
 
 // --- Server Startup ---
 
