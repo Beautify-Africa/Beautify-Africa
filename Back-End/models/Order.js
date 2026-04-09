@@ -8,6 +8,9 @@ const orderSchema = new mongoose.Schema(
       required: false, // Optional for guest checkouts
       ref: 'User',
     },
+    stripePaymentIntentId: {
+      type: String, // Added for Stripe integration
+    },
     orderItems: [
       {
         name: { type: String, required: true },
@@ -32,8 +35,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      required: true,
-      default: 'Credit Card', 
+      default: 'Credit Card',
     },
     paymentResult: { 
       id: { type: String },
