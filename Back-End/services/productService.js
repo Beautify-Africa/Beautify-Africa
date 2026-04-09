@@ -1,24 +1,40 @@
 const Product = require('../models/Product');
 
+// Escapes special RegExp characters in user-supplied strings to prevent ReDoS attacks
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function readFirstString(value) {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  if (Array.isArray(value)) {
+    const firstString = value.find((entry) => typeof entry === 'string');
+    return typeof firstString === 'string' ? firstString.trim() : '';
+  }
+
+  return '';
+}
+
 function buildProductFilter(query = {}) {
-  const {
-    category,
-    brand,
-    skinType,
-    inStock,
-    minPrice,
-    maxPrice,
-    q,
-  } = query;
+  const category = readFirstString(query.category);
+  const brand = readFirstString(query.brand);
+  const skinType = readFirstString(query.skinType);
+  const inStock = readFirstString(query.inStock);
+  const minPrice = readFirstString(query.minPrice);
+  const maxPrice = readFirstString(query.maxPrice);
+  const q = readFirstString(query.q);
 
   const filter = {};
 
   if (category) {
-    filter.category = { $regex: new RegExp(`^${category}$`, 'i') };
+    filter.category = { $regex: new RegExp(`^${escapeRegex(category)}$`, 'i') };
   }
 
   if (brand) {
-    filter.brand = { $regex: new RegExp(`^${brand}$`, 'i') };
+    filter.brand = { $regex: new RegExp(`^${escapeRegex(brand)}$`, 'i') };
   }
 
   if (skinType) {
@@ -32,17 +48,21 @@ function buildProductFilter(query = {}) {
   if (minPrice !== undefined || maxPrice !== undefined) {
     filter.price = {};
 
-    if (minPrice !== undefined && !Number.isNaN(Number(minPrice))) {
+    if (minPrice !== '' && !Number.isNaN(Number(minPrice))) {
       filter.price.$gte = Number(minPrice);
     }
 
-    if (maxPrice !== undefined && !Number.isNaN(Number(maxPrice))) {
+    if (maxPrice !== '' && !Number.isNaN(Number(maxPrice))) {
       filter.price.$lte = Number(maxPrice);
+    }
+
+    if (Object.keys(filter.price).length === 0) {
+      delete filter.price;
     }
   }
 
   if (q) {
-    const searchRegex = new RegExp(q, 'i');
+    const searchRegex = new RegExp(escapeRegex(q), 'i');
     filter.$or = [
       { name: searchRegex },
       { description: searchRegex },

@@ -17,7 +17,6 @@ async function getProducts(req, res) {
     const filter = buildProductFilter(req.query);
     const sortOption = buildProductSortOption(req.query.sort);
 
-    // Query MongoDB with the filter and sort
     const products = await Product.find(filter).sort(sortOption);
 
     return res.status(200).json({
@@ -26,9 +25,10 @@ async function getProducts(req, res) {
       data: products,
     });
   } catch (error) {
+    console.error('getProducts error:', error);
     return res.status(500).json({
       status: 'error',
-      message: error.message,
+      message: 'An unexpected error occurred while fetching products.',
     });
   }
 }
@@ -52,9 +52,15 @@ async function getProductByIdOrSlug(req, res) {
       data: product,
     });
   } catch (error) {
+    console.error('getProductByIdOrSlug error:', error);
+
+    if (error.name === 'CastError') {
+      return res.status(400).json({ status: 'error', message: 'Invalid product ID format.' });
+    }
+
     return res.status(500).json({
       status: 'error',
-      message: error.message,
+      message: 'An unexpected error occurred while fetching the product.',
     });
   }
 }
@@ -79,40 +85,42 @@ async function createProductReview(req, res) {
 
     const product = await Product.findById(req.params.id);
 
-    if (product) {
-      const alreadyReviewed = product.reviews.find(
-        (r) => r.user.toString() === req.user._id.toString()
-      );
-
-      if (alreadyReviewed) {
-        return res.status(400).json({ status: 'error', message: 'Product already reviewed' });
-      }
-
-      const review = buildReviewFromUser(req.user, normalizedRating, normalizedComment);
-
-      product.reviews.unshift(review);
-      updateReviewAggregates(product);
-
-      await product.save();
-      return res.status(201).json({
-        status: 'success',
-        message: 'Review added',
-        data: {
-          rating: product.rating,
-          numReviews: product.numReviews,
-          reviews: product.reviews,
-        },
-      });
-    } else {
+    if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
+
+    const alreadyReviewed = product.reviews.find(
+      (r) => r.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyReviewed) {
+      return res.status(400).json({ status: 'error', message: 'Product already reviewed' });
+    }
+
+    const review = buildReviewFromUser(req.user, normalizedRating, normalizedComment);
+
+    product.reviews.unshift(review);
+    updateReviewAggregates(product);
+
+    await product.save();
+    return res.status(201).json({
+      status: 'success',
+      message: 'Review added',
+      data: {
+        rating: product.rating,
+        numReviews: product.numReviews,
+        reviews: product.reviews,
+      },
+    });
   } catch (error) {
+    console.error('createProductReview error:', error);
+
     if (error.name === 'ValidationError') {
       const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid review data';
       return res.status(400).json({ status: 'error', message: firstMessage });
     }
 
-    return res.status(500).json({ status: 'error', message: error.message });
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while submitting the review.' });
   }
 }
 
