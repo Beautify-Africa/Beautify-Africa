@@ -1,65 +1,29 @@
 import { useCallback, useState } from 'react';
-import { createOrder } from '../../services/ordersApi';
-import {
-  validateShipping,
-  validatePayment,
-  INITIAL_PAYMENT,
-} from '../../data/checkoutUtils';
+import { validateShipping } from '../../data/checkoutUtils';
 import { buildInitialShipping, buildOrderPayload } from './checkoutModalUtils';
+import { createPaymentIntent } from '../../services/stripeApi';
 
 export function useCheckoutFlow({ cartItems, isAuthenticated, user, token, clearCart }) {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
-  const [order, setOrder] = useState(null);
-
-  const getInitialShipping = useCallback(() => {
-    return buildInitialShipping(isAuthenticated, user);
-  }, [isAuthenticated, user]);
-
-  const [shipping, setShipping] = useState(() => getInitialShipping());
-  const [payment, setPayment] = useState(() => ({ ...INITIAL_PAYMENT }));
+  const [shipping, setShipping] = useState(() => buildInitialShipping(isAuthenticated, user));
+  
+  const [clientSecret, setClientSecret] = useState(null);
+  const [checkoutOrder, setCheckoutOrder] = useState(null);
 
   const updateShipping = useCallback((field, value) => {
-    setShipping((previousShipping) => ({ ...previousShipping, [field]: value }));
-
-    setErrors((previousErrors) => {
-      if (!previousErrors[field]) return previousErrors;
-      const nextErrors = { ...previousErrors };
-      delete nextErrors[field];
-      return nextErrors;
+    setShipping((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
     });
   }, []);
 
-  const updatePayment = useCallback((field, value) => {
-    setPayment((previousPayment) => ({ ...previousPayment, [field]: value }));
-
-    setErrors((previousErrors) => {
-      if (!previousErrors[field]) return previousErrors;
-      const nextErrors = { ...previousErrors };
-      delete nextErrors[field];
-      return nextErrors;
-    });
-  }, []);
-
-  const handleShippingNext = useCallback(() => {
+  const handleShippingNext = useCallback(async () => {
     const validationErrors = validateShipping(shipping);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setErrors({});
-    setStep(2);
-  }, [shipping]);
-
-  const handleBackToShipping = useCallback(() => {
-    setStep(1);
-    setErrors({});
-  }, []);
-
-  const handlePlaceOrder = useCallback(async () => {
-    const validationErrors = validatePayment(payment);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -69,39 +33,65 @@ export function useCheckoutFlow({ cartItems, isAuthenticated, user, token, clear
     setIsPlacingOrder(true);
 
     try {
-      const orderData = buildOrderPayload(cartItems, shipping);
-      const createdOrder = await createOrder(orderData, token);
-
-      clearCart();
-      setOrder(createdOrder);
-      setStep(3);
-    } catch (submitError) {
-      setErrors({ form: submitError.message || 'Failed to place order.' });
+      const orderPayload = buildOrderPayload(cartItems, shipping);
+      
+      const { clientSecret: secret, orderId } = await createPaymentIntent(
+        orderPayload.orderItems, 
+        orderPayload.shippingAddress, 
+        token
+      );
+      
+      setClientSecret(secret);
+      setCheckoutOrder({
+        _id: orderId,
+        orderItems: cartItems.map((item) => ({
+          product: item.productId || item.product || item.id,
+          name: item.name,
+          qty: item.quantity,
+          price: item.price,
+          image: item.image,
+        })),
+        shippingAddress: { ...shipping },
+        totalPrice: cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      });
+      setStep(2); 
+    } catch (err) {
+      setErrors({ form: err.message || 'Failed to initialize payment.' });
     } finally {
       setIsPlacingOrder(false);
     }
-  }, [cartItems, shipping, payment, token, clearCart]);
+  }, [cartItems, shipping, token]);
+
+  const handleBackToShipping = useCallback(() => {
+    setStep(1);
+    setErrors({});
+  }, []);
+
+  // Expose explicit state setter for step 3 once payment succeeds
+  const completePaymentFlow = useCallback(() => {
+    clearCart();
+    setStep(3);
+  }, [clearCart]);
 
   const resetFlow = useCallback(() => {
     setStep(1);
     setErrors({});
-    setShipping(getInitialShipping());
-    setPayment({ ...INITIAL_PAYMENT });
-    setOrder(null);
-  }, [getInitialShipping]);
+    setClientSecret(null);
+    setCheckoutOrder(null);
+    setShipping(buildInitialShipping(isAuthenticated, user));
+  }, [isAuthenticated, user]);
 
   return {
     step,
     errors,
-    order,
+    order: checkoutOrder,
     shipping,
-    payment,
+    clientSecret,
     isPlacingOrder,
     updateShipping,
-    updatePayment,
     handleShippingNext,
     handleBackToShipping,
-    handlePlaceOrder,
+    completePaymentFlow,
     resetFlow,
   };
 }

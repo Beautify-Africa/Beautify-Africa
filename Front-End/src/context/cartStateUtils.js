@@ -21,8 +21,16 @@ export function persistGuestCartItems(cartItems) {
 }
 
 export function mapProductToCartItem(product, quantity = 1) {
+  const productId =
+    product.productId ||
+    product._id ||
+    product.id ||
+    (typeof product.product === 'object' ? product.product?._id : product.product);
+
   return {
-    id: product._id || product.id || product.product,
+    id: productId,
+    productId,
+    cartItemId: product.cartItemId || product._id || null,
     name: product.name,
     price: product.price,
     image: product.image,
@@ -33,7 +41,9 @@ export function mapProductToCartItem(product, quantity = 1) {
 
 export function mapServerCartItems(serverCart = []) {
   return serverCart.map((item) => ({
-    id: item._id || item.id || item.product,
+    id: item.productId || (typeof item.product === 'object' ? item.product?._id : item.product) || item.id || item._id,
+    productId: item.productId || (typeof item.product === 'object' ? item.product?._id : item.product) || item.id || item._id,
+    cartItemId: item._id || item.cartItemId || null,
     name: item.name,
     price: item.price,
     image: item.image,

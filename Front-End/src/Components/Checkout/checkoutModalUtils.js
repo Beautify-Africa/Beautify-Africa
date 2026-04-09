@@ -17,7 +17,7 @@ export function buildInitialShipping(isAuthenticated, user) {
 export function buildOrderPayload(cartItems, shippingAddress) {
   return {
     orderItems: cartItems.map((item) => ({
-      product: item.id,
+      product: item.productId || item.product || item.id,
       qty: item.quantity,
     })),
     shippingAddress,
