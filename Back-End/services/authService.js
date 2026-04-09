@@ -31,7 +31,7 @@ function getAuthErrorResponse(error) {
 
   return {
     statusCode: 500,
-    message: error.message,
+    message: 'An unexpected error occurred. Please try again.',
   };
 }
 

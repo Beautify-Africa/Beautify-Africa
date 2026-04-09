@@ -1,17 +1,8 @@
+// middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-async function resolveUserFromAuthHeader(authHeader) {
-  if (!authHeader.startsWith('Bearer ')) {
-    return null;
-  }
-
-  const token = authHeader.split(' ')[1];
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-  return User.findById(decoded.id);
-}
-
+// Protects routes — rejects requests without a valid JWT
 async function protect(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
@@ -23,7 +14,10 @@ async function protect(req, res, next) {
       });
     }
 
-    const user = await resolveUserFromAuthHeader(authHeader);
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
     if (!user) {
       return res.status(401).json({
         status: 'error',
@@ -36,20 +30,32 @@ async function protect(req, res, next) {
   } catch (error) {
     return res.status(401).json({
       status: 'error',
-      message: 'Not authorized. Invalid token',
+      message: 'Not authorized. Invalid or expired token',
     });
   }
 }
 
+// Optionally identifies the user — allows both authenticated and guest requests through.
+// If a valid Bearer token is present, req.user is populated; otherwise the request
+// continues as a guest (req.user is undefined). Never blocks the request.
 async function optionalProtect(req, res, next) {
   try {
     const authHeader = req.headers.authorization || '';
-    const user = await resolveUserFromAuthHeader(authHeader);
+
+    // Skip JWT verification entirely if no Bearer token is present
+    if (!authHeader.startsWith('Bearer ')) {
+      return next();
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
     if (user) {
       req.user = user;
     }
-  } catch (error) {
-    // Continue as guest when auth header is missing or invalid.
+  } catch {
+    // Invalid or expired token — treat the request as a guest, do not block
   }
 
   next();
