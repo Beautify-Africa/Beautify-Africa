@@ -28,7 +28,8 @@ async function getWishlist(req, res) {
       data: products,
     });
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error('getWishlist error:', error);
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while fetching your wishlist.' });
   }
 }
 
@@ -52,7 +53,8 @@ async function addToWishlist(req, res) {
       data: products,
     });
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error('addToWishlist error:', error);
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while adding to wishlist.' });
   }
 }
 
@@ -80,7 +82,8 @@ async function toggleWishlistItem(req, res) {
       data: products,
     });
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error('toggleWishlistItem error:', error);
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while toggling the wishlist.' });
   }
 }
 
@@ -101,7 +104,8 @@ async function removeFromWishlist(req, res) {
       data: products,
     });
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error('removeFromWishlist error:', error);
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while removing from wishlist.' });
   }
 }
 
@@ -119,7 +123,8 @@ async function syncWishlist(req, res) {
       data: products,
     });
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error('syncWishlist error:', error);
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while syncing wishlist.' });
   }
 }
 
@@ -132,7 +137,8 @@ async function clearWishlist(req, res) {
 
     return res.status(200).json({ status: 'success', data: products });
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: error.message });
+    console.error('clearWishlist error:', error);
+    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while clearing the wishlist.' });
   }
 }
 
