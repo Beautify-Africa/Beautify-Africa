@@ -11,15 +11,33 @@ const addOrderItems = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod } = req.body;
 
-    if (orderItems && orderItems.length === 0) {
+    // Validate order items
+    if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ status: 'error', message: 'No order items' });
     }
 
+    // Validate shipping address — all required fields must be present
+    const requiredAddressFields = ['firstName', 'lastName', 'email', 'address', 'city', 'zip', 'country'];
+    const missingFields = requiredAddressFields.filter((field) => !shippingAddress?.[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: `Shipping address is missing: ${missingFields.join(', ')}`,
+      });
+    }
+
+    // Validate payment method
+    if (!paymentMethod) {
+      return res.status(400).json({ status: 'error', message: 'Payment method is required' });
+    }
+
+    // Verify all products exist in DB and are in stock — server-side price is used, not client price
     const {
       verifiedOrderItems,
       itemsPrice,
       error: verificationError,
-    } = await buildVerifiedOrderItems(orderItems);
+    } = await buildVerifiedOrderItems(orderItems, req.user?._id);
 
     if (verificationError) {
       return res
@@ -38,20 +56,30 @@ const addOrderItems = async (req, res) => {
       taxPrice,
       shippingPrice,
       totalPrice,
-      isPaid: true,
-      paidAt: Date.now(),
+      // isPaid and paidAt are intentionally omitted here.
+      // They will be set to true by the Stripe webhook handler
+      // (POST /api/stripe/webhook) after payment is confirmed server-side.
     });
 
     const createdOrder = await order.save();
 
     res.status(201).json({ status: 'success', data: createdOrder });
   } catch (error) {
-    console.error(`Error adding order: ${error}`);
-    // Handle invalid incoming Object IDs securely
-    if (error.name === 'CastError' || error.message.includes('Cast to ObjectId failed')) {
-      return res.status(400).json({ status: 'error', message: 'Invalid product ID detected. Please clear cart and try again.' });
+    console.error('addOrderItems error:', error);
+
+    if (error.name === 'CastError' || error.message?.includes('Cast to ObjectId failed')) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid product ID detected. Please clear your cart and try again.',
+      });
     }
-    res.status(500).json({ status: 'error', message: error.message || 'Server error adding order' });
+
+    if (error.name === 'ValidationError') {
+      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid order data';
+      return res.status(400).json({ status: 'error', message: firstMessage });
+    }
+
+    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while placing your order.' });
   }
 };
 
@@ -67,8 +95,8 @@ const getMyOrders = async (req, res) => {
     const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.status(200).json({ status: 'success', data: orders });
   } catch (error) {
-    console.error(`Error fetching orders: ${error}`);
-    res.status(500).json({ status: 'error', message: 'Server error fetching orders' });
+    console.error('getMyOrders error:', error);
+    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while fetching your orders.' });
   }
 };
 

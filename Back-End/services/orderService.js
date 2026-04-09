@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const Cart = require('../models/Cart');
 
 function calculateOrderTotals(itemsPrice) {
   const shippingPrice = itemsPrice > 100 ? 0 : 15;
@@ -12,13 +13,46 @@ function calculateOrderTotals(itemsPrice) {
   };
 }
 
-async function buildVerifiedOrderItems(orderItems = []) {
+function getOrderItemProductId(item = {}) {
+  if (typeof item.product === 'string') return item.product;
+  if (item.product && typeof item.product === 'object') {
+    return item.product._id || item.product.id || null;
+  }
+
+  return item.productId || item.id || null;
+}
+
+async function resolveProduct(productId, userId) {
+  const dbProduct = await Product.findById(productId);
+  if (dbProduct) return dbProduct;
+
+  if (!userId) {
+    return null;
+  }
+
+  const cart = await Cart.findOne({
+    user: userId,
+    'cartItems._id': productId,
+  });
+
+  const matchingCartItem = cart?.cartItems?.find(
+    (cartItem) => cartItem._id.toString() === productId.toString()
+  );
+
+  if (!matchingCartItem) {
+    return null;
+  }
+
+  return Product.findById(matchingCartItem.product);
+}
+
+async function buildVerifiedOrderItems(orderItems = [], userId = null) {
   const verifiedOrderItems = [];
   let itemsPrice = 0;
 
   for (const item of orderItems) {
-    const productId = item.product || item.id;
-    const quantity = Number(item.qty);
+    const productId = getOrderItemProductId(item);
+    const quantity = Number(item.qty ?? item.quantity);
 
     if (!productId || !Number.isFinite(quantity) || quantity < 1) {
       return {
@@ -29,7 +63,7 @@ async function buildVerifiedOrderItems(orderItems = []) {
       };
     }
 
-    const dbProduct = await Product.findById(productId);
+    const dbProduct = await resolveProduct(productId, userId);
 
     if (!dbProduct) {
       return {
