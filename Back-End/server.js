@@ -50,6 +50,9 @@ app.use(helmet());
 // Use Express' simple query parser so querystrings stay flat strings/arrays.
 app.set('query parser', 'simple');
 
+// 2. Trust Proxy (Required for Render/Cloud load balancers for rate limiting to work)
+app.set('trust proxy', 1);
+
 // 3. Rate Limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
