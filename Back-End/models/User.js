@@ -43,6 +43,14 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Speeds up reset-password token verification queries.
+userSchema.index(
+  { passwordResetToken: 1, passwordResetExpires: 1 },
+  {
+    partialFilterExpression: { passwordResetToken: { $type: 'string' } },
+  }
+);
+
 userSchema.pre('save', async function hashPassword() {
   if (!this.isModified('password')) return;
   this.password = await bcrypt.hash(this.password, 12);
