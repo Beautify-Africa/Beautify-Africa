@@ -1,6 +1,7 @@
 // controllers/productController.js
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
+const redisClient = require('../config/redis');
 const {
   buildProductFilter,
   buildProductSortOption,
@@ -14,16 +15,31 @@ const {
 // Supports query parameters: category, brand, skinType, inStock, minPrice, maxPrice, q, sort
 async function getProducts(req, res) {
   try {
+    const cacheKey = `products:${JSON.stringify(req.query)}`;
+    
+    // 1. Memory Cache Hit
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      console.log(`[Redis] Cache Hit for products`);
+      return res.status(200).json(JSON.parse(cachedData));
+    }
+
+    console.log(`[Redis] Cache Miss. Fetching from MongoDB...`);
     const filter = buildProductFilter(req.query);
     const sortOption = buildProductSortOption(req.query.sort);
 
     const products = await Product.find(filter).sort(sortOption);
 
-    return res.status(200).json({
+    const payload = {
       status: 'success',
       count: products.length,
       data: products,
-    });
+    };
+
+    // 2. Save to Cache for 1 hour
+    await redisClient.set(cacheKey, JSON.stringify(payload), 'EX', 3600);
+
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('getProducts error:', error);
     return res.status(500).json({
@@ -103,6 +119,14 @@ async function createProductReview(req, res) {
     updateReviewAggregates(product);
 
     await product.save();
+
+    // 3. Cache Bust: Clear the catalog so the new review appears immediately
+    const keys = await redisClient.keys('products:*');
+    if (keys.length > 0) {
+      await redisClient.del(keys);
+      console.log(`[Redis] Cache busted due to new product review.`);
+    }
+
     return res.status(201).json({
       status: 'success',
       message: 'Review added',
