@@ -169,5 +169,5 @@ Implemented controls include:
 
 ## Existing Technical Debt (Known)
 
-- Front-End/README.md still contains default Vite template text and should be replaced with project-specific guidance.
-- Production secret management should be externalized via a vault or cloud secret manager before enterprise deployment.
+- Production secrets are still environment-file driven in local/dev workflows. Before enterprise deployment, externalize secrets to a managed vault (for example Azure Key Vault, AWS Secrets Manager, or GCP Secret Manager) and inject them at runtime/CI.
+- Secret rotation and access-audit workflows are not yet automated.
