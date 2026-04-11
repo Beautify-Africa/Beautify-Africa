@@ -10,9 +10,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const connectDB = require('./config/db');
+const { buildOpenApiSpec } = require('./docs/openapi');
 const {
   createJsonBodyParser,
   createUrlEncodedBodyParser,
@@ -113,6 +115,21 @@ app.get('/health', (req, res) => {
     database: isDbConnected ? 'connected' : 'disconnected',
   });
 });
+
+app.get('/api/openapi.json', (req, res) => {
+  res.status(200).json(buildOpenApiSpec(req));
+});
+
+app.use(
+  '/api/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(null, {
+    explorer: true,
+    swaggerOptions: {
+      url: '/api/openapi.json',
+    },
+  })
+);
 
 // --- API Routes ---
 
