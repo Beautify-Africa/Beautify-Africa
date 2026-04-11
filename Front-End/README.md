@@ -1,18 +1,99 @@
-# React + Vite
+# Beautify Africa Front-End
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React storefront for Beautify Africa, responsible for customer shopping journeys, profile/order experiences, and selected admin-facing UI surfaces.
 
-Currently, two official plugins are available:
+## Scope
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This application provides:
 
-## React Compiler
+- Product browsing and filtering
+- Cart and checkout experience
+- Profile and order-tracking pages
+- Auth UI flows (including password reset)
+- Newsletter preference pages (unsubscribe request and confirmation)
+- Admin orders interface route
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Technology Stack
 
-Note: This will impact Vite dev & build performances.
+- React 18
+- Vite 7
+- Tailwind CSS 4
+- React Router 7
+- Stripe React SDK
+- Framer Motion
+- React Helmet Async
 
-## Expanding the ESLint configuration
+## Runtime Integration
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Front-end calls the backend API through `VITE_API_URL`.
+- API base normalization is handled in `src/services/apiConfig.js`.
+- Stripe publishable key is injected at build time.
+- Containerized runtime serves static assets via Nginx.
+
+## Environment Variables
+
+Required for full functionality:
+
+- `VITE_API_URL`: Base URL to backend service (example: `http://localhost:5000`)
+- `VITE_STRIPE_PUBLISHABLE_KEY`: Stripe publishable key for payment UI
+
+Important: Vite embeds environment values at build time. Changing these values requires rebuilding the frontend image/build artifacts.
+
+## Local Development
+
+From `Front-End/`:
+
+```bash
+npm ci
+npm run dev
+```
+
+Default dev server URL: `http://localhost:5173`
+
+Ensure backend API is available (default expected at `http://localhost:5000` unless overridden via `VITE_API_URL`).
+
+## Quality Gates
+
+From `Front-End/`:
+
+```bash
+npm run lint
+npm run build
+```
+
+These are the same frontend gates executed in GitHub CI.
+
+## Production Build And Preview
+
+```bash
+npm run build
+npm run preview
+```
+
+Build output is emitted to `dist/`.
+
+## Docker Deployment Notes
+
+- Multi-stage Docker build compiles with Node and serves with Nginx.
+- Build arguments used in `Front-End/Dockerfile`:
+  - `VITE_API_URL`
+  - `VITE_STRIPE_PUBLISHABLE_KEY`
+- In `docker-compose.yml`, frontend is exposed on `http://localhost:4173`.
+
+## Primary Routes
+
+- `/`
+- `/shop`
+- `/profile`
+- `/track-orders`
+- `/reset-password`
+- `/newsletter/unsubscribe-request`
+- `/newsletter/unsubscribe`
+- `/admin/orders`
+
+## API Documentation Reference
+
+Backend API docs (served by backend service):
+
+- Swagger UI: `http://localhost:5000/api/docs`
+- OpenAPI JSON: `http://localhost:5000/api/openapi.json`
