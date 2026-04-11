@@ -13,6 +13,11 @@ const rateLimit = require('express-rate-limit');
 
 // --- Local ---
 const connectDB = require('./config/db');
+const {
+  createJsonBodyParser,
+  createUrlEncodedBodyParser,
+  handleBodySizeLimitError,
+} = require('./middlewares/bodyParser');
 const { sanitizeRequest } = require('./middlewares/requestSanitizer');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -86,8 +91,9 @@ if (process.env.NODE_ENV !== 'production') {
 // Webhooks demand raw stream requests (unparsed JSON)
 app.use('/api/stripe', stripeRoutes);
 
-// 7. Body Parser
-app.use(express.json());
+// 7. Body Parser (explicit, configurable size limits)
+app.use(createJsonBodyParser());
+app.use(createUrlEncodedBodyParser());
 
 // 8. Strip Mongo operator-style keys from mutable request payloads.
 app.use(sanitizeRequest);
@@ -117,6 +123,9 @@ app.use('/api/cart', apiLimiter, cartRoutes);
 app.use('/api/wishlist', apiLimiter, wishlistRoutes);
 app.use('/api/newsletter', apiLimiter, newsletterRoutes);
 app.use('/api/admin', apiLimiter, adminRoutes);
+
+// Surface oversized payloads with a stable API error response.
+app.use(handleBodySizeLimitError);
 
 // --- Server Startup ---
 
