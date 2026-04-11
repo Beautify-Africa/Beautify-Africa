@@ -1,48 +1,42 @@
 const { Worker } = require('bullmq');
 const redisClient = require('../config/redis');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const emailWorker = new Worker(
   'emailQueue',
   async (job) => {
     const { email, subject, text, html } = job.data;
     
-    // Extracted from original sendEmail.js
-    const smtpUser = String(process.env.EMAIL_USER || '').trim();
-    const smtpPass = String(process.env.EMAIL_PASS || '').replace(/\s+/g, '');
-    const smtpHost = String(process.env.EMAIL_HOST || 'smtp.gmail.com').trim();
-    const smtpPort = Number(process.env.EMAIL_PORT || 587);
-
-    if (!smtpUser || !smtpPass) {
-      throw new Error('SMTP credentials are not configured. Set EMAIL_USER and EMAIL_PASS.');
+    const resendApiKey = process.env.RESEND_API_KEY || '';
+    if (!resendApiKey) {
+      throw new Error('Resend API key is missing. Set RESEND_API_KEY in environment variables.');
     }
 
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
+    const resend = new Resend(resendApiKey);
 
-    const mailOptions = {
-      from: `"Beautify Africa" <${smtpUser}>`,
+    const payload = {
+      from: 'Beautify Africa <onboarding@resend.dev>', // Required for free tier until domain verification
       to: email,
       subject: subject,
       text: text,
       html: html,
     };
 
-    console.log(`[Worker] Processing email job: sending '${subject}' to ${email}...`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Worker] Completed email job: ${info.messageId}`);
-    return info;
+    console.log(`[Worker] Processing Resend job: sending '${subject}' to ${email}...`);
+    
+    // Dispatch securely over HTTP Port 443
+    const response = await resend.emails.send(payload);
+    
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    console.log(`[Worker] Completed Resend job: ${response.data.id}`);
+    return response.data;
   },
   {
     connection: redisClient,
-    concurrency: 5, // Send up to 5 emails in parallel without blocking Express
+    concurrency: 5, // Process up to 5 emails simultaneously
   }
 );
 
