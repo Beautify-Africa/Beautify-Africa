@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NEWSLETTER_CONTENT } from '../../data/newsletterContent';
 import FadeIn from './FadeIn';
+import AppLink from './AppLink';
 import { subscribeToNewsletter } from '../../services/newsletterApi';
 
 const Newsletter = () => {
@@ -137,6 +138,13 @@ const Newsletter = () => {
                 <p className="mt-4 text-[9px] md:text-[10px] text-stone-400 tracking-wide uppercase">
                   {NEWSLETTER_CONTENT.disclaimer}
                 </p>
+
+                <AppLink
+                  href="/newsletter/unsubscribe-request"
+                  className="mt-2 inline-block text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 underline-offset-4 transition-colors hover:text-amber-700 hover:underline"
+                >
+                  Unsubscribe or manage newsletter preferences
+                </AppLink>
 
                 {statusMessage && (
                   <p role="status" className={`mt-3 text-xs md:text-sm font-semibold tracking-wide ${isSuccess ? 'text-green-600' : 'text-red-500'}`}>
