@@ -90,4 +90,9 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Supports GET /api/orders/myorders sorted by newest first.
+orderSchema.index({ user: 1, createdAt: -1 });
+// Supports admin dashboard global order feed sorted by newest first.
+orderSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Order', orderSchema);

@@ -100,6 +100,12 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Optimize common product listing sorts.
+productSchema.index({ createdAt: -1 });
+productSchema.index({ price: 1 });
+productSchema.index({ rating: -1 });
+productSchema.index({ isBestSeller: -1, numReviews: -1 });
+
 // Auto-generate a URL-friendly slug from the product name before saving
 // Example: "The Velvet Botanique" becomes "the-velvet-botanique"
 productSchema.pre('save', function generateSlug() {
