@@ -70,15 +70,27 @@ const authLimiter = rateLimit({
 // 4. CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || [
-      'http://localhost:5173',
-      'http://localhost:4173',
-      'http://localhost:4174',
-      'http://localhost:4175',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:4173',
-      'http://127.0.0.1:4174',
-    ],
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      
+      const envOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(u => u.trim()) : [];
+      const localOrigins = [
+        'http://localhost:5173',
+        'http://localhost:4173',
+        'http://localhost:4174',
+        'http://localhost:4175',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:4173',
+        'http://127.0.0.1:4174',
+      ];
+
+      // Allow exact matches from ENV, local testing, OR any dynamically generated Vercel domain
+      if (envOrigins.includes(origin) || localOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
   })
 );
