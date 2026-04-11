@@ -9,6 +9,8 @@ const ShopPageLayout = lazy(() => import('./pages/ShopPageLayout'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const TrackOrdersPage = lazy(() => import('./pages/TrackOrdersPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const NewsletterUnsubscribeRequestPage = lazy(() => import('./pages/NewsletterUnsubscribeRequestPage'));
+const NewsletterUnsubscribePage = lazy(() => import('./pages/NewsletterUnsubscribePage'));
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
 
 import CartDrawer from './Components/Cart/CartDrawer';
@@ -47,6 +49,8 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/track-orders" element={<TrackOrdersPage onOpenCart={openCart} />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/newsletter/unsubscribe-request" element={<NewsletterUnsubscribeRequestPage />} />
+            <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
             <Route path="/admin/orders" element={<AdminOrdersPage />} />
             {/* 404 catch-all */}
             <Route
