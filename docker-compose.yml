@@ -14,8 +14,13 @@ services:
     # Inside Docker, localhost points to the container itself, not the host machine.
     environment:
       MONGO_URI: mongodb+srv://BeautifyAfrica:Mutheu%402020@beautifyafrica.ks1sykd.mongodb.net/?appName=BeautifyAfrica
+      # When deployed natively via Render, REDIS_URL from Env Vars takes over.
+      # When running inside docker-compose, this targets the inner Redis container.
+      REDIS_URL: redis://redis:6379
     # Tells Docker to restart the backend automatically if it ever crashes
     restart: unless-stopped
+    depends_on:
+      - redis
 
   # ============================
   # 2. React Vite Frontend
@@ -34,4 +39,14 @@ services:
     # Force the frontend to wait until the backend exists before booting
     depends_on:
       - backend
+    restart: unless-stopped
+
+  # ============================
+  # 3. Redis In-Memory Cache Worker
+  # ============================
+  redis:
+    image: redis:7-alpine
+    container_name: beautify_redis
+    ports:
+      - "6379:6379"
     restart: unless-stopped

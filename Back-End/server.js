@@ -14,6 +14,7 @@ const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const connectDB = require('./config/db');
+require('./workers/emailWorker'); // Boot background job pipeline
 const { buildOpenApiSpec } = require('./docs/openapi');
 const {
   createJsonBodyParser,
