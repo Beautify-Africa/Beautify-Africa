@@ -1,70 +1,67 @@
 // src/services/authApi.js
-import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
+import { API_URL, requestJson } from './apiConfig';
 
 export async function registerUser(userData) {
-  const response = await fetch(`${API_URL}/auth/register`, {
+  return requestJson(`${API_URL}/auth/register`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify(userData),
+    body: userData,
+    cache: 'no-store',
+    fallbackMessage: 'Registration failed',
   });
-
-  return parseResponse(response, 'Registration failed');
 }
 
 export async function loginUser(userData) {
-  const response = await fetch(`${API_URL}/auth/login`, {
+  return requestJson(`${API_URL}/auth/login`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify(userData),
+    body: userData,
+    cache: 'no-store',
+    fallbackMessage: 'Login failed',
   });
-
-  return parseResponse(response, 'Login failed');
 }
 
 export async function loginAdminUser(userData) {
-  const response = await fetch(`${API_URL}/auth/admin-login`, {
+  return requestJson(`${API_URL}/auth/admin-login`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify(userData),
+    body: userData,
+    cache: 'no-store',
+    fallbackMessage: 'Admin login failed',
   });
-
-  return parseResponse(response, 'Admin login failed');
 }
 
 export async function requestPasswordReset(payload) {
-  const response = await fetch(`${API_URL}/auth/forgot-password`, {
+  return requestJson(`${API_URL}/auth/forgot-password`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify(payload),
+    body: payload,
+    cache: 'no-store',
+    fallbackMessage: 'Unable to start password reset.',
   });
-
-  return parseResponse(response, 'Unable to start password reset.');
 }
 
 export async function submitPasswordReset(payload) {
-  const response = await fetch(`${API_URL}/auth/reset-password`, {
+  return requestJson(`${API_URL}/auth/reset-password`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify(payload),
+    body: payload,
+    cache: 'no-store',
+    fallbackMessage: 'Unable to reset password.',
   });
-
-  return parseResponse(response, 'Unable to reset password.');
 }
 
-export async function fetchMe(token) {
-  const response = await fetch(`${API_URL}/auth/me`, {
-    headers: jsonHeaders(token),
+export async function fetchMe(token, options = {}) {
+  return requestJson(`${API_URL}/auth/me`, {
+    token,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Fetch user failed',
   });
-
-  return parseResponse(response, 'Fetch user failed');
 }
 
-export async function updateUser(userData, token) {
-  const response = await fetch(`${API_URL}/auth/profile`, {
+export async function updateUser(userData, token, options = {}) {
+  return requestJson(`${API_URL}/auth/profile`, {
     method: 'PUT',
-    headers: jsonHeaders(token),
-    body: JSON.stringify(userData),
+    token,
+    body: userData,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Update failed',
   });
-
-  return parseResponse(response, 'Update failed');
 }
