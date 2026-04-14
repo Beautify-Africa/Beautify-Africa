@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import OrderStatusBadge from './OrderStatusBadge';
+import { buildResponsiveImageProps } from '../../../utils/imageUtils';
 
 const STAGE_LABELS = {
   processing: 'Processing',
@@ -47,7 +48,17 @@ export default function ProfileOrderCard({ order }) {
           {order.orderItems.map((item, idx) => (
             <li key={`${order._id}-${idx}`} className="flex items-center gap-4 py-4">
               <div className="h-16 w-16 flex-shrink-0 overflow-hidden border border-stone-200 bg-stone-100">
-                {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover mix-blend-multiply" /> : null}
+                {item.image ? (
+                  <img
+                    {...buildResponsiveImageProps(item.image, {
+                      widths: [160, 240, 320],
+                      sizes: '64px',
+                    })}
+                    alt={item.name}
+                    className="h-full w-full object-cover mix-blend-multiply"
+                    loading="lazy"
+                  />
+                ) : null}
               </div>
               <div className="flex-grow">
                 <Link to={`/shop/${item.product?._id || item.product}`} className="font-serif text-lg text-stone-900 transition-colors hover:text-amber-800">{item.name}</Link>
