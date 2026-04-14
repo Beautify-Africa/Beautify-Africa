@@ -1,17 +1,26 @@
 import { JOURNAL_ARTICLES, JOURNAL_CONTENT } from '../../data/journalArticles';
 import { ArrowRightIcon } from '../Shared/Icons';
 import FadeIn from '../Shared/FadeIn';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 const FeaturedArticle = ({ article }) => {
+  const imageProps = buildResponsiveImageProps(article.image, {
+    widths: [640, 960, 1400],
+    sizes: '(max-width: 1024px) 100vw, 50vw',
+  });
+
   return (
     <article className="relative group w-full h-[400px] sm:h-[500px] lg:h-full overflow-hidden rounded-2xl cursor-pointer">
       {/* Article Image */}
       <figure className="absolute inset-0 bg-stone-900">
         <img
-          src={article.image}
+          src={imageProps.src}
+          srcSet={imageProps.srcSet}
+          sizes={imageProps.sizes}
           alt={article.title}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-60"
           loading="lazy"
+          decoding="async"
         />
       </figure>
 
@@ -52,15 +61,23 @@ const FeaturedArticle = ({ article }) => {
 };
 
 const SecondaryArticle = ({ article }) => {
+  const imageProps = buildResponsiveImageProps(article.image, {
+    widths: [480, 720, 960],
+    sizes: '(max-width: 1024px) 100vw, 50vw',
+  });
+
   return (
     <article className="relative group flex-1 w-full h-[300px] sm:h-[350px] overflow-hidden rounded-2xl cursor-pointer">
       {/* Article Image */}
       <figure className="absolute inset-0 bg-stone-800">
         <img
-          src={article.image}
+          src={imageProps.src}
+          srcSet={imageProps.srcSet}
+          sizes={imageProps.sizes}
           alt={article.title}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105 opacity-80 group-hover:opacity-60"
           loading="lazy"
+          decoding="async"
         />
       </figure>
 
