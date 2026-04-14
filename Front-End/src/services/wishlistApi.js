@@ -1,49 +1,53 @@
-import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
+import { API_URL, requestJson } from './apiConfig';
 
-export async function fetchWishlist(token) {
+export async function fetchWishlist(token, options = {}) {
   if (!token) return [];
 
-  const response = await fetch(`${API_URL}/wishlist`, {
-    headers: jsonHeaders(token),
+  const json = await requestJson(`${API_URL}/wishlist`, {
+    token,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to fetch wishlist',
   });
-
-  const json = await parseResponse(response, 'Failed to fetch wishlist');
   return json.data || [];
 }
 
-export async function toggleWishlistApi(token, productId) {
+export async function toggleWishlistApi(token, productId, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/wishlist/toggle`, {
+  return requestJson(`${API_URL}/wishlist/toggle`, {
     method: 'POST',
-    headers: jsonHeaders(token),
-    body: JSON.stringify({ productId }),
+    token,
+    body: { productId },
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to update wishlist',
   });
-
-  return parseResponse(response, 'Failed to update wishlist');
 }
 
-export async function syncWishlistApi(token, localItems) {
+export async function syncWishlistApi(token, localItems, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/wishlist/sync`, {
+  const json = await requestJson(`${API_URL}/wishlist/sync`, {
     method: 'POST',
-    headers: jsonHeaders(token),
-    body: JSON.stringify({ localItems: Array.isArray(localItems) ? localItems : [] }),
+    token,
+    body: { localItems: Array.isArray(localItems) ? localItems : [] },
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to sync wishlist',
   });
-
-  const json = await parseResponse(response, 'Failed to sync wishlist');
   return json.data || [];
 }
 
-export async function clearWishlistApi(token) {
+export async function clearWishlistApi(token, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/wishlist`, {
+  const json = await requestJson(`${API_URL}/wishlist`, {
     method: 'DELETE',
-    headers: jsonHeaders(token),
+    token,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to clear wishlist',
   });
-
-  const json = await parseResponse(response, 'Failed to clear wishlist');
   return json.data || [];
 }

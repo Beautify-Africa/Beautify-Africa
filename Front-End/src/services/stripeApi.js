@@ -1,5 +1,5 @@
 // src/services/stripeApi.js
-import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
+import { API_URL, requestJson } from './apiConfig';
 
 /**
  * Creates a Stripe PaymentIntent by calling the backend API.
@@ -9,12 +9,11 @@ import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
  * @returns {Promise<{ clientSecret: string, orderId: string }>}
  */
 export async function createPaymentIntent(orderItems, shippingAddress, token = null) {
-  const response = await fetch(`${API_URL}/stripe/create-payment-intent`, {
+  return requestJson(`${API_URL}/stripe/create-payment-intent`, {
     method: 'POST',
-    headers: jsonHeaders(token),
-    body: JSON.stringify({ orderItems, shippingAddress }),
+    token,
+    body: { orderItems, shippingAddress },
+    cache: 'no-store',
+    fallbackMessage: 'Failed to initialize payment.',
   });
-
-  const json = await parseResponse(response, 'Failed to initialize payment.');
-  return json;
 }
