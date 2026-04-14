@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CARD_POSITIONS } from '../../data/featuredCollections';
 import { ArrowRightIcon } from '../Shared/Icons';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 export default function FeaturedCollectionCard({ item }) {
   const positionStyles = CARD_POSITIONS[item.position] || '';
@@ -18,6 +19,10 @@ export default function FeaturedCollectionCard({ item }) {
   }, [isHovered, item.items]);
 
   const currentItem = item.items ? item.items[activeIndex] : item;
+  const imageProps = buildResponsiveImageProps(currentItem.image, {
+    widths: [480, 720, 1080],
+    sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 480px',
+  });
 
   const handleTap = () => {
     setIsHovered((previousIsHovered) => {
@@ -59,7 +64,9 @@ export default function FeaturedCollectionCard({ item }) {
       <figure className="absolute inset-0 bg-stone-200">
         <img
           key={`img-${currentItem.image}`}
-          src={currentItem.image}
+          src={imageProps.src}
+          srcSet={imageProps.srcSet}
+          sizes={imageProps.sizes}
           alt={`${item.title} - ${currentItem.productName}`}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110 animate-fade-in"
           loading="lazy"

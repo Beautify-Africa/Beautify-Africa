@@ -3,7 +3,7 @@
  * Email signup content and settings
  */
 
-import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.png';
+import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.opt.webp';
 
 export const NEWSLETTER_CONTENT = {
   tagline: 'The Inner Circle',
