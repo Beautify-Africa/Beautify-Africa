@@ -1,8 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
 import ProductCard from './ProductCard';
 import ShopEmptyState from './ShopEmptyState';
-
-const ITEMS_PER_PAGE = 12;
 
 export default function ShopProductGrid({
   isLoading,
@@ -16,22 +13,10 @@ export default function ShopProductGrid({
   savedProductCount,
   onClearFilters,
   onShowAllProducts,
+  currentPage,
+  totalPages,
+  onPageChange,
 }) {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Reset to page 1 whenever the user alters external filters
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [displayedProducts]);
-
-  // Calculate slices for the current page
-  const paginatedSlice = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return displayedProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [currentPage, displayedProducts]);
-
-  const totalPages = Math.ceil(displayedProducts.length / ITEMS_PER_PAGE);
-
   if (isLoading) {
     return (
       <div className="py-20 text-center">
@@ -48,7 +33,7 @@ export default function ShopProductGrid({
           role="list"
           aria-label={isSavedCollection ? 'Saved products' : 'Products'}
         >
-          {paginatedSlice.map((product) => (
+          {displayedProducts.map((product) => (
             <ProductCard
               key={product._id}
               product={product}
@@ -65,7 +50,7 @@ export default function ShopProductGrid({
           <div className="mt-16 flex items-center justify-between border-t border-stone-200 pt-8 sm:px-6">
             <button
               onClick={() => {
-                setCurrentPage((p) => Math.max(1, p - 1));
+                onPageChange(Math.max(1, currentPage - 1));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               disabled={currentPage === 1}
@@ -82,7 +67,7 @@ export default function ShopProductGrid({
             </span>
             <button
               onClick={() => {
-                setCurrentPage((p) => Math.min(totalPages, p + 1));
+                onPageChange(Math.min(totalPages, currentPage + 1));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               disabled={currentPage === totalPages}

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import ShippingProgressTimeline from './ShippingProgressTimeline';
 import { getTrackingStage } from './trackingStages';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 function statusPill(isActive, label) {
   return (
@@ -62,7 +63,17 @@ export default function TrackOrderCard({ order }) {
             {order.orderItems.map((item, idx) => (
               <li key={`${order._id}-${idx}`} className="flex items-center gap-4 px-4 py-4">
                 <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-sm border border-stone-200 bg-stone-100">
-                  {item.image ? <img src={item.image} alt={item.name} className="h-full w-full object-cover" /> : null}
+                  {item.image ? (
+                    <img
+                      {...buildResponsiveImageProps(item.image, {
+                        widths: [160, 240, 320],
+                        sizes: '56px',
+                      })}
+                      alt={item.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : null}
                 </div>
                 <div className="flex-grow">
                   <Link to={`/shop/${item.product?._id || item.product}`} className="font-serif text-lg text-stone-900 hover:text-amber-800">
