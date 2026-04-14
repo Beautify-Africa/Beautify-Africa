@@ -115,7 +115,6 @@ const subscribeNewsletter = async (req, res) => {
       </div>
     `;
 
-    // Attempt to send email
     try {
       await sendEmail({
         email: newSubscriber.email,
@@ -124,10 +123,10 @@ const subscribeNewsletter = async (req, res) => {
       });
     } catch (emailError) {
       console.error('Email dispatch failed:', emailError);
-      // We still return success since the database record successfully captured the email.
-      return res.status(201).json({
-        status: 'success',
-        message: 'Successfully subscribed (Email currently offline).',
+      await Newsletter.deleteOne({ _id: newSubscriber._id });
+      return res.status(500).json({
+        status: 'error',
+        message: 'Unable to deliver welcome email right now. Please try again shortly.',
       });
     }
 

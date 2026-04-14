@@ -92,7 +92,12 @@ const getMyOrders = async (req, res) => {
       return res.status(401).json({ status: 'error', message: 'Not authorized' });
     }
 
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user._id })
+      .select(
+        'orderItems shippingAddress paymentMethod itemsPrice taxPrice shippingPrice totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt'
+      )
+      .sort({ createdAt: -1 })
+      .lean();
     res.status(200).json({ status: 'success', data: orders });
   } catch (error) {
     console.error('getMyOrders error:', error);

@@ -3,48 +3,208 @@ const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const redisClient = require('../config/redis');
 const {
+  PRODUCT_LIST_SELECT_FIELDS,
   buildProductFilter,
   buildProductSortOption,
+  buildProductPagination,
+  buildCatalogPayload,
   normalizeReviewPayload,
   buildReviewFromUser,
   updateReviewAggregates,
   findProductByIdOrSlug,
 } = require('../services/productService');
 
-// GET /api/products
-// Supports query parameters: category, brand, skinType, inStock, minPrice, maxPrice, q, sort
-async function getProducts(req, res) {
+const PRODUCT_CACHE_VERSION_KEY = 'products:version';
+const PRODUCT_LIST_CACHE_TTL_SECONDS = 60 * 10;
+const PRODUCT_CATALOG_CACHE_TTL_SECONDS = 60 * 60;
+
+function normalizeCacheValue(value) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeCacheValue(entry));
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.keys(value)
+      .sort()
+      .reduce((accumulator, key) => {
+        accumulator[key] = normalizeCacheValue(value[key]);
+        return accumulator;
+      }, {});
+  }
+
+  return value;
+}
+
+async function getProductCacheVersion() {
   try {
-    const cacheKey = `products:${JSON.stringify(req.query)}`;
-    
-    // 1. Memory Cache Hit
-    const cachedData = await redisClient.get(cacheKey);
-    if (cachedData) {
-      console.log(`[Redis] Cache Hit for products`);
-      return res.status(200).json(JSON.parse(cachedData));
+    const existingVersion = await redisClient.get(PRODUCT_CACHE_VERSION_KEY);
+    if (existingVersion) {
+      return existingVersion;
     }
 
-    console.log(`[Redis] Cache Miss. Fetching from MongoDB...`);
+    await redisClient.set(PRODUCT_CACHE_VERSION_KEY, '1');
+    return '1';
+  } catch (error) {
+    console.warn('Redis version lookup failed for product cache:', error.message);
+    return null;
+  }
+}
+
+async function buildVersionedCacheKey(scope, query = {}) {
+  const version = await getProductCacheVersion();
+  if (!version) {
+    return null;
+  }
+
+  return `${scope}:v${version}:${JSON.stringify(normalizeCacheValue(query))}`;
+}
+
+async function readCache(key) {
+  if (!key) return null;
+
+  try {
+    const cachedData = await redisClient.get(key);
+    return cachedData ? JSON.parse(cachedData) : null;
+  } catch (error) {
+    console.warn('Redis read failed for product cache:', error.message);
+    return null;
+  }
+}
+
+async function writeCache(key, payload, ttlSeconds) {
+  if (!key) return;
+
+  try {
+    await redisClient.set(key, JSON.stringify(payload), 'EX', ttlSeconds);
+  } catch (error) {
+    console.warn('Redis write failed for product cache:', error.message);
+  }
+}
+
+async function bumpProductCacheVersion() {
+  try {
+    await redisClient.incr(PRODUCT_CACHE_VERSION_KEY);
+  } catch (error) {
+    console.warn('Redis cache version bump failed for products:', error.message);
+  }
+}
+
+// GET /api/products
+// Supports query parameters: category, brand, skinType, inStock, minPrice, maxPrice, q, sort, page, limit, ids
+async function getProducts(req, res) {
+  try {
+    const cacheKey = await buildVersionedCacheKey('products:list', req.query);
+    const cachedData = await readCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
     const filter = buildProductFilter(req.query);
     const sortOption = buildProductSortOption(req.query.sort);
+    const { page, limit, skip } = buildProductPagination(req.query);
 
-    const products = await Product.find(filter).sort(sortOption);
+    const [products, totalCount] = await Promise.all([
+      Product.find(filter)
+        .select(PRODUCT_LIST_SELECT_FIELDS)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Product.countDocuments(filter),
+    ]);
+
+    const totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : 0;
 
     const payload = {
       status: 'success',
       count: products.length,
+      totalCount,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1 && totalPages > 0,
       data: products,
     };
 
-    // 2. Save to Cache for 1 hour
-    await redisClient.set(cacheKey, JSON.stringify(payload), 'EX', 3600);
-
+    await writeCache(cacheKey, payload, PRODUCT_LIST_CACHE_TTL_SECONDS);
     return res.status(200).json(payload);
   } catch (error) {
     console.error('getProducts error:', error);
     return res.status(500).json({
       status: 'error',
       message: 'An unexpected error occurred while fetching products.',
+    });
+  }
+}
+
+// GET /api/products/catalog
+// Returns catalog filters and price range metadata for the shop UI.
+async function getProductCatalog(req, res) {
+  try {
+    const cacheKey = await buildVersionedCacheKey('products:catalog', {});
+    const cachedData = await readCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
+    const [categoryRows, brands, skinTypes, priceStats] = await Promise.all([
+      Product.aggregate([
+        {
+          $match: {
+            category: { $type: 'string', $ne: '' },
+          },
+        },
+        {
+          $project: {
+            category: 1,
+            subcategory: {
+              $cond: [
+                { $eq: [{ $type: '$subcategory' }, 'string'] },
+                '$subcategory',
+                null,
+              ],
+            },
+          },
+        },
+        {
+          $group: {
+            _id: '$category',
+            subcategories: { $addToSet: '$subcategory' },
+          },
+        },
+      ]),
+      Product.distinct('brand', { brand: { $type: 'string', $ne: '' } }),
+      Product.distinct('skinType', { skinType: { $exists: true, $ne: [] } }),
+      Product.aggregate([
+        {
+          $group: {
+            _id: null,
+            maxPrice: { $max: '$price' },
+          },
+        },
+      ]),
+    ]);
+
+    const catalog = buildCatalogPayload({
+      categoryRows,
+      brands,
+      skinTypes,
+      maxPrice: priceStats[0]?.maxPrice || 0,
+    });
+
+    const payload = {
+      status: 'success',
+      data: catalog,
+    };
+
+    await writeCache(cacheKey, payload, PRODUCT_CATALOG_CACHE_TTL_SECONDS);
+    return res.status(200).json(payload);
+  } catch (error) {
+    console.error('getProductCatalog error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'An unexpected error occurred while fetching product catalog filters.',
     });
   }
 }
@@ -120,12 +280,7 @@ async function createProductReview(req, res) {
 
     await product.save();
 
-    // 3. Cache Bust: Clear the catalog so the new review appears immediately
-    const keys = await redisClient.keys('products:*');
-    if (keys.length > 0) {
-      await redisClient.del(keys);
-      console.log(`[Redis] Cache busted due to new product review.`);
-    }
+    await bumpProductCacheVersion();
 
     return res.status(201).json({
       status: 'success',
@@ -150,6 +305,7 @@ async function createProductReview(req, res) {
 
 module.exports = {
   getProducts,
+  getProductCatalog,
   getProductByIdOrSlug,
   createProductReview,
 };
