@@ -28,6 +28,8 @@ const HeroBackground = ({ parallaxTransform }) => {
             >
                 <img
                     src={HERO_BACKGROUND.src}
+                    srcSet={HERO_BACKGROUND.srcSet}
+                    sizes={HERO_BACKGROUND.sizes}
                     alt=""
                     className="w-full h-full object-cover object-center"
                     style={{ opacity: 1 }}
