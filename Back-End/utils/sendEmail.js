@@ -1,11 +1,22 @@
 // utils/sendEmail.js
-const emailQueue = require('../queues/emailQueue');
+let emailQueue;
+let emailQueueEvents;
+
+function getEmailQueue() {
+  if (!emailQueue || !emailQueueEvents) {
+    ({ emailQueue, emailQueueEvents } = require('../queues/emailQueue'));
+  }
+
+  return { emailQueue, emailQueueEvents };
+}
 
 const sendEmail = async (options) => {
   console.log(`[API] Offloading email task to background queue for ${options.email}...`);
-  
+
+  const { emailQueue: queue, emailQueueEvents: queueEvents } = getEmailQueue();
+
   // Push the email payload onto the BullMQ background queue
-  await emailQueue.add('sendEmailJob', {
+  const job = await queue.add('sendEmailJob', {
     email: options.email,
     subject: options.subject,
     text: options.text,
@@ -17,6 +28,8 @@ const sendEmail = async (options) => {
       delay: 5000, // Wait 5s, 10s, 20s if it fails
     }
   });
+
+  await job.waitUntilFinished(queueEvents, 30000);
 
   console.log(`[API] Successfully queued email task! Express can now resume immediately.`);
 };
