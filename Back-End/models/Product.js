@@ -105,6 +105,21 @@ productSchema.index({ createdAt: -1 });
 productSchema.index({ price: 1 });
 productSchema.index({ rating: -1 });
 productSchema.index({ isBestSeller: -1, numReviews: -1 });
+productSchema.index({ category: 1, createdAt: -1 });
+productSchema.index({ brand: 1, createdAt: -1 });
+productSchema.index({ skinType: 1, createdAt: -1 });
+productSchema.index({ inStock: 1, createdAt: -1 });
+productSchema.index(
+  { name: 'text', brand: 'text', category: 'text', description: 'text' },
+  {
+    weights: {
+      name: 5,
+      brand: 3,
+      category: 2,
+      description: 1,
+    },
+  }
+);
 
 // Auto-generate a URL-friendly slug from the product name before saving
 // Example: "The Velvet Botanique" becomes "the-velvet-botanique"
