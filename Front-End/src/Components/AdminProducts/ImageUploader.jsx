@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function ImageUploader() {
   const [file, setFile] = useState(null);
@@ -66,7 +66,7 @@ export default function ImageUploader() {
       {/* Upload Zone */}
       <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 p-8 text-center hover:border-amber-500 transition-colors">
         {preview && !uploadUrl ? (
-          <img src={preview} alt="Preview" className="mb-4 h-48 w-48 rounded-lg object-cover shadow-sm" />
+          <img src={preview} alt="Preview" className="mb-4 h-48 w-48 rounded-lg object-cover shadow-sm" loading="lazy" decoding="async" fetchPriority="low" />
         ) : (
           <div className="mb-4 rounded-full bg-stone-200 p-4">
             <svg className="h-8 w-8 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +74,7 @@ export default function ImageUploader() {
             </svg>
           </div>
         )}
-        
+
         <input
           type="file"
           id="image-upload"
@@ -108,7 +108,7 @@ export default function ImageUploader() {
         <div className="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4">
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-800 mb-2">Upload Complete</p>
           <p className="text-sm text-emerald-700 break-all mb-3">{uploadUrl}</p>
-          <img src={uploadUrl} alt="Cloudinary Result" className="h-32 w-32 rounded object-cover shadow-sm" />
+          <img src={uploadUrl} alt="Cloudinary Result" className="h-32 w-32 rounded object-cover shadow-sm" loading="lazy" decoding="async" fetchPriority="low" />
         </div>
       )}
     </div>

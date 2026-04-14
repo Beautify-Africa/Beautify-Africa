@@ -1,5 +1,5 @@
 import { useState, useCallback, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import AppLink from './Components/Shared/AppLink';
 
@@ -52,6 +52,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/newsletter/unsubscribe-request" element={<NewsletterUnsubscribeRequestPage />} />
             <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
+            <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
             <Route path="/admin/orders" element={<AdminOrdersPage />} />
             <Route path="/admin/products" element={<AdminProductsPage />} />
             {/* 404 catch-all */}
