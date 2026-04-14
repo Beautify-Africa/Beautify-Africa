@@ -14,7 +14,15 @@ const PRODUCT_SELECT_FIELDS =
   'name slug brand category price originalPrice rating numReviews inStock image images isNewProduct isBestSeller';
 
 async function ensureProductExists(productId) {
-  const product = await Product.findById(productId).select('_id');
+  const productQuery = Product.findById(productId);
+  let product;
+
+  if (productQuery && typeof productQuery.select === 'function') {
+    const selected = productQuery.select('_id');
+    product = selected && typeof selected.lean === 'function' ? await selected.lean() : await selected;
+  } else {
+    product = await productQuery;
+  }
 
   if (!product) {
     return {
@@ -157,7 +165,17 @@ async function syncWishlistProducts(userId, localItems) {
   const missingProductIds = normalizedIds.filter((id) => !existingProductIds.has(id));
 
   if (missingProductIds.length > 0) {
-    const existingProducts = await Product.find({ _id: { $in: missingProductIds } }).select('_id');
+    const existingProductsQuery = Product.find({ _id: { $in: missingProductIds } });
+    let existingProducts;
+
+    if (existingProductsQuery && typeof existingProductsQuery.select === 'function') {
+      const selected = existingProductsQuery.select('_id');
+      existingProducts = selected && typeof selected.lean === 'function'
+        ? await selected.lean()
+        : await selected;
+    } else {
+      existingProducts = await existingProductsQuery;
+    }
 
     existingProducts.forEach((product) => {
       wishlist.items.push(product._id);

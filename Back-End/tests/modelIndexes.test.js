@@ -14,6 +14,18 @@ describe('schema index definitions', () => {
     expect(readSchemaIndex(Product.schema, { price: 1 })).toBeDefined();
     expect(readSchemaIndex(Product.schema, { rating: -1 })).toBeDefined();
     expect(readSchemaIndex(Product.schema, { isBestSeller: -1, numReviews: -1 })).toBeDefined();
+    expect(readSchemaIndex(Product.schema, { category: 1, createdAt: -1 })).toBeDefined();
+    expect(readSchemaIndex(Product.schema, { brand: 1, createdAt: -1 })).toBeDefined();
+    expect(readSchemaIndex(Product.schema, { skinType: 1, createdAt: -1 })).toBeDefined();
+    expect(readSchemaIndex(Product.schema, { inStock: 1, createdAt: -1 })).toBeDefined();
+    expect(
+      readSchemaIndex(Product.schema, {
+        name: 'text',
+        brand: 'text',
+        category: 'text',
+        description: 'text',
+      })
+    ).toBeDefined();
   });
 
   test('Order exposes user history and recency indexes', () => {
