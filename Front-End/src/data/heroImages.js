@@ -1,11 +1,18 @@
-import heroBg from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.jpg';
-import premiumModel from '../assets/premium_african_model_1775937660048.png';
-import premiumSerum from '../assets/premium_serum_1775937605848.png';
-import premiumLipstick from '../assets/premium_lipstick_1775937622988.png';
-import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.png';
+import heroBg from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.opt.webp';
+import heroBgSmall from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.sm.webp';
+import premiumModel from '../assets/premium_african_model_1775937660048.opt.webp';
+import premiumModelSmall from '../assets/premium_african_model_1775937660048.sm.webp';
+import premiumSerum from '../assets/premium_serum_1775937605848.opt.webp';
+import premiumSerumSmall from '../assets/premium_serum_1775937605848.sm.webp';
+import premiumLipstick from '../assets/premium_lipstick_1775937622988.opt.webp';
+import premiumLipstickSmall from '../assets/premium_lipstick_1775937622988.sm.webp';
+import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.opt.webp';
+import premiumSkincareSmall from '../assets/premium_skincare_routine_1775937642617.sm.webp';
 
 export const HERO_BACKGROUND = {
   src: heroBg,
+  srcSet: `${heroBgSmall} 960w, ${heroBg} 1600w`,
+  sizes: '100vw',
   alt: "Woman with avocado face mask"
 };
 
@@ -13,6 +20,8 @@ export const HERO_CARDS = [
   {
     id: 'serum',
     src: premiumSerum,
+    srcSet: `${premiumSerumSmall} 320w, ${premiumSerum} 700w`,
+    sizes: '(max-width: 1023px) 35vw, 200px',
     alt: "Luxury Serum Bottle",
     label: "Elixir No. 9",
     position: { top: '8%', right: '8%' },
@@ -23,6 +32,8 @@ export const HERO_CARDS = [
   {
     id: 'texture',
     src: premiumSkincare,
+    srcSet: `${premiumSkincareSmall} 320w, ${premiumSkincare} 800w`,
+    sizes: '(max-width: 1023px) 45vw, 160px',
     alt: "Cream Texture Swatch",
     label: "Texture Study",
     labelPosition: 'top-left',
@@ -34,6 +45,8 @@ export const HERO_CARDS = [
   {
     id: 'model',
     src: premiumModel,
+    srcSet: `${premiumModelSmall} 520w, ${premiumModel} 900w`,
+    sizes: '(max-width: 1023px) 48vw, 340px',
     alt: "Model Portrait",
     label: "The Radiant Gaze",
     sublabel: "Campaign",
@@ -47,6 +60,9 @@ export const HERO_CARDS = [
   {
     id: 'gold-oil',
     src: "https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=800&auto=format&fit=crop",
+    srcSet:
+      'https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=320&auto=format&fit=crop 320w, https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=800&auto=format&fit=crop 800w',
+    sizes: '(max-width: 1023px) 28vw, 150px',
     alt: "Gold Oil Texture",
     position: { top: '20%', right: '32%' },
     size: 'w-[150px] aspect-[2/3]',
@@ -57,6 +73,8 @@ export const HERO_CARDS = [
   {
     id: 'powder',
     src: premiumLipstick,
+    srcSet: `${premiumLipstickSmall} 320w, ${premiumLipstick} 700w`,
+    sizes: '(max-width: 1023px) 40vw, 170px',
     alt: "Crushed Cosmetic Powder",
     label: "Pigment",
     labelPosition: 'top-right',

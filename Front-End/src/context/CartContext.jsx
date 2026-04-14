@@ -24,6 +24,7 @@ export function CartProvider({ children }) {
   const initialSyncDone = useRef(false);
 
   useEffect(() => {
+    const controller = new AbortController();
     let active = true;
 
     async function handleAuthCartSync() {
@@ -33,9 +34,9 @@ export function CartProvider({ children }) {
           let serverCart = [];
 
           if (localItems.length > 0 && !initialSyncDone.current) {
-            serverCart = await syncCartApi(token, localItems);
+            serverCart = await syncCartApi(token, localItems, { signal: controller.signal });
           } else {
-            serverCart = await fetchCart(token);
+            serverCart = await fetchCart(token, { signal: controller.signal });
           }
 
           if (active) {
@@ -60,6 +61,7 @@ export function CartProvider({ children }) {
 
     return () => {
       active = false;
+      controller.abort();
     };
   }, [isAuthenticated, token]);
 
