@@ -11,9 +11,8 @@ services:
     # Because Docker ignores your .env file for security, we explicitly map the file here
     env_file:
       - ./Back-End/.env
-    # Inside Docker, localhost points to the container itself, not the host machine.
+    # Mongo credentials are loaded from ./Back-End/.env via env_file.
     environment:
-      MONGO_URI: mongodb+srv://BeautifyAfrica:Mutheu%402020@beautifyafrica.ks1sykd.mongodb.net/?appName=BeautifyAfrica
       # When deployed natively via Render, REDIS_URL from Env Vars takes over.
       # When running inside docker-compose, this targets the inner Redis container.
       REDIS_URL: redis://redis:6379
