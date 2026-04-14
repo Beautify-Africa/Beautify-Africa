@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PROMO_BANNERS } from '../../data/promoBanners';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 /**
  * PromoBanner - Auto-rotating advertisement carousel for the shop page
@@ -48,6 +49,13 @@ export default function PromoBanner() {
       {/* Banner Slides */}
       <div className="relative h-[240px] sm:h-[280px] md:h-[320px]">
         {PROMO_BANNERS.map((banner, index) => (
+          (() => {
+            const imageProps = buildResponsiveImageProps(banner.image, {
+              widths: [640, 960, 1280, 1600],
+              sizes: '100vw',
+            });
+
+            return (
           <div
             key={banner.id}
             className={`absolute inset-0 bg-stone-900 transition-all duration-500 ease-in-out ${index === activeIndex
@@ -64,7 +72,9 @@ export default function PromoBanner() {
             {/* Background image */}
             <div className="absolute inset-0">
               <img
-                src={banner.image}
+                src={imageProps.src}
+                srcSet={imageProps.srcSet}
+                sizes={imageProps.sizes}
                 alt=""
                 className="w-full h-full object-cover"
                 loading={index === 0 ? 'eager' : 'lazy'}
@@ -114,6 +124,8 @@ export default function PromoBanner() {
               </div>
             </div>
           </div>
+            );
+          })()
         ))}
       </div>
 

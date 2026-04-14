@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ProductDetailsModal from './ProductDetailsModal';
 import PromoBanner from './PromoBanner';
 import ShopNavBar from './ShopNavBar';
@@ -8,6 +8,7 @@ import ShopProductGrid from './ShopProductGrid';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { useWishlistState } from './hooks/useWishlistState';
+import { useShopCatalog } from './hooks/useShopCatalog';
 import { useShopProducts } from './hooks/useShopProducts';
 import { useShopFilters } from './hooks/useShopFilters';
 import {
@@ -20,7 +21,8 @@ export default function ShopPage() {
   const { addItem } = useCart();
   const { token, isAuthenticated } = useAuth();
   const { wishlistSet, toggleWishlist } = useWishlistState({ isAuthenticated, token });
-  const { products, isLoading, shopCatalog } = useShopProducts();
+  const { shopCatalog, isCatalogLoading } = useShopCatalog();
+  const [paginationState, setPaginationState] = useState({ signature: '', page: 1 });
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -35,7 +37,7 @@ export default function ShopPage() {
     maxPrice,
     searchQuery,
     sortOption,
-    displayedProducts,
+    requestParams,
     savedProductCount,
     setSearchQuery,
     setSortOption,
@@ -47,7 +49,17 @@ export default function ShopPage() {
     handleSelectSubcategory,
     clearFilters,
     showAllProducts,
-  } = useShopFilters({ products, shopCatalog, wishlistSet });
+  } = useShopFilters({ shopCatalog, wishlistSet });
+
+  const requestSignature = useMemo(() => JSON.stringify(requestParams), [requestParams]);
+  const currentPage =
+    paginationState.signature === requestSignature ? paginationState.page : 1;
+  const { products, isLoading, totalCount, totalPages } = useShopProducts({
+    currentPage,
+    requestParams,
+    isSavedCollection,
+    savedProductCount,
+  });
 
   useEffect(() => {
     return () => {
@@ -67,6 +79,16 @@ export default function ShopPage() {
     setToastMessage(`${product.name} added to cart`);
     toastTimeoutRef.current = window.setTimeout(() => setToastMessage(''), 2500);
   }, [addItem]);
+
+  const handlePageChange = useCallback(
+    (nextPage) => {
+      setPaginationState({
+        signature: requestSignature,
+        page: nextPage,
+      });
+    },
+    [requestSignature]
+  );
 
   return (
     <section className="min-h-screen bg-[#faf9f6] pt-24 pb-12" aria-labelledby="shop-heading">
@@ -113,12 +135,12 @@ export default function ShopPage() {
             maxPrice={maxPrice}
             onMaxPriceChange={setMaxPrice}
             onClearFilters={clearFilters}
-            resultCount={displayedProducts.length}
+            resultCount={totalCount}
           />
 
           <ShopProductGrid
-            isLoading={isLoading}
-            displayedProducts={displayedProducts}
+            isLoading={isLoading || isCatalogLoading}
+            displayedProducts={products}
             isSavedCollection={isSavedCollection}
             wishlistSet={wishlistSet}
             onToggleWishlist={toggleWishlist}
@@ -128,6 +150,9 @@ export default function ShopPage() {
             savedProductCount={savedProductCount}
             onClearFilters={clearFilters}
             onShowAllProducts={showAllProducts}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
         </div>
       </div>
