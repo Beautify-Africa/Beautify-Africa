@@ -12,6 +12,7 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const NewsletterUnsubscribeRequestPage = lazy(() => import('./pages/NewsletterUnsubscribeRequestPage'));
 const NewsletterUnsubscribePage = lazy(() => import('./pages/NewsletterUnsubscribePage'));
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
+const AdminProductsPage = lazy(() => import('./pages/AdminProductsPage'));
 
 import CartDrawer from './Components/Cart/CartDrawer';
 function PageLoader() {
@@ -52,6 +53,7 @@ function App() {
             <Route path="/newsletter/unsubscribe-request" element={<NewsletterUnsubscribeRequestPage />} />
             <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
             <Route path="/admin/orders" element={<AdminOrdersPage />} />
+            <Route path="/admin/products" element={<AdminProductsPage />} />
             {/* 404 catch-all */}
             <Route
               path="*"

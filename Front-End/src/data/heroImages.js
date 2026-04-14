@@ -1,8 +1,8 @@
-/**
- * Hero section image configuration
- * Centralized source of truth for all hero imagery
- */
 import heroBg from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.jpg';
+import premiumModel from '../assets/premium_african_model_1775937660048.png';
+import premiumSerum from '../assets/premium_serum_1775937605848.png';
+import premiumLipstick from '../assets/premium_lipstick_1775937622988.png';
+import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.png';
 
 export const HERO_BACKGROUND = {
   src: heroBg,
@@ -12,7 +12,7 @@ export const HERO_BACKGROUND = {
 export const HERO_CARDS = [
   {
     id: 'serum',
-    src: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?q=80&w=800&auto=format&fit=crop",
+    src: premiumSerum,
     alt: "Luxury Serum Bottle",
     label: "Elixir No. 9",
     position: { top: '8%', right: '8%' },
@@ -22,7 +22,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'texture',
-    src: "https://images.unsplash.com/photo-1570194065650-d99fb4b38b15?q=80&w=800&auto=format&fit=crop",
+    src: premiumSkincare,
     alt: "Cream Texture Swatch",
     label: "Texture Study",
     labelPosition: 'top-left',
@@ -33,7 +33,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'model',
-    src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=800&auto=format&fit=crop",
+    src: premiumModel,
     alt: "Model Portrait",
     label: "The Radiant Gaze",
     sublabel: "Campaign",
@@ -56,7 +56,7 @@ export const HERO_CARDS = [
   },
   {
     id: 'powder',
-    src: "https://images.unsplash.com/photo-1583209814683-c023dd293cc6?q=80&w=800&auto=format&fit=crop",
+    src: premiumLipstick,
     alt: "Crushed Cosmetic Powder",
     label: "Pigment",
     labelPosition: 'top-right',

@@ -3,6 +3,8 @@
  * Email signup content and settings
  */
 
+import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.png';
+
 export const NEWSLETTER_CONTENT = {
   tagline: 'The Inner Circle',
   heading: 'The Beautify Society',
@@ -10,6 +12,6 @@ export const NEWSLETTER_CONTENT = {
   submitLabel: 'Subscribe',
   placeholder: 'Email Address',
   disclaimer: 'Complimentary Shipping on First Order',
-  image: 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?q=80&w=1200&auto=format&fit=crop',
+  image: premiumSkincare,
   imageCaption: 'Est. 2024 • Paris',
 };

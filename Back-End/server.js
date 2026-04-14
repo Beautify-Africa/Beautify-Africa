@@ -30,6 +30,7 @@ const wishlistRoutes = require('./routes/wishlistRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
@@ -156,6 +157,7 @@ app.use('/api/cart', apiLimiter, cartRoutes);
 app.use('/api/wishlist', apiLimiter, wishlistRoutes);
 app.use('/api/newsletter', apiLimiter, newsletterRoutes);
 app.use('/api/admin', apiLimiter, adminRoutes);
+app.use('/api/upload', apiLimiter, uploadRoutes);
 
 // Surface oversized payloads with a stable API error response.
 app.use(handleBodySizeLimitError);
