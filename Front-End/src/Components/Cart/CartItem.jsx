@@ -1,11 +1,19 @@
 import { MinusIcon, PlusIcon } from '../Shared/Icons';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 export default function CartItem({ item, onUpdateQuantity, onRemove }) {
+  const imageProps = buildResponsiveImageProps(item.image, {
+    widths: [160, 240, 320],
+    sizes: '80px',
+  });
+
   return (
     <article className="flex gap-4">
       <div className="w-20 h-24 bg-stone-200 flex-shrink-0 overflow-hidden rounded-sm">
         <img
-          src={item.image}
+          src={imageProps.src}
+          srcSet={imageProps.srcSet}
+          sizes={imageProps.sizes}
           alt={item.name}
           className="w-full h-full object-cover"
           loading="lazy"

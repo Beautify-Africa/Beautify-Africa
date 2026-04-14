@@ -23,18 +23,29 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    const controller = new AbortController();
     setIsRestoringSession(true);
 
-    fetchMe(token)
+    fetchMe(token, { signal: controller.signal })
       .then((data) => setUser(data.user))
       .catch(() => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
         setUser(null);
         setToken(null);
         localStorage.removeItem('token');
       })
       .finally(() => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
         setIsRestoringSession(false);
       });
+
+    return () => controller.abort();
   }, [token]);
 
   const register = async (userData) => {
