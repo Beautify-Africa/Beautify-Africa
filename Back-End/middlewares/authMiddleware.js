@@ -3,6 +3,24 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { isAdminUser } = require('../services/authService');
 
+async function findAuthUserById(userId) {
+  const queryOrUser = User.findById(userId);
+
+  if (!queryOrUser) {
+    return null;
+  }
+
+  if (typeof queryOrUser.select === 'function') {
+    const selected = queryOrUser.select('name email createdAt isAdmin');
+    if (selected && typeof selected.lean === 'function') {
+      return selected.lean();
+    }
+    return selected;
+  }
+
+  return queryOrUser;
+}
+
 // Protects routes — rejects requests without a valid JWT
 async function protect(req, res, next) {
   try {
@@ -17,7 +35,7 @@ async function protect(req, res, next) {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await findAuthUserById(decoded.id);
 
     if (!user) {
       return res.status(401).json({
@@ -50,7 +68,7 @@ async function optionalProtect(req, res, next) {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await findAuthUserById(decoded.id);
 
     if (user) {
       req.user = user;
