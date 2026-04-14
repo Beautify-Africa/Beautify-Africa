@@ -5,8 +5,14 @@ const { Redis } = require('ioredis');
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
 const redisClient = new Redis(redisUrl, {
+  // BullMQ workers require this to be null for blocking Redis commands.
   maxRetriesPerRequest: null,
+  connectTimeout: 1500,
+  enableOfflineQueue: false,
   enableReadyCheck: false,
+  retryStrategy(times) {
+    return Math.min(times * 200, 2000);
+  },
 });
 
 redisClient.on('connect', () => {

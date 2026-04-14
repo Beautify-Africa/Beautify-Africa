@@ -37,7 +37,7 @@ async function register(req, res) {
       });
     }
 
-    const existing = await User.findOne({ email: normalizedEmail });
+    const existing = await User.findOne({ email: normalizedEmail }).select('_id').lean();
     if (existing) {
       return res.status(409).json({
         status: 'error',
@@ -311,7 +311,7 @@ async function updateUserProfile(req, res) {
       
       // Check if email changed and if it already exists in another user
       if (req.body.email && normalizedEmail !== req.user.email) {
-        const existingEmail = await User.findOne({ email: normalizedEmail });
+        const existingEmail = await User.findOne({ email: normalizedEmail }).select('_id').lean();
         if (existingEmail) {
            return res.status(409).json({ status: 'error', message: 'Email is already taken by another account.' });
         }
