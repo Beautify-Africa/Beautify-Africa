@@ -1,12 +1,11 @@
 import { useCallback, useDeferredValue, useMemo, useState } from 'react';
-import { filterAndSortProducts } from '../utils/filterAndSortProducts';
 import {
   ALL_FILTER_OPTION,
   DEFAULT_PRICE_RANGE,
   SORT_OPTIONS,
 } from '../shopConfig';
 
-export function useShopFilters({ products, shopCatalog, wishlistSet }) {
+export function useShopFilters({ shopCatalog, wishlistSet }) {
   const [activeCollection, setActiveCollection] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState(ALL_FILTER_OPTION);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
@@ -61,19 +60,45 @@ export function useShopFilters({ products, shopCatalog, wishlistSet }) {
     return sortOptionExists ? sortOption : 'newest';
   }, [sortOption]);
 
-  const filteredProducts = useMemo(() => {
-    return filterAndSortProducts({
-      products,
-      selectedCategory: effectiveSelectedCategory,
-      selectedSubcategory: effectiveSelectedSubcategory,
-      selectedSkinType: effectiveSelectedSkinType,
-      selectedBrand: effectiveSelectedBrand,
-      maxPrice: effectiveMaxPrice,
-      searchQuery: deferredSearchQuery,
-      sortOption: effectiveSortOption,
-    });
+  const savedProductIds = useMemo(() => [...wishlistSet], [wishlistSet]);
+  const savedProductCount = savedProductIds.length;
+
+  const requestParams = useMemo(() => {
+    const params = {
+      sort: effectiveSortOption,
+    };
+
+    if (effectiveSelectedCategory !== ALL_FILTER_OPTION) {
+      params.category = effectiveSelectedCategory;
+    }
+
+    if (effectiveSelectedSubcategory) {
+      params.subcategory = effectiveSelectedSubcategory;
+    }
+
+    if (effectiveSelectedBrand !== ALL_FILTER_OPTION) {
+      params.brand = effectiveSelectedBrand;
+    }
+
+    if (effectiveSelectedSkinType !== ALL_FILTER_OPTION) {
+      params.skinType = effectiveSelectedSkinType;
+    }
+
+    if (effectiveMaxPrice < shopCatalog.priceRange.max) {
+      params.maxPrice = effectiveMaxPrice;
+    }
+
+    const normalizedSearchQuery = deferredSearchQuery.trim();
+    if (normalizedSearchQuery) {
+      params.q = normalizedSearchQuery;
+    }
+
+    if (activeCollection === 'saved' && savedProductIds.length > 0) {
+      params.ids = savedProductIds;
+    }
+
+    return params;
   }, [
-    products,
     effectiveSelectedCategory,
     effectiveSelectedSubcategory,
     effectiveSelectedSkinType,
@@ -81,19 +106,11 @@ export function useShopFilters({ products, shopCatalog, wishlistSet }) {
     effectiveMaxPrice,
     deferredSearchQuery,
     effectiveSortOption,
+    activeCollection,
+    savedProductIds,
+    shopCatalog.priceRange.max,
   ]);
 
-  const savedProducts = useMemo(
-    () => filteredProducts.filter((product) => wishlistSet.has(product._id)),
-    [filteredProducts, wishlistSet]
-  );
-
-  const savedProductCount = useMemo(
-    () => products.filter((product) => wishlistSet.has(product._id)).length,
-    [products, wishlistSet]
-  );
-
-  const displayedProducts = activeCollection === 'saved' ? savedProducts : filteredProducts;
   const isSavedCollection = activeCollection === 'saved';
 
   const handleSelectCategory = useCallback((label) => {
@@ -129,7 +146,7 @@ export function useShopFilters({ products, shopCatalog, wishlistSet }) {
     maxPrice: effectiveMaxPrice,
     searchQuery,
     sortOption: effectiveSortOption,
-    displayedProducts,
+    requestParams,
     savedProductCount,
     setSearchQuery,
     setSortOption,
