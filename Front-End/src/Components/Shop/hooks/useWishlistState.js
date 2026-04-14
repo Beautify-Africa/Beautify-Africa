@@ -21,6 +21,7 @@ export function useWishlistState({ isAuthenticated, token }) {
   const wishlistSet = useMemo(() => new Set(wishlist), [wishlist]);
 
   useEffect(() => {
+    const controller = new AbortController();
     let active = true;
 
     async function syncAuthenticatedWishlist() {
@@ -30,9 +31,9 @@ export function useWishlistState({ isAuthenticated, token }) {
           let serverWishlist = [];
 
           if (localItems.length > 0 && !initialWishlistSyncDone.current) {
-            serverWishlist = await syncWishlistApi(token, localItems);
+            serverWishlist = await syncWishlistApi(token, localItems, { signal: controller.signal });
           } else {
-            serverWishlist = await fetchWishlist(token);
+            serverWishlist = await fetchWishlist(token, { signal: controller.signal });
           }
 
           if (active) {
@@ -55,6 +56,7 @@ export function useWishlistState({ isAuthenticated, token }) {
 
     return () => {
       active = false;
+      controller.abort();
     };
   }, [isAuthenticated, token]);
 

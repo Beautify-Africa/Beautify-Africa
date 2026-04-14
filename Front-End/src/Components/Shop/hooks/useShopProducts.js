@@ -1,22 +1,50 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchProducts } from '../../../services/productsApi';
-import { buildShopCatalog } from '../utils/buildShopCatalog';
 
-export function useShopProducts() {
+export function useShopProducts({ currentPage, requestParams, isSavedCollection, savedProductCount }) {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
     let cancelled = false;
 
     async function loadProducts() {
+      if (isSavedCollection && savedProductCount === 0) {
+        setProducts([]);
+        setTotalCount(0);
+        setTotalPages(0);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
       try {
-        const data = await fetchProducts();
+        const result = await fetchProducts({
+          ...requestParams,
+          page: currentPage,
+          limit: 12,
+        }, { signal: controller.signal });
+
         if (!cancelled) {
-          setProducts(data);
+          setProducts(result.data || []);
+          setTotalCount(result.totalCount || 0);
+          setTotalPages(result.totalPages || 0);
         }
       } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
         console.error('Failed to load products:', error.message);
+        if (!cancelled) {
+          setProducts([]);
+          setTotalCount(0);
+          setTotalPages(0);
+        }
       } finally {
         if (!cancelled) {
           setIsLoading(false);
@@ -28,14 +56,14 @@ export function useShopProducts() {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, []);
-
-  const shopCatalog = useMemo(() => buildShopCatalog(products), [products]);
+  }, [currentPage, requestParams, isSavedCollection, savedProductCount]);
 
   return {
     products,
     isLoading,
-    shopCatalog,
+    totalCount,
+    totalPages,
   };
 }
