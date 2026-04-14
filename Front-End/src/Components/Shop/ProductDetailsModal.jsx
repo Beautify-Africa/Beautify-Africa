@@ -5,15 +5,23 @@ import ProductReviewForm from './ProductReviewForm';
 import ProductReviewList from './ProductReviewList';
 import { useProductReviewState } from './hooks/useProductReviewState';
 import { useProductDetailsModalState } from './hooks/useProductDetailsModalState';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 /**
  * Product image with badge
  */
 function ProductImage({ product }) {
+  const imageProps = buildResponsiveImageProps(product.image, {
+    widths: [640, 960, 1280],
+    sizes: '(max-width: 768px) 100vw, 50vw',
+  });
+
   return (
     <div className="w-full md:w-1/2 h-[40vh] md:h-auto relative bg-stone-100">
       <img
-        src={product.image}
+        src={imageProps.src}
+        srcSet={imageProps.srcSet}
+        sizes={imageProps.sizes}
         alt={product.name}
         className="absolute inset-0 w-full h-full object-cover"
       />

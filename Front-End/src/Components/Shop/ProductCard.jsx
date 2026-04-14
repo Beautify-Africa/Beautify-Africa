@@ -1,4 +1,5 @@
 import { HeartIcon, StarIcon } from '../Shared/Icons';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 /**
  * Star rating display
@@ -98,6 +99,8 @@ export default function ProductCard({
   onAddToCart,
   onProductClick,
 }) {
+  const imageProps = buildResponsiveImageProps(product.image);
+
   return (
     <article className="group relative flex flex-col" role="listitem">
       {/* Product Image */}
@@ -110,7 +113,9 @@ export default function ProductCard({
         aria-label={`View details for ${product.name}`}
       >
         <img
-          src={product.image}
+          src={imageProps.src}
+          srcSet={imageProps.srcSet}
+          sizes={imageProps.sizes}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
