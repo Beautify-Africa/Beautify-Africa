@@ -1,76 +1,82 @@
 // src/services/cartApi.js
-import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
+import { API_URL, requestJson } from './apiConfig';
 
-export async function fetchCart(token) {
+export async function fetchCart(token, options = {}) {
   if (!token) return [];
 
-  const response = await fetch(`${API_URL}/cart`, {
-    headers: jsonHeaders(token),
+  const json = await requestJson(`${API_URL}/cart`, {
+    token,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to fetch user cart',
   });
-
-  const json = await parseResponse(response, 'Failed to fetch user cart');
   return json.data;
 }
 
-export async function syncCartApi(token, localItems) {
+export async function syncCartApi(token, localItems, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/cart/sync`, {
+  const json = await requestJson(`${API_URL}/cart/sync`, {
     method: 'POST',
-    headers: jsonHeaders(token),
-    body: JSON.stringify({ localItems }),
+    token,
+    body: { localItems },
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to sync cart',
   });
-
-  const json = await parseResponse(response, 'Failed to sync cart');
   return json.data;
 }
 
-export async function addToCartApi(token, productPayload) {
+export async function addToCartApi(token, productPayload, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/cart`, {
+  const json = await requestJson(`${API_URL}/cart`, {
     method: 'POST',
-    headers: jsonHeaders(token),
-    body: JSON.stringify(productPayload),
+    token,
+    body: productPayload,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to add to cart',
   });
-
-  const json = await parseResponse(response, 'Failed to add to cart');
   return json.data;
 }
 
-export async function updateCartQtyApi(token, productId, quantity) {
+export async function updateCartQtyApi(token, productId, quantity, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/cart/${productId}`, {
+  const json = await requestJson(`${API_URL}/cart/${productId}`, {
     method: 'PUT',
-    headers: jsonHeaders(token),
-    body: JSON.stringify({ quantity }),
+    token,
+    body: { quantity },
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to update cart quantity',
   });
-
-  const json = await parseResponse(response, 'Failed to update cart quantity');
   return json.data;
 }
 
-export async function removeCartItemApi(token, productId) {
+export async function removeCartItemApi(token, productId, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/cart/${productId}`, {
+  const json = await requestJson(`${API_URL}/cart/${productId}`, {
     method: 'DELETE',
-    headers: jsonHeaders(token),
+    token,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to remove cart item',
   });
-
-  const json = await parseResponse(response, 'Failed to remove cart item');
   return json.data;
 }
 
-export async function clearCartApi(token) {
+export async function clearCartApi(token, options = {}) {
   if (!token) throw new Error('Auth token required');
 
-  const response = await fetch(`${API_URL}/cart`, {
+  const json = await requestJson(`${API_URL}/cart`, {
     method: 'DELETE',
-    headers: jsonHeaders(token),
+    token,
+    cache: 'no-store',
+    ...options,
+    fallbackMessage: 'Failed to clear cart',
   });
-
-  const json = await parseResponse(response, 'Failed to clear cart');
   return json.data;
 }

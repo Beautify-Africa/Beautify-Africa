@@ -1,33 +1,28 @@
-import { API_URL, jsonHeaders, parseResponse } from './apiConfig';
+import { API_URL, requestJson } from './apiConfig';
 
 export async function subscribeToNewsletter(email) {
-  const response = await fetch(`${API_URL}/newsletter/subscribe`, {
+  return requestJson(`${API_URL}/newsletter/subscribe`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify({ email }),
+    body: { email },
+    cache: 'no-store',
+    fallbackMessage: 'Failed to subscribe to the newsletter',
   });
-
-  const data = await parseResponse(response, 'Failed to subscribe to the newsletter');
-
-  return data;
 }
 
 export async function requestNewsletterUnsubscribe(email) {
-  const response = await fetch(`${API_URL}/newsletter/unsubscribe/request`, {
+  return requestJson(`${API_URL}/newsletter/unsubscribe/request`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify({ email }),
+    body: { email },
+    cache: 'no-store',
+    fallbackMessage: 'Unable to request an unsubscribe link.',
   });
-
-  return parseResponse(response, 'Unable to request an unsubscribe link.');
 }
 
 export async function confirmNewsletterUnsubscribe(token) {
-  const response = await fetch(`${API_URL}/newsletter/unsubscribe/confirm`, {
+  return requestJson(`${API_URL}/newsletter/unsubscribe/confirm`, {
     method: 'POST',
-    headers: jsonHeaders(),
-    body: JSON.stringify({ token }),
+    body: { token },
+    cache: 'no-store',
+    fallbackMessage: 'Unable to unsubscribe right now.',
   });
-
-  return parseResponse(response, 'Unable to unsubscribe right now.');
 }
