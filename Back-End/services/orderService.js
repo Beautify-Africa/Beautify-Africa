@@ -22,33 +22,88 @@ function getOrderItemProductId(item = {}) {
   return item.productId || item.id || null;
 }
 
-async function resolveProduct(productId, userId) {
-  const dbProduct = await Product.findById(productId);
-  if (dbProduct) return dbProduct;
-
-  if (!userId) {
-    return null;
+async function resolveProjectedQuery(queryOrPromise, projection) {
+  if (queryOrPromise && typeof queryOrPromise.select === 'function') {
+    const selectedQuery = queryOrPromise.select(projection);
+    return typeof selectedQuery.lean === 'function' ? selectedQuery.lean() : selectedQuery;
   }
 
-  const cart = await Cart.findOne({
-    user: userId,
-    'cartItems._id': productId,
-  });
+  return queryOrPromise;
+}
 
-  const matchingCartItem = cart?.cartItems?.find(
-    (cartItem) => cartItem._id.toString() === productId.toString()
+async function findProductsByIds(productIds = []) {
+  if (productIds.length === 0) {
+    return [];
+  }
+
+  const products = await resolveProjectedQuery(
+    Product.find({ _id: { $in: productIds } }),
+    'name price image inStock'
   );
 
-  if (!matchingCartItem) {
-    return null;
+  return Array.isArray(products) ? products : [];
+}
+
+async function buildProductLookupMaps(orderItems = [], userId = null) {
+  const requestedIds = [...new Set(orderItems.map((item) => getOrderItemProductId(item)).filter(Boolean))];
+
+  const directProducts = await findProductsByIds(requestedIds);
+  const directProductMap = new Map(
+    directProducts.map((product) => [product._id.toString(), product])
+  );
+
+  const unresolvedIds = requestedIds.filter((id) => !directProductMap.has(id.toString()));
+  const cartProductMap = new Map();
+
+  if (userId && unresolvedIds.length > 0) {
+    const cartFilter =
+      unresolvedIds.length === 1
+        ? {
+            user: userId,
+            'cartItems._id': unresolvedIds[0],
+          }
+        : {
+            user: userId,
+            'cartItems._id': { $in: unresolvedIds },
+          };
+    const cart = await resolveProjectedQuery(
+      Cart.findOne(cartFilter),
+      'cartItems._id cartItems.product'
+    );
+
+    const cartItemToProductId = new Map(
+      (cart?.cartItems || []).map((cartItem) => [
+        cartItem._id.toString(),
+        cartItem.product?.toString?.() || String(cartItem.product),
+      ])
+    );
+
+    const fallbackProductIds = [...new Set([...cartItemToProductId.values()].filter(Boolean))];
+    if (fallbackProductIds.length > 0) {
+      const fallbackProducts = await findProductsByIds(fallbackProductIds);
+      const fallbackProductMap = new Map(
+        fallbackProducts.map((product) => [product._id.toString(), product])
+      );
+
+      cartItemToProductId.forEach((fallbackProductId, cartItemId) => {
+        const matchedProduct = fallbackProductMap.get(fallbackProductId);
+        if (matchedProduct) {
+          cartProductMap.set(cartItemId, matchedProduct);
+        }
+      });
+    }
   }
 
-  return Product.findById(matchingCartItem.product);
+  return {
+    directProductMap,
+    cartProductMap,
+  };
 }
 
 async function buildVerifiedOrderItems(orderItems = [], userId = null) {
   const verifiedOrderItems = [];
   let itemsPrice = 0;
+  const { directProductMap, cartProductMap } = await buildProductLookupMaps(orderItems, userId);
 
   for (const item of orderItems) {
     const productId = getOrderItemProductId(item);
@@ -63,7 +118,9 @@ async function buildVerifiedOrderItems(orderItems = [], userId = null) {
       };
     }
 
-    const dbProduct = await resolveProduct(productId, userId);
+    const normalizedProductId = productId.toString();
+    const dbProduct =
+      directProductMap.get(normalizedProductId) || cartProductMap.get(normalizedProductId);
 
     if (!dbProduct) {
       return {
