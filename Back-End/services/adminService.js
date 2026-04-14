@@ -504,9 +504,7 @@ function buildAtelierNote(orders = []) {
 }
 
 function buildAdminDashboardFromOrders(orders = [], now = new Date()) {
-  const sortedOrders = [...orders].sort(
-    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
-  );
+  const sortedOrders = orders;
 
   return {
     heroBadges: buildHeroBadges(sortedOrders),
@@ -524,6 +522,9 @@ function buildAdminDashboardFromOrders(orders = [], now = new Date()) {
 
 async function fetchAdminDashboard() {
   const orders = await Order.find({})
+    .select(
+      'user orderItems shippingAddress totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt'
+    )
     .populate('user', 'name email')
     .sort({ createdAt: -1 })
     .lean();

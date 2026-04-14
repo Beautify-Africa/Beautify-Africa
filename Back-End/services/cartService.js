@@ -33,7 +33,10 @@ async function findOrCreateCart(userId) {
 }
 
 async function findInStockProduct(productId, outOfStockMessage) {
-  const product = await Product.findById(productId).catch(() => null);
+  const product = await Product.findById(productId)
+    .select('name price image inStock')
+    .lean()
+    .catch(() => null);
 
   if (!product) {
     return {
