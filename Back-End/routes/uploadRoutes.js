@@ -1,8 +1,9 @@
 const express = require('express');
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multerStorageCloudinary = require('multer-storage-cloudinary');
+const CloudinaryStorage = multerStorageCloudinary.CloudinaryStorage || multerStorageCloudinary;
 const cloudinary = require('../config/cloudinary');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, requireAdmin } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ const upload = multer({ storage: storage });
  * @desc    Upload an image to Cloudinary (Admin only)
  * @access  Private/Admin
  */
-router.post('/', protect, admin, upload.single('image'), (req, res) => {
+router.post('/', protect, requireAdmin, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ status: 'error', message: 'No image uploaded' });
   }
