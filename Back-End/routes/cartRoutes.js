@@ -10,8 +10,10 @@ const {
   syncCart,
 } = require('../controllers/cartController');
 const { protect } = require('../middlewares/authMiddleware');
+const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
 
 // All cart operations require an authenticated user
+router.use(setPrivateNoStore);
 router.use(protect);
 
 router.route('/')
