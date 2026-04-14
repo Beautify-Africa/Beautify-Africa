@@ -8,13 +8,16 @@ const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const connectDB = require('./config/db');
-require('./workers/emailWorker'); // Boot background job pipeline
+if (process.env.NODE_ENV !== 'test') {
+  require('./workers/emailWorker'); // Boot background job pipeline outside of tests
+}
 const { buildOpenApiSpec } = require('./docs/openapi');
 const {
   createJsonBodyParser,
@@ -22,6 +25,7 @@ const {
   handleBodySizeLimitError,
 } = require('./middlewares/bodyParser');
 const { sanitizeRequest } = require('./middlewares/requestSanitizer');
+const { setPublicCache, setPrivateNoStore } = require('./middlewares/cacheHeaders');
 const productRoutes = require('./routes/productRoutes');
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
@@ -47,6 +51,7 @@ const app = express();
 
 // 1. HTTP Security Headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(helmet());
+app.use(compression({ threshold: 1024 }));
 
 // Use Express' simple query parser so querystrings stay flat strings/arrays.
 app.set('query parser', 'simple');
@@ -77,7 +82,7 @@ app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      
+
       const envOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(u => u.trim()) : [];
       const localOrigins = [
         'http://localhost:5173',
@@ -119,11 +124,11 @@ app.use(sanitizeRequest);
 
 // --- Utility Routes ---
 
-app.get('/', (req, res) => {
+app.get('/', setPrivateNoStore, (req, res) => {
   res.send('E-commerce API is running...');
 });
 
-app.get('/health', (req, res) => {
+app.get('/health', setPrivateNoStore, (req, res) => {
   const readyState = mongoose.connection.readyState;
   const isDbConnected = readyState === 1;
 
@@ -133,7 +138,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/api/openapi.json', (req, res) => {
+app.get('/api/openapi.json', setPublicCache(300, 900), (req, res) => {
   res.status(200).json(buildOpenApiSpec(req));
 });
 

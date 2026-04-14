@@ -8,9 +8,11 @@ const {
   clearWishlist,
 } = require('../controllers/wishlistController');
 const { protect } = require('../middlewares/authMiddleware');
+const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
 
 const router = express.Router();
 
+router.use(setPrivateNoStore);
 router.use(protect);
 
 router.route('/').get(getWishlist).post(addToWishlist).delete(clearWishlist);
