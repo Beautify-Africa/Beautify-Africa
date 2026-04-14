@@ -3,12 +3,17 @@ import { NEWSLETTER_CONTENT } from '../../data/newsletterContent';
 import FadeIn from './FadeIn';
 import AppLink from './AppLink';
 import { subscribeToNewsletter } from '../../services/newsletterApi';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const imageProps = buildResponsiveImageProps(NEWSLETTER_CONTENT.image, {
+    widths: [480, 720, 960, 1280],
+    sizes: '(max-width: 1024px) 100vw, 42vw',
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,10 +48,13 @@ const Newsletter = () => {
           <figure className="relative w-full lg:w-5/12 h-[300px] sm:h-[400px] lg:h-auto overflow-hidden group">
             <div className="absolute inset-0 bg-stone-900/10 z-10" aria-hidden="true" />
             <img
-              src={NEWSLETTER_CONTENT.image}
+              src={imageProps.src}
+              srcSet={imageProps.srcSet}
+              sizes={imageProps.sizes}
               alt=""
               className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
               loading="lazy"
+              decoding="async"
             />
             <figcaption className="absolute bottom-6 left-6 z-20 hidden lg:block">
               <span className="text-white/80 text-[10px] uppercase tracking-[0.4em] font-light">

@@ -1,8 +1,14 @@
 import { TRUST_ITEMS, USP_CONTENT } from '../../data/trustItems';
 import { PlusIcon } from './Icons';
 import FadeIn from './FadeIn';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 const TrustCard = ({ item }) => {
+  const imageProps = buildResponsiveImageProps(item.image, {
+    widths: [320, 480, 720],
+    sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw',
+  });
+
   return (
     <article
       className={`
@@ -15,7 +21,9 @@ const TrustCard = ({ item }) => {
       {/* Card Image */}
       <figure className="absolute inset-0 bg-stone-200">
         <img
-          src={item.image}
+          src={imageProps.src}
+          srcSet={imageProps.srcSet}
+          sizes={imageProps.sizes}
           alt={item.label}
           className="w-full h-full object-cover transition-transform duration-[1.5s] ease-in-out group-hover:scale-110 opacity-95 group-hover:opacity-100"
           loading="lazy"
