@@ -1,6 +1,7 @@
 import { StarIcon } from '../Shared/Icons';
 import { SCATTERED_REVIEWS } from '../../data/heroReviews';
 import FadeIn from '../Shared/FadeIn';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 /**
  * Scattered review chips — desktop (absolute) + mobile (horizontal scroll)
@@ -9,6 +10,13 @@ const HeroReviews = () => (
     <>
         {/* ── Desktop: absolutely-positioned chips ─────────── */}
         {SCATTERED_REVIEWS.map((review, idx) => (
+            (() => {
+                const imageProps = buildResponsiveImageProps(review.image, {
+                    widths: [64, 96, 128],
+                    sizes: '32px',
+                });
+
+                return (
             <FadeIn
                 key={review.id}
                 delay={1.2 + idx * 0.1}
@@ -16,7 +24,9 @@ const HeroReviews = () => (
                 style={{ top: review.top, left: review.left }}
             >
                 <img
-                    src={review.image}
+                    src={imageProps.src}
+                    srcSet={imageProps.srcSet}
+                    sizes={imageProps.sizes}
                     alt={review.name}
                     className="w-8 h-8 rounded-full object-cover border border-stone-100"
                     loading="lazy"
@@ -33,6 +43,8 @@ const HeroReviews = () => (
                     <span className="text-[10px] font-bold text-stone-600 leading-none mt-1">{review.name}</span>
                 </div>
             </FadeIn>
+                );
+            })()
         ))}
 
         {/* ── Mobile: horizontal scroll strip ──────────────── */}
@@ -42,13 +54,22 @@ const HeroReviews = () => (
         >
             <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory">
                 {SCATTERED_REVIEWS.map((review, idx) => (
+                    (() => {
+                        const imageProps = buildResponsiveImageProps(review.image, {
+                            widths: [64, 96, 128],
+                            sizes: '32px',
+                        });
+
+                        return (
                     <FadeIn
                         key={`mobile-${review.id}`}
                         delay={1.2 + idx * 0.1}
                         className="flex items-center gap-3 px-4 py-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg border border-amber-100/50 flex-shrink-0 snap-start"
                     >
                         <img
-                            src={review.image}
+                            src={imageProps.src}
+                            srcSet={imageProps.srcSet}
+                            sizes={imageProps.sizes}
                             alt={review.name}
                             className="w-8 h-8 rounded-full object-cover border border-stone-100"
                             loading="lazy"
@@ -67,6 +88,8 @@ const HeroReviews = () => (
                             </span>
                         </div>
                     </FadeIn>
+                        );
+                    })()
                 ))}
             </div>
         </div>

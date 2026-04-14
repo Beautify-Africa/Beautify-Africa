@@ -1,18 +1,27 @@
 import { REGIMEN_CATEGORIES, REGIMEN_CONTENT, REGIMEN_CONFIG } from '../../data/regimenCategories';
 import { ArrowRightIcon } from '../Shared/Icons';
 import FadeIn from '../Shared/FadeIn';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 const CategoryCard = ({ category }) => {
+  const imageProps = buildResponsiveImageProps(category.image, {
+    widths: [360, 540, 720],
+    sizes: '(max-width: 640px) 240px, (max-width: 768px) 300px, 360px',
+  });
+
   return (
     <article className="group relative flex-shrink-0 w-[240px] sm:w-[300px] md:w-[360px] h-[400px] sm:h-[480px] md:h-[520px] cursor-pointer">
       <div className="w-full h-full relative overflow-hidden rounded-t-[140px] md:rounded-t-[180px] rounded-b-sm shadow-sm transition-shadow duration-500 group-hover:shadow-2xl">
         {/* Card Image */}
         <figure className="absolute inset-0 bg-stone-200">
           <img
-            src={category.image}
+            src={imageProps.src}
+            srcSet={imageProps.srcSet}
+            sizes={imageProps.sizes}
             alt={`${category.title} skincare collection`}
             className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 grayscale-[0.2] group-hover:grayscale-0"
             loading="lazy"
+            decoding="async"
           />
         </figure>
 
