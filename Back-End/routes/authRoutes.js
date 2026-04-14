@@ -9,8 +9,11 @@ const {
 	updateUserProfile,
 } = require('../controllers/authController');
 const { protect } = require('../middlewares/authMiddleware');
+const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
 
 const router = express.Router();
+
+router.use(setPrivateNoStore);
 
 router.post('/register', register);
 router.post('/login', login);
