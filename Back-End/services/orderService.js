@@ -1,5 +1,6 @@
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
+const { withInventoryLock } = require('./inventoryLock');
 
 function calculateOrderTotals(itemsPrice) {
   const shippingPrice = itemsPrice > 100 ? 0 : 15;
@@ -140,15 +141,29 @@ async function buildVerifiedOrderItems(orderItems = [], userId = null) {
       };
     }
 
-    itemsPrice += dbProduct.price * quantity;
+    // Acquire an atomic Redis lock for this product before reserving it.
+    // This prevents two simultaneous checkouts from both passing the inStock
+    // check and overselling the last unit.
+    const { conflict } = await withInventoryLock(normalizedProductId, async () => {
+      itemsPrice += dbProduct.price * quantity;
 
-    verifiedOrderItems.push({
-      name: dbProduct.name,
-      qty: quantity,
-      image: dbProduct.image,
-      price: dbProduct.price,
-      product: dbProduct._id,
+      verifiedOrderItems.push({
+        name: dbProduct.name,
+        qty: quantity,
+        image: dbProduct.image,
+        price: dbProduct.price,
+        product: dbProduct._id,
+      });
     });
+
+    if (conflict) {
+      return {
+        error: {
+          statusCode: 409,
+          message: `"${dbProduct.name}" is currently being reserved by another customer. Please try again in a moment.`,
+        },
+      };
+    }
   }
 
   return {
