@@ -214,6 +214,14 @@ async function getProductCatalog(req, res) {
 async function getProductByIdOrSlug(req, res) {
   try {
     const key = req.params.idOrSlug;
+    
+    // Check Redis Cache
+    const cacheKey = await buildVersionedCacheKey('product:detail', { idOrSlug: key });
+    const cachedData = await readCache(cacheKey);
+    if (cachedData) {
+      return res.status(200).json(cachedData);
+    }
+
     const product = await findProductByIdOrSlug(key);
 
     if (!product) {
@@ -223,10 +231,15 @@ async function getProductByIdOrSlug(req, res) {
       });
     }
 
-    return res.status(200).json({
+    const payload = {
       status: 'success',
       data: product,
-    });
+    };
+
+    // Store in Redis Cache
+    await writeCache(cacheKey, payload, PRODUCT_LIST_CACHE_TTL_SECONDS);
+
+    return res.status(200).json(payload);
   } catch (error) {
     console.error('getProductByIdOrSlug error:', error);
 
