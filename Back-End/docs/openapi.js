@@ -262,6 +262,25 @@ function buildOpenApiSpec(req) {
           },
         },
       },
+      '/api/auth/logout': {
+        post: {
+          tags: ['Auth'],
+          summary: 'Logout current user and invalidate active JWT',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            '200': {
+              description: 'Logout completed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/MessageResponse' },
+                },
+              },
+            },
+            '401': { $ref: '#/components/responses/Unauthorized' },
+            '500': { $ref: '#/components/responses/InternalServerError' },
+          },
+        },
+      },
       '/api/auth/profile': {
         put: {
           tags: ['Auth'],
