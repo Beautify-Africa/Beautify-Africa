@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import InteractiveButton from '../Shared/InteractiveButton';
 import FadeIn from '../Shared/FadeIn';
 import HeroBackground from './HeroBackground';
-import HeroCards from './HeroCards';
+
 import HeroReviews from './HeroReviews';
 import { HERO_CONFIG, HERO_COPY, HERO_ROTATING_WORDS, HERO_ROTATION_CONFIG } from '../../data/heroImages';
 
@@ -65,20 +65,6 @@ const RotatingWord = () => {
  */
 const HeroSection = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [hasInteracted, setHasInteracted] = useState(false);
-
-  // Mark interaction on first scroll / click / touch for mobile UX
-  useEffect(() => {
-    const onInteract = () => setHasInteracted(true);
-    window.addEventListener('scroll', onInteract, { once: true });
-    window.addEventListener('click', onInteract, { once: true });
-    window.addEventListener('touchstart', onInteract, { once: true });
-    return () => {
-      window.removeEventListener('scroll', onInteract);
-      window.removeEventListener('click', onInteract);
-      window.removeEventListener('touchstart', onInteract);
-    };
-  }, []);
 
   const handleMouseMove = useCallback((e) => {
     const x = (e.clientX - window.innerWidth / 2) / HERO_CONFIG.parallaxIntensity;
@@ -97,13 +83,11 @@ const HeroSection = () => {
       {/* Background + overlay + particles */}
       <HeroBackground parallaxTransform={parallaxTransform} />
 
-      {/* Desktop card stack + mobile carousel */}
-      <HeroCards hasInteracted={hasInteracted} />
+
 
       {/* Editorial content */}
       <article
-        className={`relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 ${hasInteracted ? 'z-30' : 'z-10'
-          }`}
+        className="relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 z-30"
       >
         <header>
           <FadeIn delay={0.2} direction="up">
