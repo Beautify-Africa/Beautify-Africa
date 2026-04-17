@@ -58,6 +58,14 @@ function hashPasswordResetToken(rawToken = '') {
   return crypto.createHash('sha256').update(String(rawToken)).digest('hex');
 }
 
+function hashJwtToken(token = '') {
+  return crypto.createHash('sha256').update(String(token)).digest('hex');
+}
+
+function buildJwtBlacklistKey(token = '') {
+  return `bl:jwt:${hashJwtToken(token)}`;
+}
+
 function createPasswordResetTokenPayload() {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const configuredMinutes = Number(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES || 30);
@@ -112,6 +120,8 @@ module.exports = {
   isConfiguredAdminDashboardCredential,
   isAdminUser,
   hashPasswordResetToken,
+  hashJwtToken,
+  buildJwtBlacklistKey,
   createPasswordResetTokenPayload,
   getClientApplicationUrl,
   buildPasswordResetLink,

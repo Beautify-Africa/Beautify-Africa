@@ -1,7 +1,8 @@
 // middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { isAdminUser } = require('../services/authService');
+const redisClient = require('../config/redis');
+const { isAdminUser, buildJwtBlacklistKey } = require('../services/authService');
 
 async function findAuthUserById(userId) {
   const queryOrUser = User.findById(userId);
@@ -21,6 +22,17 @@ async function findAuthUserById(userId) {
   return queryOrUser;
 }
 
+async function isTokenBlacklisted(token) {
+  try {
+    const isBlacklisted = await redisClient.get(buildJwtBlacklistKey(token));
+    return Boolean(isBlacklisted);
+  } catch (redisErr) {
+    // If Redis is unavailable, fail open — let valid JWTs through
+    console.warn('JWT blacklist check skipped (Redis unavailable):', redisErr.message);
+    return false;
+  }
+}
+
 // Protects routes — rejects requests without a valid JWT
 async function protect(req, res, next) {
   try {
@@ -35,6 +47,15 @@ async function protect(req, res, next) {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Reject tokens that have been explicitly blacklisted on logout
+    if (await isTokenBlacklisted(token)) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Not authorized. Token has been invalidated. Please sign in again.',
+      });
+    }
+
     const user = await findAuthUserById(decoded.id);
 
     if (!user) {
@@ -67,6 +88,11 @@ async function optionalProtect(req, res, next) {
     }
 
     const token = authHeader.split(' ')[1];
+
+    if (await isTokenBlacklisted(token)) {
+      return next();
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await findAuthUserById(decoded.id);
 
