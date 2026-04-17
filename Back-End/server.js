@@ -11,10 +11,23 @@ const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { Redis } = require('ioredis');
+const { RedisStore } = require('rate-limit-redis');
 const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const connectDB = require('./config/db');
+
+// Dedicated Redis client for rate limiting.
+// Must be separate from the BullMQ client (config/redis.js) which has
+// enableOfflineQueue: false — that setting crashes rate-limit-redis on startup.
+const rateLimitRedis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+  connectTimeout: 2000,
+  lazyConnect: true,
+  retryStrategy: (times) => Math.min(times * 200, 2000),
+});
+rateLimitRedis.on('error', (err) => console.warn('Rate-limit Redis error:', err.message));
+
 if (process.env.NODE_ENV !== 'test') {
   require('./workers/emailWorker'); // Boot background job pipeline outside of tests
 }
@@ -59,22 +72,42 @@ app.set('query parser', 'simple');
 // 2. Trust Proxy (Required for Render/Cloud load balancers for rate limiting to work)
 app.set('trust proxy', 1);
 
-// 3. Rate Limiting
+// 3. Rate Limiting — Redis-backed so counters survive container restarts
+function makeRedisStore(prefix) {
+  return new RedisStore({
+    sendCommand: (...args) => rateLimitRedis.call(...args),
+    prefix,
+  });
+}
+
+// General API limiter: 100 requests per IP per 15 minutes
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  store: makeRedisStore('rl:api:'),
   message: { status: 'error', message: 'Too many requests, please try again later.' },
 });
 
-// Stricter limit for auth endpoints to deter brute-force attacks
+// Auth limiter: strict 20 requests per IP per 15 minutes — deters brute-force
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  store: makeRedisStore('rl:auth:'),
   message: { status: 'error', message: 'Too many authentication attempts, please try again later.' },
+});
+
+// Cart limiter: tight 30 requests per IP per minute — blocks bot cart abuse
+const cartLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeRedisStore('rl:cart:'),
+  message: { status: 'error', message: 'Too many cart requests, please slow down.' },
 });
 
 // 4. CORS
@@ -158,7 +191,7 @@ app.use(
 app.use('/api/products', apiLimiter, productRoutes);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/orders', apiLimiter, orderRoutes);
-app.use('/api/cart', apiLimiter, cartRoutes);
+app.use('/api/cart', cartLimiter, cartRoutes);
 app.use('/api/wishlist', apiLimiter, wishlistRoutes);
 app.use('/api/newsletter', apiLimiter, newsletterRoutes);
 app.use('/api/admin', apiLimiter, adminRoutes);
