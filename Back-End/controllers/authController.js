@@ -1,10 +1,13 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const redisClient = require('../config/redis');
 const sendEmail = require('../utils/sendEmail');
 const {
   normalizeEmail,
   getPrimaryConfiguredAdminEmail,
   getConfiguredAdminDashboardPassword,
   isConfiguredAdminDashboardCredential,
+  buildJwtBlacklistKey,
   hashPasswordResetToken,
   createPasswordResetTokenPayload,
   buildPasswordResetLink,
@@ -301,6 +304,33 @@ async function me(req, res) {
   });
 }
 
+// @desc    Logout user — blacklists their JWT in Redis so it cannot be reused
+// @route   POST /api/auth/logout
+// @access  Private
+async function logout(req, res) {
+  try {
+    const token = (req.headers.authorization || '').split(' ')[1];
+    if (!token) {
+      return res.status(400).json({ status: 'error', message: 'No token provided' });
+    }
+
+    // Decode without re-verifying — protect middleware already did that
+    const decoded = jwt.decode(token);
+    if (decoded && decoded.exp) {
+      const secondsRemaining = decoded.exp - Math.floor(Date.now() / 1000);
+      if (secondsRemaining > 0) {
+        // Store token in blacklist only for its remaining validity window
+        await redisClient.set(buildJwtBlacklistKey(token), '1', 'EX', secondsRemaining);
+      }
+    }
+
+    return res.status(200).json({ status: 'success', message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('logout error:', error);
+    return res.status(500).json({ status: 'error', message: 'Logout failed' });
+  }
+}
+
 async function updateUserProfile(req, res) {
   try {
     const user = await User.findById(req.user._id);
@@ -343,5 +373,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   me,
+  logout,
   updateUserProfile,
 };
