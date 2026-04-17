@@ -1,8 +1,12 @@
 jest.mock('../models/Product');
 jest.mock('../models/Cart');
+jest.mock('../services/inventoryLock', () => ({
+  withInventoryLock: jest.fn(),
+}));
 
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
+const { withInventoryLock } = require('../services/inventoryLock');
 const { buildVerifiedOrderItems } = require('../services/orderService');
 
 describe('buildVerifiedOrderItems', () => {
@@ -16,6 +20,10 @@ describe('buildVerifiedOrderItems', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    withInventoryLock.mockImplementation(async (_productId, fn) => {
+      const result = await fn();
+      return { result };
+    });
   });
 
   test('builds verified order items from a direct product id', async () => {
@@ -99,5 +107,29 @@ describe('buildVerifiedOrderItems', () => {
       price: 18,
       product: '507f1f77bcf86cd799439099',
     });
+  });
+
+  test('returns a conflict error when a product lock is already held', async () => {
+    Product.find.mockReturnValue(
+      createQueryChain([
+        {
+          _id: '507f1f77bcf86cd799439012',
+          name: 'Glow Serum',
+          image: '/glow-serum.jpg',
+          price: 25,
+          inStock: true,
+        },
+      ])
+    );
+
+    withInventoryLock.mockResolvedValueOnce({ conflict: true });
+
+    const result = await buildVerifiedOrderItems([
+      { product: '507f1f77bcf86cd799439012', qty: 1 },
+    ]);
+
+    expect(result.error).toBeDefined();
+    expect(result.error.statusCode).toBe(409);
+    expect(result.error.message).toMatch(/currently being reserved/i);
   });
 });
