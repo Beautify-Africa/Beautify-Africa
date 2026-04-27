@@ -1126,7 +1126,205 @@ function buildOpenApiSpec(req) {
           },
         },
       },
+      '/api/admin/orders': {
+        get: {
+          tags: ['Admin'],
+          summary: 'List admin orders with filters and pagination',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'status',
+              in: 'query',
+              schema: {
+                type: 'string',
+                enum: ['all', 'processing', 'packed', 'shipped', 'delivered'],
+              },
+            },
+            {
+              name: 'payment',
+              in: 'query',
+              schema: {
+                type: 'string',
+                enum: ['all', 'paid', 'unpaid'],
+              },
+            },
+            { name: 'country', in: 'query', schema: { type: 'string' } },
+            { name: 'search', in: 'query', schema: { type: 'string' } },
+            {
+              name: 'sort',
+              in: 'query',
+              schema: {
+                type: 'string',
+                enum: ['newest', 'oldest', 'total_high', 'total_low'],
+              },
+            },
+            { name: 'page', in: 'query', schema: { type: 'integer', minimum: 1 } },
+            { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 50 } },
+          ],
+          responses: {
+            '200': {
+              description: 'Paginated admin order list',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      status: { type: 'string', example: 'success' },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          orders: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              additionalProperties: true,
+                            },
+                          },
+                          pagination: {
+                            type: 'object',
+                            properties: {
+                              page: { type: 'integer' },
+                              limit: { type: 'integer' },
+                              totalCount: { type: 'integer' },
+                              totalPages: { type: 'integer' },
+                            },
+                          },
+                          filters: {
+                            type: 'object',
+                            additionalProperties: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '400': { $ref: '#/components/responses/BadRequest' },
+            '401': { $ref: '#/components/responses/Unauthorized' },
+            '403': { $ref: '#/components/responses/Forbidden' },
+          },
+        },
+      },
       '/api/admin/orders/{id}': {
+        get: {
+          tags: ['Admin'],
+          summary: 'Fetch full admin order detail',
+          security: [{ bearerAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Admin order detail payload',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      status: { type: 'string', example: 'success' },
+                      data: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          reference: { type: 'string' },
+                          status: { type: 'string' },
+                          statusTone: { type: 'string' },
+                          eta: { type: 'string' },
+                          paymentLabel: { type: 'string' },
+                          fulfillmentLabel: { type: 'string' },
+                          customer: {
+                            type: 'object',
+                            properties: {
+                              name: { type: 'string' },
+                              shippingEmail: { type: 'string' },
+                              accountName: { type: 'string' },
+                              accountEmail: { type: 'string' },
+                              isGuest: { type: 'boolean' },
+                              accountCreatedAtLabel: { type: 'string' },
+                            },
+                          },
+                          shippingAddress: {
+                            type: 'object',
+                            properties: {
+                              firstName: { type: 'string' },
+                              lastName: { type: 'string' },
+                              email: { type: 'string' },
+                              address: { type: 'string' },
+                              city: { type: 'string' },
+                              zip: { type: 'string' },
+                              country: { type: 'string' },
+                            },
+                          },
+                          payment: {
+                            type: 'object',
+                            properties: {
+                              method: { type: 'string' },
+                              stripePaymentIntentId: { type: 'string' },
+                              resultId: { type: 'string' },
+                              resultStatus: { type: 'string' },
+                              updateTime: { type: 'string' },
+                              emailAddress: { type: 'string' },
+                            },
+                          },
+                          totals: {
+                            type: 'object',
+                            properties: {
+                              items: { type: 'string' },
+                              shipping: { type: 'string' },
+                              tax: { type: 'string' },
+                              total: { type: 'string' },
+                            },
+                          },
+                          items: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                productId: { type: 'string' },
+                                productSlug: { type: 'string' },
+                                productBrand: { type: 'string' },
+                                productCategory: { type: 'string' },
+                                name: { type: 'string' },
+                                qty: { type: 'number' },
+                                image: { type: 'string' },
+                                unitPrice: { type: 'string' },
+                                lineTotal: { type: 'string' },
+                              },
+                            },
+                          },
+                          timeline: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                type: { type: 'string' },
+                                action: { type: 'string' },
+                                note: { type: 'string' },
+                                adminName: { type: 'string' },
+                                adminEmail: { type: 'string' },
+                                createdAtLabel: { type: 'string' },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '400': { $ref: '#/components/responses/BadRequest' },
+            '401': { $ref: '#/components/responses/Unauthorized' },
+            '403': { $ref: '#/components/responses/Forbidden' },
+            '404': { $ref: '#/components/responses/NotFound' },
+          },
+        },
         patch: {
           tags: ['Admin'],
           summary: 'Update admin order status via action command',
