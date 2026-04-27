@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
+const redisClient = require('../config/redis');
 
 const FULFILLMENT_STATUSES = ['processing', 'packed', 'shipped', 'delivered'];
 const SUPPORTED_ADMIN_ACTIONS = ['mark_paid', 'pack', 'ship', 'deliver'];
+const SUPPORTED_ADMIN_ORDER_SORTS = ['newest', 'oldest', 'total_high', 'total_low'];
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const PRODUCT_CACHE_VERSION_KEY = 'products:version';
 
 function createAdminError(message, statusCode = 400) {
   const error = new Error(message);
@@ -13,6 +17,37 @@ function createAdminError(message, statusCode = 400) {
 
 function normalizeAdminAction(action = '') {
   return String(action).trim().toLowerCase();
+}
+
+function escapeRegex(value = '') {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function parsePositiveInteger(value, { defaultValue, min = 1, max = 100, label = 'Value' } = {}) {
+  if (value === undefined || value === null || value === '') {
+    return defaultValue;
+  }
+
+  const normalized = String(value).trim();
+  if (!/^\d+$/.test(normalized)) {
+    throw createAdminError(`${label} must be a whole number.`);
+  }
+
+  const parsed = Number.parseInt(normalized, 10);
+  if (parsed < min || parsed > max) {
+    throw createAdminError(`${label} must be between ${min} and ${max}.`);
+  }
+
+  return parsed;
+}
+
+function normalizeAdminQueryEnum(value, supportedValues = [], label = 'value', fallbackValue = 'all') {
+  const normalized = String(value || fallbackValue).trim().toLowerCase();
+  if (!supportedValues.includes(normalized)) {
+    throw createAdminError(`Unsupported ${label}: ${value}`);
+  }
+
+  return normalized;
 }
 
 function ensureValidOrderId(orderId) {
@@ -175,23 +210,152 @@ function sortOrdersForPriority(orders = [], now = new Date()) {
 
 function mapPriorityOrder(order) {
   const statusMeta = getStatusMeta(order);
+  const timeline = Array.isArray(order.adminTimeline) ? order.adminTimeline : [];
+  const lastActivity = timeline.length > 0 ? timeline[timeline.length - 1] : null;
+  const latestNote = [...timeline].reverse().find((entry) => entry.type === 'note' && entry.note);
+  const itemCount = Array.isArray(order.orderItems)
+    ? order.orderItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
+    : 0;
+  const country = order.shippingAddress?.country || 'Unknown country';
 
   return {
     id: order._id,
     reference: createOrderReference(order._id),
     customer: getCustomerName(order),
+    email: order.shippingAddress?.email || order.user?.email || '',
     city: order.shippingAddress?.city || 'Unknown city',
-    country: order.shippingAddress?.country || 'Unknown country',
+    country,
     lane: getOrderLane(order),
     status: statusMeta.label,
     statusTone: statusMeta.tone,
     total: formatCurrency(order.totalPrice),
+    totalValue: Number(order.totalPrice || 0),
     eta: statusMeta.nextMilestone,
     items: (order.orderItems || []).map((item) => item.name),
     placedAt: formatDateLabel(order.createdAt),
+    placedAtRaw: order.createdAt,
     paymentLabel: order.isPaid ? 'Paid' : 'Awaiting payment',
+    isPaid: Boolean(order.isPaid),
     fulfillmentLabel: order.fulfillmentStatus || 'processing',
     availableActions: getOrderActions(order),
+    itemCount,
+    timelineCount: timeline.length,
+    isCrossBorder: country.trim().toLowerCase() !== 'kenya',
+    hasNote: Boolean(latestNote),
+    lastActivity: lastActivity
+      ? {
+          label:
+            lastActivity.type === 'note'
+              ? `Note added by ${lastActivity.adminName || 'Admin'}`
+              : `${String(lastActivity.action || 'updated').replace(/_/g, ' ')} by ${lastActivity.adminName || 'Admin'}`,
+          at: formatDateLabel(lastActivity.createdAt),
+        }
+      : null,
+    latestNote: latestNote
+      ? {
+          text: latestNote.note,
+          by: latestNote.adminName || 'Admin',
+          at: formatDateLabel(latestNote.createdAt),
+        }
+      : null,
+  };
+}
+
+function mapAdminTimelineEntries(timeline = []) {
+  return [...timeline]
+    .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
+    .map((entry) => ({
+      type: entry.type,
+      action: entry.action,
+      note: entry.note,
+      adminName: entry.adminName,
+      adminEmail: entry.adminEmail,
+      createdAt: entry.createdAt,
+      createdAtLabel: formatDateLabel(entry.createdAt),
+    }));
+}
+
+function mapAdminOrderDetail(order = {}) {
+  const statusMeta = getStatusMeta(order);
+  const timeline = mapAdminTimelineEntries(Array.isArray(order.adminTimeline) ? order.adminTimeline : []);
+  const shippingEmail = order.shippingAddress?.email || '';
+  const accountCreatedAt = order.user?.createdAt || null;
+
+  return {
+    id: order._id,
+    reference: createOrderReference(order._id),
+    customer: {
+      name: getCustomerName(order),
+      shippingEmail,
+      accountName: order.user?.name || '',
+      accountEmail: order.user?.email || '',
+      isGuest: !order.user,
+      accountCreatedAt,
+      accountCreatedAtLabel: accountCreatedAt ? formatDateLabel(accountCreatedAt) : '',
+    },
+    status: statusMeta.label,
+    statusTone: statusMeta.tone,
+    eta: statusMeta.nextMilestone,
+    paymentLabel: order.isPaid ? 'Paid' : 'Awaiting payment',
+    isPaid: Boolean(order.isPaid),
+    isDelivered: Boolean(order.isDelivered),
+    fulfillmentLabel: order.fulfillmentStatus || 'processing',
+    availableActions: getOrderActions(order),
+    placedAt: order.createdAt,
+    placedAtLabel: formatDateLabel(order.createdAt),
+    updatedAt: order.updatedAt,
+    updatedAtLabel: order.updatedAt ? formatDateLabel(order.updatedAt) : '',
+    paidAt: order.paidAt,
+    paidAtLabel: order.paidAt ? formatDateLabel(order.paidAt) : '',
+    deliveredAt: order.deliveredAt,
+    deliveredAtLabel: order.deliveredAt ? formatDateLabel(order.deliveredAt) : '',
+    shippingAddress: {
+      firstName: order.shippingAddress?.firstName || '',
+      lastName: order.shippingAddress?.lastName || '',
+      email: shippingEmail,
+      address: order.shippingAddress?.address || '',
+      city: order.shippingAddress?.city || '',
+      zip: order.shippingAddress?.zip || '',
+      country: order.shippingAddress?.country || '',
+    },
+    payment: {
+      method: order.paymentMethod || 'Credit Card',
+      stripePaymentIntentId: order.stripePaymentIntentId || '',
+      resultId: order.paymentResult?.id || '',
+      resultStatus: order.paymentResult?.status || (order.isPaid ? 'paid' : 'pending'),
+      updateTime: order.paymentResult?.update_time || '',
+      emailAddress: order.paymentResult?.email_address || '',
+    },
+    totals: {
+      items: formatCurrency(order.itemsPrice),
+      itemsValue: Number(order.itemsPrice || 0),
+      shipping: formatCurrency(order.shippingPrice),
+      shippingValue: Number(order.shippingPrice || 0),
+      tax: formatCurrency(order.taxPrice),
+      taxValue: Number(order.taxPrice || 0),
+      total: formatCurrency(order.totalPrice),
+      totalValue: Number(order.totalPrice || 0),
+    },
+    items: (order.orderItems || []).map((item) => {
+      const quantity = Number(item.qty || 0);
+      const unitPriceValue = Number(item.price || 0);
+      const lineTotalValue = quantity * unitPriceValue;
+
+      return {
+        productId: item.product?._id || item.product || '',
+        productSlug: item.product?.slug || '',
+        productBrand: item.product?.brand || '',
+        productCategory: item.product?.category || '',
+        name: item.name,
+        qty: quantity,
+        image: item.image || item.product?.image || '',
+        unitPrice: formatCurrency(unitPriceValue),
+        unitPriceValue,
+        lineTotal: formatCurrency(lineTotalValue),
+        lineTotalValue,
+      };
+    }),
+    timeline,
   };
 }
 
@@ -510,7 +674,7 @@ function buildAdminDashboardFromOrders(orders = [], now = new Date()) {
     heroBadges: buildHeroBadges(sortedOrders),
     stats: buildStats(sortedOrders, now),
     ritualChecklist: buildRitualChecklist(sortedOrders),
-    priorityOrders: sortOrdersForPriority(sortedOrders, now).slice(0, 4).map(mapPriorityOrder),
+    priorityOrders: sortOrdersForPriority(sortedOrders, now).slice(0, 8).map(mapPriorityOrder),
     lanes: buildLaneCards(sortedOrders),
     watchlist: buildWatchlist(sortedOrders, now),
     regionalPulse: buildRegionalPulse(sortedOrders, now),
@@ -523,13 +687,152 @@ function buildAdminDashboardFromOrders(orders = [], now = new Date()) {
 async function fetchAdminDashboard() {
   const orders = await Order.find({})
     .select(
-      'user orderItems shippingAddress totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt'
+      'user orderItems shippingAddress totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt adminTimeline'
     )
     .populate('user', 'name email')
     .sort({ createdAt: -1 })
     .lean();
 
   return buildAdminDashboardFromOrders(orders, new Date());
+}
+
+function normalizeAdminNote(note = '') {
+  return String(note || '').trim().replace(/\s+/g, ' ').slice(0, 600);
+}
+
+function appendOrderTimelineEntry(order, { type, action = '', note = '', adminUser = null }) {
+  if (!order) return;
+
+  const normalizedNote = normalizeAdminNote(note);
+  if (type === 'note' && !normalizedNote) {
+    return;
+  }
+
+  order.adminTimeline = Array.isArray(order.adminTimeline) ? order.adminTimeline : [];
+  order.adminTimeline.push({
+    type,
+    action,
+    note: normalizedNote,
+    adminName: adminUser?.name || 'Admin',
+    adminEmail: adminUser?.email || '',
+  });
+}
+
+function buildAdminOrderFilter(query = {}) {
+  const filter = {};
+  const status = normalizeAdminQueryEnum(
+    query.status,
+    ['all', ...FULFILLMENT_STATUSES],
+    'order status'
+  );
+  const payment = normalizeAdminQueryEnum(query.payment, ['all', 'paid', 'unpaid'], 'payment filter');
+  const country = String(query.country || '').trim();
+  const search = String(query.search || '').trim();
+
+  if (status !== 'all') {
+    filter.fulfillmentStatus = status;
+  }
+
+  if (payment === 'paid') {
+    filter.isPaid = true;
+  } else if (payment === 'unpaid') {
+    filter.isPaid = false;
+  }
+
+  if (country) {
+    filter['shippingAddress.country'] = new RegExp(`^${escapeRegex(country)}$`, 'i');
+  }
+
+  if (search) {
+    const searchRegex = new RegExp(escapeRegex(search), 'i');
+    const searchConditions = [
+      { 'shippingAddress.firstName': searchRegex },
+      { 'shippingAddress.lastName': searchRegex },
+      { 'shippingAddress.email': searchRegex },
+      { 'shippingAddress.city': searchRegex },
+      { 'shippingAddress.country': searchRegex },
+      { 'orderItems.name': searchRegex },
+    ];
+
+    if (mongoose.Types.ObjectId.isValid(search)) {
+      searchConditions.push({ _id: search });
+    }
+
+    filter.$or = searchConditions;
+  }
+
+  return {
+    filter,
+    normalizedFilters: {
+      status,
+      payment,
+      country,
+      search,
+    },
+  };
+}
+
+function buildAdminOrderSort(sortValue = 'newest') {
+  const sort = normalizeAdminQueryEnum(
+    sortValue,
+    SUPPORTED_ADMIN_ORDER_SORTS,
+    'order sort',
+    'newest'
+  );
+
+  if (sort === 'oldest') {
+    return {
+      sort,
+      sortDefinition: { createdAt: 1 },
+    };
+  }
+
+  if (sort === 'total_high') {
+    return {
+      sort,
+      sortDefinition: { totalPrice: -1, createdAt: -1 },
+    };
+  }
+
+  if (sort === 'total_low') {
+    return {
+      sort,
+      sortDefinition: { totalPrice: 1, createdAt: -1 },
+    };
+  }
+
+  return {
+    sort,
+    sortDefinition: { createdAt: -1 },
+  };
+}
+
+function mapAdminOrderRow(order = {}) {
+  const statusMeta = getStatusMeta(order);
+  const itemCount = Array.isArray(order.orderItems)
+    ? order.orderItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
+    : 0;
+
+  return {
+    id: order._id,
+    reference: createOrderReference(order._id),
+    customer: getCustomerName(order),
+    email: order.shippingAddress?.email || order.user?.email || '',
+    city: order.shippingAddress?.city || 'Unknown city',
+    country: order.shippingAddress?.country || 'Unknown country',
+    lane: getOrderLane(order),
+    total: formatCurrency(order.totalPrice),
+    totalValue: Number(order.totalPrice || 0),
+    itemCount,
+    paymentLabel: order.isPaid ? 'Paid' : 'Awaiting payment',
+    isPaid: Boolean(order.isPaid),
+    fulfillmentLabel: order.fulfillmentStatus || 'processing',
+    status: statusMeta.label,
+    statusTone: statusMeta.tone,
+    placedAt: order.createdAt,
+    placedAtLabel: formatDateLabel(order.createdAt),
+    availableActions: getOrderActions(order),
+  };
 }
 
 function applyAdminOrderAction(order, action) {
@@ -585,14 +888,311 @@ function applyAdminOrderAction(order, action) {
   throw createAdminError(`Unsupported admin action: ${action}`);
 }
 
-async function updateAdminOrder(orderId, action) {
+async function updateAdminOrder(orderId, action, adminUser = null, note = '') {
   ensureValidOrderId(orderId);
 
   const order = await Order.findById(orderId);
-  applyAdminOrderAction(order, action);
+  const normalizedAction = normalizeAdminAction(action);
+  applyAdminOrderAction(order, normalizedAction);
+  appendOrderTimelineEntry(order, {
+    type: 'action',
+    action: normalizedAction,
+    adminUser,
+    note,
+  });
   await order.save();
 
   return order;
+}
+
+async function addAdminOrderNote(orderId, note, adminUser) {
+  ensureValidOrderId(orderId);
+
+  const normalizedNote = normalizeAdminNote(note);
+  if (!normalizedNote) {
+    throw createAdminError('Note is required');
+  }
+
+  const order = await Order.findById(orderId);
+  if (!order) {
+    throw createAdminError('Order not found', 404);
+  }
+
+  appendOrderTimelineEntry(order, {
+    type: 'note',
+    note: normalizedNote,
+    adminUser,
+  });
+
+  await order.save();
+
+  return {
+    orderId: order._id,
+    note: normalizedNote,
+  };
+}
+
+async function fetchAdminOrderTimeline(orderId) {
+  ensureValidOrderId(orderId);
+
+  const order = await Order.findById(orderId)
+    .select('adminTimeline')
+    .lean();
+
+  if (!order) {
+    throw createAdminError('Order not found', 404);
+  }
+
+  return mapAdminTimelineEntries(Array.isArray(order.adminTimeline) ? order.adminTimeline : []);
+}
+
+async function fetchAdminOrderDetail(orderId) {
+  ensureValidOrderId(orderId);
+
+  const order = await Order.findById(orderId)
+    .select(
+      'user stripePaymentIntentId orderItems shippingAddress paymentMethod paymentResult itemsPrice taxPrice shippingPrice totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt updatedAt adminTimeline'
+    )
+    .populate('user', 'name email createdAt')
+    .populate('orderItems.product', 'name slug brand category image')
+    .lean();
+
+  if (!order) {
+    throw createAdminError('Order not found', 404);
+  }
+
+  return mapAdminOrderDetail(order);
+}
+
+async function fetchAdminOrders(query = {}) {
+  const { filter, normalizedFilters } = buildAdminOrderFilter(query);
+  const page = parsePositiveInteger(query.page, {
+    defaultValue: 1,
+    min: 1,
+    max: 1000,
+    label: 'Page',
+  });
+  const limit = parsePositiveInteger(query.limit, {
+    defaultValue: 12,
+    min: 1,
+    max: 50,
+    label: 'Limit',
+  });
+  const { sort, sortDefinition } = buildAdminOrderSort(query.sort);
+  const skip = (page - 1) * limit;
+
+  const [orders, totalCount] = await Promise.all([
+    Order.find(filter)
+      .select(
+        'user orderItems shippingAddress totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt'
+      )
+      .populate('user', 'name email')
+      .sort(sortDefinition)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Order.countDocuments(filter),
+  ]);
+
+  return {
+    orders: orders.map(mapAdminOrderRow),
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 0,
+    },
+    filters: {
+      ...normalizedFilters,
+      sort,
+    },
+  };
+}
+
+function ensureValidProductId(productId) {
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    throw createAdminError('Invalid product ID format');
+  }
+}
+
+function normalizeNumberInput(value, fallbackValue = 0) {
+  if (value === undefined || value === null || value === '') {
+    return fallbackValue;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallbackValue;
+}
+
+function normalizeStringArray(value = []) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry).trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function normalizeProductPayload(payload = {}, { isCreate = false } = {}) {
+  const normalized = {
+    name: String(payload.name || '').trim(),
+    brand: String(payload.brand || '').trim(),
+    category: String(payload.category || '').trim(),
+    subcategory: String(payload.subcategory || '').trim(),
+    description: String(payload.description || '').trim(),
+    image: String(payload.image || '').trim(),
+    ingredients: String(payload.ingredients || '').trim(),
+    howToUse: String(payload.howToUse || '').trim(),
+    price: normalizeNumberInput(payload.price, 0),
+    originalPrice:
+      payload.originalPrice === undefined || payload.originalPrice === null || payload.originalPrice === ''
+        ? null
+        : normalizeNumberInput(payload.originalPrice, null),
+    stockQuantity: normalizeNumberInput(payload.stockQuantity, 0),
+    lowStockThreshold: normalizeNumberInput(payload.lowStockThreshold, 5),
+    skinType: normalizeStringArray(payload.skinType),
+    tags: normalizeStringArray(payload.tags),
+    images: normalizeStringArray(payload.images),
+    isNewProduct: Boolean(payload.isNewProduct),
+    isBestSeller: Boolean(payload.isBestSeller),
+    isArchived: Boolean(payload.isArchived),
+  };
+
+  if (isCreate) {
+    const requiredFields = ['name', 'brand', 'category', 'image'];
+    const missing = requiredFields.filter((field) => !normalized[field]);
+    if (missing.length > 0) {
+      throw createAdminError(`Missing required product field(s): ${missing.join(', ')}`);
+    }
+  }
+
+  if (normalized.stockQuantity < 0) {
+    throw createAdminError('Stock quantity cannot be negative');
+  }
+
+  if (normalized.lowStockThreshold < 0) {
+    throw createAdminError('Low stock threshold cannot be negative');
+  }
+
+  if (normalized.price < 0) {
+    throw createAdminError('Price cannot be negative');
+  }
+
+  if (normalized.originalPrice !== null && normalized.originalPrice < 0) {
+    throw createAdminError('Original price cannot be negative');
+  }
+
+  normalized.inStock = normalized.stockQuantity > 0;
+  return normalized;
+}
+
+function buildAdminProductFilter(query = {}) {
+  const filter = {};
+
+  const normalizedSearch = String(query.search || '').trim();
+  if (normalizedSearch) {
+    const searchRegex = new RegExp(normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    filter.$or = [
+      { name: searchRegex },
+      { brand: searchRegex },
+      { category: searchRegex },
+      { subcategory: searchRegex },
+    ];
+  }
+
+  const archived = String(query.archived || '').toLowerCase();
+  if (archived === 'true') {
+    filter.isArchived = true;
+  } else if (archived === 'false' || archived === '') {
+    filter.isArchived = false;
+  }
+
+  const lowStock = String(query.lowStock || '').toLowerCase();
+  if (lowStock === 'true') {
+    filter.$expr = { $lte: ['$stockQuantity', '$lowStockThreshold'] };
+  }
+
+  return filter;
+}
+
+async function bumpProductCacheVersion() {
+  try {
+    await redisClient.incr(PRODUCT_CACHE_VERSION_KEY);
+  } catch (error) {
+    console.warn('Redis cache version bump failed for products:', error.message);
+  }
+}
+
+async function fetchAdminProducts(query = {}) {
+  const filter = buildAdminProductFilter(query);
+  const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
+  const limit = Math.min(50, Math.max(1, Number.parseInt(query.limit, 10) || 12));
+  const skip = (page - 1) * limit;
+
+  const [products, totalCount] = await Promise.all([
+    Product.find(filter)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Product.countDocuments(filter),
+  ]);
+
+  return {
+    products,
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 0,
+    },
+  };
+}
+
+async function createAdminProduct(payload = {}) {
+  const normalizedPayload = normalizeProductPayload(payload, { isCreate: true });
+
+  const product = await Product.create(normalizedPayload);
+  await bumpProductCacheVersion();
+  return product;
+}
+
+async function updateAdminProduct(productId, payload = {}) {
+  ensureValidProductId(productId);
+
+  const normalizedPayload = normalizeProductPayload(payload, { isCreate: false });
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw createAdminError('Product not found', 404);
+  }
+
+  Object.assign(product, normalizedPayload);
+  await product.save();
+  await bumpProductCacheVersion();
+
+  return product;
+}
+
+async function setAdminProductArchived(productId, isArchived) {
+  ensureValidProductId(productId);
+
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw createAdminError('Product not found', 404);
+  }
+
+  product.isArchived = Boolean(isArchived);
+  await product.save();
+  await bumpProductCacheVersion();
+
+  return product;
 }
 
 module.exports = {
@@ -602,4 +1202,13 @@ module.exports = {
   fetchAdminDashboard,
   updateAdminOrder,
   applyAdminOrderAction,
+  addAdminOrderNote,
+  fetchAdminOrderTimeline,
+  fetchAdminOrderDetail,
+  fetchAdminOrders,
+  fetchAdminProducts,
+  createAdminProduct,
+  updateAdminProduct,
+  setAdminProductArchived,
+  SUPPORTED_ADMIN_ORDER_SORTS,
 };
