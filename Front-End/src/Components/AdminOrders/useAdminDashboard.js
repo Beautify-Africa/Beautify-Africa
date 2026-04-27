@@ -1,5 +1,10 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { fetchAdminDashboard, updateAdminOrderAction } from '../../services/adminApi';
+import {
+  addAdminOrderNote,
+  fetchAdminDashboard,
+  fetchAdminOrderTimeline,
+  updateAdminOrderAction,
+} from '../../services/adminApi';
 import { DEFAULT_ADMIN_DASHBOARD, normalizeAdminDashboard } from './adminDashboardDefaults';
 
 export function useAdminDashboard(token, enabled) {
@@ -7,6 +12,7 @@ export function useAdminDashboard(token, enabled) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [busyActionKey, setBusyActionKey] = useState('');
+  const [timelineByOrderId, setTimelineByOrderId] = useState({});
   const requestControllerRef = useRef(null);
 
   const loadDashboard = useCallback(
@@ -57,10 +63,12 @@ export function useAdminDashboard(token, enabled) {
       setError(null);
 
       try {
-        await updateAdminOrderAction(orderId, action, token);
+        const updatedOrder = await updateAdminOrderAction(orderId, action, token);
         await loadDashboard({ showLoader: false });
+        return updatedOrder;
       } catch (err) {
         setError(err.message || 'Failed to update order.');
+        throw err;
       } finally {
         setBusyActionKey('');
       }
@@ -68,12 +76,54 @@ export function useAdminDashboard(token, enabled) {
     [loadDashboard, token]
   );
 
+  const runAddOrderNote = useCallback(
+    async (orderId, note) => {
+      if (!token) return;
+
+      const key = `${orderId}:note`;
+      setBusyActionKey(key);
+      setError(null);
+
+      try {
+        const savedNote = await addAdminOrderNote(orderId, note, token);
+        await loadDashboard({ showLoader: false });
+        return savedNote;
+      } catch (err) {
+        setError(err.message || 'Failed to add note.');
+        throw err;
+      } finally {
+        setBusyActionKey('');
+      }
+    },
+    [loadDashboard, token]
+  );
+
+  const loadOrderTimeline = useCallback(
+    async (orderId) => {
+      if (!token || !orderId) return;
+
+      try {
+        const timeline = await fetchAdminOrderTimeline(orderId, token);
+        setTimelineByOrderId((previous) => ({
+          ...previous,
+          [orderId]: timeline,
+        }));
+      } catch (err) {
+        setError(err.message || 'Failed to load order timeline.');
+      }
+    },
+    [token]
+  );
+
   return {
     dashboard,
     isLoading,
     error,
     busyActionKey,
+    timelineByOrderId,
     reloadDashboard: loadDashboard,
     runOrderAction,
+    runAddOrderNote,
+    loadOrderTimeline,
   };
 }

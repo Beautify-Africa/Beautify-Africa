@@ -3,6 +3,7 @@ import ShopEmptyState from './ShopEmptyState';
 
 export default function ShopProductGrid({
   isLoading,
+  error,
   displayedProducts,
   isSavedCollection,
   wishlistSet,
@@ -16,11 +17,28 @@ export default function ShopProductGrid({
   currentPage,
   totalPages,
   onPageChange,
+  onRetry,
 }) {
   if (isLoading) {
     return (
       <div className="py-20 text-center">
         <p className="font-serif text-xl text-stone-400">Loading products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mt-8 rounded-2xl border border-red-200 bg-red-50/70 px-6 py-7 text-center">
+        <p className="font-serif text-xl text-red-700">We could not load products right now.</p>
+        <p className="mt-3 text-sm text-red-600">{error}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-5 rounded-sm bg-stone-900 px-6 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700"
+        >
+          Try Again
+        </button>
       </div>
     );
   }

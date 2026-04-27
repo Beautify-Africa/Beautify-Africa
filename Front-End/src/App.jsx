@@ -13,6 +13,9 @@ const NewsletterUnsubscribeRequestPage = lazy(() => import('./pages/NewsletterUn
 const NewsletterUnsubscribePage = lazy(() => import('./pages/NewsletterUnsubscribePage'));
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
 const AdminProductsPage = lazy(() => import('./pages/AdminProductsPage'));
+const AdminInventoryPage = lazy(() => import('./pages/AdminInventoryPage'));
+const AdminCustomersPage = lazy(() => import('./pages/AdminCustomersPage'));
+const AdminAnalyticsPage = lazy(() => import('./pages/AdminAnalyticsPage'));
 
 import CartDrawer from './Components/Cart/CartDrawer';
 function PageLoader() {
@@ -55,6 +58,9 @@ function App() {
             <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
             <Route path="/admin/orders" element={<AdminOrdersPage />} />
             <Route path="/admin/products" element={<AdminProductsPage />} />
+            <Route path="/admin/inventory" element={<AdminInventoryPage />} />
+            <Route path="/admin/customers" element={<AdminCustomersPage />} />
+            <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
             {/* 404 catch-all */}
             <Route
               path="*"

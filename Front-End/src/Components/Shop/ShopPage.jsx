@@ -54,7 +54,7 @@ export default function ShopPage() {
   const requestSignature = useMemo(() => JSON.stringify(requestParams), [requestParams]);
   const currentPage =
     paginationState.signature === requestSignature ? paginationState.page : 1;
-  const { products, isLoading, totalCount, totalPages } = useShopProducts({
+  const { products, isLoading, error: productError, totalCount, totalPages, retryProducts } = useShopProducts({
     currentPage,
     requestParams,
     isSavedCollection,
@@ -140,6 +140,7 @@ export default function ShopPage() {
 
           <ShopProductGrid
             isLoading={isLoading || isCatalogLoading}
+            error={productError}
             displayedProducts={products}
             isSavedCollection={isSavedCollection}
             wishlistSet={wishlistSet}
@@ -153,6 +154,7 @@ export default function ShopPage() {
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
+            onRetry={retryProducts}
           />
         </div>
       </div>

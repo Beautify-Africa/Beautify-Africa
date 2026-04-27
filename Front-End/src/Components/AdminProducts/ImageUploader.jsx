@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { API_URL } from '../../services/apiConfig';
 
 export default function ImageUploader() {
   const [file, setFile] = useState(null);
@@ -32,8 +33,7 @@ export default function ImageUploader() {
     formData.append('image', file);
 
     try {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${BASE_URL}/api/upload`, {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
