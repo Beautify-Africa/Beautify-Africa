@@ -100,7 +100,10 @@ export async function parseResponse(response, fallbackMessage) {
   const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(json.message || fallbackMessage);
+    const error = new Error(json.message || fallbackMessage);
+    error.statusCode = response.status;
+    error.response = json;
+    throw error;
   }
 
   return json;

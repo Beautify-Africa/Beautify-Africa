@@ -1,6 +1,38 @@
 // src/services/productsApi.js
 import { API_URL, requestJson } from './apiConfig';
 
+const PRODUCT_REQUEST_TIMEOUT_MS = 30000;
+
+function shouldRetryProductRequest(error, signal) {
+  if (signal?.aborted) {
+    return false;
+  }
+
+  if ([429, 502, 503, 504].includes(error?.statusCode)) {
+    return true;
+  }
+
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    message.includes('timed out') ||
+    message.includes('failed to fetch') ||
+    message.includes('networkerror') ||
+    message.includes('network error')
+  );
+}
+
+async function requestWithOneRetry(url, requestOptions) {
+  try {
+    return await requestJson(url, requestOptions);
+  } catch (error) {
+    if (!shouldRetryProductRequest(error, requestOptions?.signal)) {
+      throw error;
+    }
+
+    return requestJson(url, requestOptions);
+  }
+}
+
 /**
  * Fetch paginated products from the back-end API.
  */
@@ -23,16 +55,18 @@ export async function fetchProducts(query = {}, options = {}) {
   });
 
   const search = params.toString();
-  return requestJson(`${API_URL}/products${search ? `?${search}` : ''}`, {
+  return requestWithOneRetry(`${API_URL}/products${search ? `?${search}` : ''}`, {
     cache: 'no-store',
+    timeoutMs: PRODUCT_REQUEST_TIMEOUT_MS,
     ...options,
     fallbackMessage: 'Failed to fetch products',
   });
 }
 
 export async function fetchProductCatalog(options = {}) {
-  const json = await requestJson(`${API_URL}/products/catalog`, {
+  const json = await requestWithOneRetry(`${API_URL}/products/catalog`, {
     cache: 'no-store',
+    timeoutMs: PRODUCT_REQUEST_TIMEOUT_MS,
     ...options,
     fallbackMessage: 'Failed to fetch product catalog',
   });
