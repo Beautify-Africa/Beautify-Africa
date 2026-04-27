@@ -19,6 +19,7 @@ function createApp() {
 
 describe('POST /api/auth/admin-login', () => {
   let app;
+  let server;
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'admin-login-test-secret';
@@ -29,6 +30,13 @@ describe('POST /api/auth/admin-login', () => {
     process.env.ADMIN_EMAILS = ADMIN_EMAIL;
     process.env.ADMIN_DASHBOARD_PASSWORD = ADMIN_PASSWORD;
     app = createApp();
+  });
+
+  afterEach(() => {
+    if (server) {
+      server.close();
+      server = null;
+    }
   });
 
   test('returns 503 when admin credentials are not configured', async () => {

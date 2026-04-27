@@ -18,6 +18,7 @@ function createApp() {
 
 describe('Password reset auth flow', () => {
   let app;
+  let server;
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'password-reset-test-secret';
@@ -27,6 +28,13 @@ describe('Password reset auth flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     app = createApp();
+  });
+
+  afterEach(() => {
+    if (server) {
+      server.close();
+      server = null;
+    }
   });
 
   test('forgot-password requires email', async () => {

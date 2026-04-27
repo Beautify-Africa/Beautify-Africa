@@ -45,6 +45,7 @@ function createWishlistDoc(initialItems = [], populatedItems = []) {
 
 describe('Wishlist routes', () => {
   let app;
+  let server;
   let authToken;
 
   beforeAll(() => {
@@ -62,6 +63,13 @@ describe('Wishlist routes', () => {
       name: 'Wishlist Tester',
       email: 'wishlist@test.com',
     });
+  });
+
+  afterEach(() => {
+    if (server) {
+      server.close();
+      server = null;
+    }
   });
 
   test('rejects unauthenticated requests', async () => {

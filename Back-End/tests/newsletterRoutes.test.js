@@ -36,6 +36,7 @@ function createSubscriberDoc(overrides = {}) {
 
 describe('Newsletter unsubscribe routes', () => {
   let app;
+  let server;
 
   beforeAll(() => {
     process.env.CLIENT_URL = 'http://localhost:5173';
@@ -44,6 +45,13 @@ describe('Newsletter unsubscribe routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     app = createApp();
+  });
+
+  afterEach(() => {
+    if (server) {
+      server.close();
+      server = null;
+    }
   });
 
   test('validates unsubscribe request email', async () => {

@@ -29,6 +29,7 @@ function authTokenFor(userId) {
 
 describe('Auth logout + JWT blacklist flow', () => {
   let app;
+  let server;
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'logout-blacklist-test-secret';
@@ -47,6 +48,13 @@ describe('Auth logout + JWT blacklist flow', () => {
 
     redisClient.get.mockResolvedValue(null);
     redisClient.set.mockResolvedValue('OK');
+  });
+
+  afterEach(() => {
+    if (server) {
+      server.close();
+      server = null;
+    }
   });
 
   test('logout blacklists the current token using remaining token lifetime', async () => {
