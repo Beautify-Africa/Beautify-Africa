@@ -30,6 +30,7 @@ rateLimitRedis.on('error', (err) => console.warn('Rate-limit Redis error:', err.
 
 if (process.env.NODE_ENV !== 'test') {
   require('./workers/emailWorker'); // Boot background job pipeline outside of tests
+  require('./workers/inventoryNotificationWorker'); // Boot inventory notification worker
 }
 const { buildOpenApiSpec } = require('./docs/openapi');
 const {
@@ -87,6 +88,7 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: makeRedisStore('rl:api:'),
+  passOnStoreError: true,
   message: { status: 'error', message: 'Too many requests, please try again later.' },
 });
 
@@ -97,6 +99,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: makeRedisStore('rl:auth:'),
+  passOnStoreError: true,
   message: { status: 'error', message: 'Too many authentication attempts, please try again later.' },
 });
 
@@ -107,8 +110,13 @@ const cartLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: makeRedisStore('rl:cart:'),
+  passOnStoreError: true,
   message: { status: 'error', message: 'Too many cart requests, please slow down.' },
 });
+
+function normalizeOrigin(value = '') {
+  return String(value).trim().replace(/\/+$/, '').toLowerCase();
+}
 
 // 4. CORS
 app.use(
@@ -116,7 +124,10 @@ app.use(
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      const envOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(u => u.trim()) : [];
+      const normalizedOrigin = normalizeOrigin(origin);
+      const envOrigins = process.env.CLIENT_URL
+        ? process.env.CLIENT_URL.split(',').map((u) => normalizeOrigin(u)).filter(Boolean)
+        : [];
       const localOrigins = [
         'http://localhost:5173',
         'http://localhost:4173',
@@ -125,12 +136,17 @@ app.use(
         'http://127.0.0.1:5173',
         'http://127.0.0.1:4173',
         'http://127.0.0.1:4174',
-      ];
+      ].map((u) => normalizeOrigin(u));
 
       // Allow exact matches from ENV, local testing, OR any dynamically generated Vercel domain
-      if (envOrigins.includes(origin) || localOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      if (
+        envOrigins.includes(normalizedOrigin) ||
+        localOrigins.includes(normalizedOrigin) ||
+        normalizedOrigin.endsWith('.vercel.app')
+      ) {
         callback(null, true);
       } else {
+        console.warn(`CORS blocked origin: ${origin}`);
         callback(null, false);
       }
     },

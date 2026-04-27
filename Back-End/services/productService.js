@@ -83,6 +83,9 @@ function buildProductFilter(query = {}) {
 
   const filter = {};
 
+  // Archived products should not appear in customer-facing catalog requests.
+  filter.isArchived = { $ne: true };
+
   if (rawIds.length > 0) {
     filter._id = { $in: ids };
   }
