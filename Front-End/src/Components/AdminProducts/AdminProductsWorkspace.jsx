@@ -702,17 +702,17 @@ export default function AdminProductsWorkspace() {
 
       {/* Variant Modals */}
       <VariantManagementModal
+        key={variantModals.isAddModalOpen ? 'add-open' : 'add-closed'}
         isOpen={variantModals.isAddModalOpen}
         onClose={closeAddVariantModal}
-        product={selectedProduct}
         onSave={handleAddVariant}
         isSaving={false}
       />
 
       <VariantManagementModal
+        key={selectedVariant?._id ?? 'edit-no-variant'}
         isOpen={variantModals.isEditModalOpen}
         onClose={closeEditVariantModal}
-        product={selectedProduct}
         variant={selectedVariant}
         onSave={handleUpdateVariant}
         isSaving={false}

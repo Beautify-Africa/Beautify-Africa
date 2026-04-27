@@ -1,49 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdminFlashNotice from '../AdminShared/AdminFlashNotice';
 
 export default function VariantManagementModal({
   isOpen,
   onClose,
-  product,
   variant = null,
   onSave,
   isSaving,
 }) {
-  const [formData, setFormData] = useState({
-    sku: '',
-    size: '',
-    color: '',
-    type: '',
-    stockQuantity: 0,
-    price: '',
-  });
+  const [formData, setFormData] = useState(() => ({
+    sku: variant?.sku || '',
+    size: variant?.attributes?.size || '',
+    color: variant?.attributes?.color || '',
+    type: variant?.attributes?.type || '',
+    stockQuantity: variant?.stockQuantity || 0,
+    price: variant?.price || '',
+  }));
 
   const [validationErrors, setValidationErrors] = useState({});
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (variant) {
-      setFormData({
-        sku: variant.sku || '',
-        size: variant.attributes?.size || '',
-        color: variant.attributes?.color || '',
-        type: variant.attributes?.type || '',
-        stockQuantity: variant.stockQuantity || 0,
-        price: variant.price || '',
-      });
-    } else {
-      setFormData({
-        sku: '',
-        size: '',
-        color: '',
-        type: '',
-        stockQuantity: 0,
-        price: '',
-      });
-    }
-    setValidationErrors({});
-    setError('');
-  }, [isOpen, variant]);
 
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;

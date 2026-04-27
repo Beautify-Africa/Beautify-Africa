@@ -11,12 +11,6 @@ function StatCard({ label, value, unit = '', color = 'stone' }) {
     red: 'bg-red-50 border-red-200',
   }[color];
 
-  const textColor = {
-    stone: 'text-stone-900',
-    green: 'text-green-900',
-    amber: 'text-amber-900',
-    red: 'text-red-900',
-  }[color];
 
   const valueColor = {
     stone: 'text-stone-600',
