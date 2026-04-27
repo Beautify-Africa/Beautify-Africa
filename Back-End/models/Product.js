@@ -76,7 +76,6 @@ const productSchema = new mongoose.Schema(
       type: String,
       enum: ['draft', 'published', 'archived'],
       default: 'published',
-      index: true,
     },
     // For backward compatibility: keep isArchived but status takes precedence
     isArchived: {
@@ -189,9 +188,8 @@ productSchema.index({ category: 1, createdAt: -1 });
 productSchema.index({ brand: 1, createdAt: -1 });
 productSchema.index({ skinType: 1, createdAt: -1 });
 productSchema.index({ inStock: 1, createdAt: -1 });
-// Phase 3: Indexes for status filtering and variants
+// Phase 3: Compound index for status-filtered listing queries (covers single-field status lookups as prefix)
 productSchema.index({ status: 1, createdAt: -1 });
-productSchema.index({ status: 1 });
 // Unique index on variant SKU within each product
 productSchema.index({ 'variants.sku': 1 }, { sparse: true, unique: false });
 productSchema.index(
