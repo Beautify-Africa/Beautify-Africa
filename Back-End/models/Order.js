@@ -1,6 +1,36 @@
 // models/Order.js
 const mongoose = require('mongoose');
 
+const adminTimelineEntrySchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ['action', 'note'],
+      required: true,
+    },
+    action: {
+      type: String,
+      default: '',
+    },
+    note: {
+      type: String,
+      default: '',
+      maxlength: 600,
+    },
+    adminName: {
+      type: String,
+      default: 'Admin',
+    },
+    adminEmail: {
+      type: String,
+      default: '',
+    },
+  },
+  {
+    timestamps: { createdAt: true, updatedAt: false },
+  }
+);
+
 const orderSchema = new mongoose.Schema(
   {
     user: {
@@ -83,6 +113,10 @@ const orderSchema = new mongoose.Schema(
     },
     deliveredAt: {
       type: Date,
+    },
+    adminTimeline: {
+      type: [adminTimelineEntrySchema],
+      default: [],
     },
   },
   {
