@@ -23,8 +23,7 @@ export const ADMIN_NAV_ITEMS = [
   {
     label: 'Analytics',
     href: '/admin/analytics',
-    description: 'Phase 2 reporting and commercial insights.',
-    isSoon: true,
+    description: 'Revenue reporting, velocity trends, and forecasting.',
   },
 ];
 
