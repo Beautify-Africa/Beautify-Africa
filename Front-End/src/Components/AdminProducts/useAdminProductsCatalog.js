@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useLocalStorageState } from '../../hooks/useLocalStorageState';
 import { exportAdminProducts, fetchAdminProducts, importAdminProducts, setAdminProductArchived } from '../../services/adminApi';
@@ -22,7 +22,10 @@ export default function useAdminProductsCatalog() {
   const [isBulkImporting, setIsBulkImporting] = useState(false);
   const [isBulkExporting, setIsBulkExporting] = useState(false);
 
-  const activeProductFilters = { ...DEFAULT_PRODUCT_FILTERS, ...(productFilters || {}) };
+  const activeProductFilters = useMemo(
+    () => ({ ...DEFAULT_PRODUCT_FILTERS, ...(productFilters || {}) }),
+    [productFilters]
+  );
   const lowStockProducts = products.filter((product) => {
     const threshold = Number(product?.lowStockThreshold ?? 5);
     return Array.isArray(product?.variants) && product.variants.length > 0
