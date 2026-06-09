@@ -1,11 +1,14 @@
 // queues/inventoryNotificationQueue.js
 // Queue for inventory notification jobs (low stock alerts, restock reminders)
 const { Queue, QueueEvents } = require('bullmq');
-const redisClient = require('../config/redis');
+const createBullmqRedisConnection = require('../config/bullmqRedis');
 
-// Initialize the queue
+const inventoryNotificationQueueConnection = createBullmqRedisConnection();
+const inventoryNotificationQueueEventsConnection = createBullmqRedisConnection();
+
+// Initialize the queue using a dedicated BullMQ Redis connection.
 const inventoryNotificationQueue = new Queue('inventoryNotifications', {
-  connection: redisClient,
+  connection: inventoryNotificationQueueConnection,
   defaultJobOptions: {
     attempts: 2,
     backoff: {
@@ -17,7 +20,7 @@ const inventoryNotificationQueue = new Queue('inventoryNotifications', {
 
 // Add queue events listener
 const inventoryNotificationQueueEvents = new QueueEvents('inventoryNotifications', {
-  connection: redisClient,
+  connection: inventoryNotificationQueueEventsConnection,
 });
 
 module.exports = {

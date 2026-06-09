@@ -1,13 +1,16 @@
 const { Queue, QueueEvents } = require('bullmq');
-const redisClient = require('../config/redis');
+const createBullmqRedisConnection = require('../config/bullmqRedis');
 
-// Initialize the queue and bind it to our shared Redis connection
+const emailQueueConnection = createBullmqRedisConnection();
+const emailQueueEventsConnection = createBullmqRedisConnection();
+
+// Initialize the queue and bind it to a dedicated BullMQ Redis connection.
 const emailQueue = new Queue('emailQueue', {
-  connection: redisClient,
+  connection: emailQueueConnection,
 });
 
 const emailQueueEvents = new QueueEvents('emailQueue', {
-  connection: redisClient,
+  connection: emailQueueEventsConnection,
 });
 
 module.exports = {

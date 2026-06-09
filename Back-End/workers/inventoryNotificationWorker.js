@@ -1,8 +1,10 @@
 // workers/inventoryNotificationWorker.js
 // Background job worker for inventory notifications (low stock alerts, restock reminders)
 const { Worker } = require('bullmq');
-const redisClient = require('../config/redis');
+const createBullmqRedisConnection = require('../config/bullmqRedis');
 const inventoryNotificationService = require('../services/inventoryNotificationService');
+
+const bullmqRedisConnection = createBullmqRedisConnection();
 
 const inventoryNotificationWorker = new Worker(
   'inventoryNotifications',
@@ -39,7 +41,7 @@ const inventoryNotificationWorker = new Worker(
     return result;
   },
   {
-    connection: redisClient,
+    connection: bullmqRedisConnection,
     concurrency: 1, // Process inventory jobs sequentially
   }
 );

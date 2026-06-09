@@ -1,6 +1,8 @@
 const { Worker } = require('bullmq');
-const redisClient = require('../config/redis');
+const createBullmqRedisConnection = require('../config/bullmqRedis');
 const { Resend } = require('resend');
+
+const bullmqRedisConnection = createBullmqRedisConnection();
 
 function buildFromAddress() {
   const resendFrom = String(process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || '').trim();
@@ -46,7 +48,7 @@ const emailWorker = new Worker(
     return resendResult;
   },
   {
-    connection: redisClient,
+    connection: bullmqRedisConnection,
     concurrency: 5, // Process up to 5 emails simultaneously
   }
 );

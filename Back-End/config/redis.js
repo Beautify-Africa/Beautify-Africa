@@ -9,10 +9,10 @@ const redisClient = new Redis(redisUrl, {
   // BullMQ workers require this to be null for blocking Redis commands.
   maxRetriesPerRequest: null,
   connectTimeout: isTestEnv ? 500 : 1500,
-  // Tests can run before Redis is fully connected; queue commands briefly there.
-  enableOfflineQueue: isTestEnv,
-  enableReadyCheck: isTestEnv,
-  lazyConnect: isTestEnv,
+  // Keep command queuing enabled so BullMQ can tolerate brief Redis startup/reconnect windows.
+  enableOfflineQueue: true,
+  enableReadyCheck: true,
+  lazyConnect: false,
   retryStrategy(times) {
     if (isTestEnv) {
       return null;
