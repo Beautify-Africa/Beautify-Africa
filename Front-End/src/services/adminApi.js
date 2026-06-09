@@ -13,6 +13,39 @@ export async function fetchAdminDashboard(token, requestOptions = {}) {
   return json.data;
 }
 
+export async function fetchAdminAnalytics(token, requestOptions = {}) {
+  if (!token) throw new Error('Authentication token required.');
+
+  const json = await requestJson(`${API_URL}/admin/analytics/summary`, {
+    ...requestOptions,
+    token,
+    cache: 'no-store',
+    fallbackMessage: 'Failed to fetch analytics summary.',
+  });
+
+  return json.data;
+}
+
+export async function fetchReorderPlan(query = {}, token, requestOptions = {}) {
+  if (!token) throw new Error('Authentication token required.');
+
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    params.set(key, String(value));
+  });
+
+  const search = params.toString();
+  const json = await requestJson(`${API_URL}/admin/inventory/reorder-plan${search ? `?${search}` : ''}`, {
+    ...requestOptions,
+    token,
+    cache: 'no-store',
+    fallbackMessage: 'Failed to fetch reorder plan.',
+  });
+
+  return json.data;
+}
+
 export async function fetchAdminOrders(query = {}, token, requestOptions = {}) {
   if (!token) throw new Error('Authentication token required.');
 
@@ -243,6 +276,58 @@ export async function duplicateProduct(productId, newName, token, requestOptions
     body: { newName },
     cache: 'no-store',
     fallbackMessage: 'Failed to duplicate product.',
+  });
+
+  return json.data;
+}
+
+export async function exportAdminProducts(query = {}, token, requestOptions = {}) {
+  if (!token) throw new Error('Authentication token required.');
+
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    params.set(key, String(value));
+  });
+
+  const search = params.toString();
+  const response = await fetch(`${API_URL}/products/bulk/export${search ? `?${search}` : ''}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(requestOptions.headers || {}),
+    },
+    cache: 'no-store',
+    credentials: requestOptions.credentials || 'omit',
+    signal: requestOptions.signal,
+  });
+
+  const csv = await response.text();
+
+  if (!response.ok) {
+    throw new Error(csv || 'Failed to export products.');
+  }
+
+  return {
+    csv,
+    filename: 'beautify-africa-products.csv',
+  };
+}
+
+export async function importAdminProducts(csvText, token, requestOptions = {}) {
+  if (!token) throw new Error('Authentication token required.');
+
+  const payload = {
+    csv: csvText,
+  };
+
+  const json = await requestJson(`${API_URL}/products/bulk/import`, {
+    ...requestOptions,
+    method: 'POST',
+    token,
+    body: payload,
+    cache: 'no-store',
+    fallbackMessage: 'Failed to import products.',
   });
 
   return json.data;
