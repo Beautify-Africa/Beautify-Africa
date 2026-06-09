@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const redisClient = require('../config/redis');
+const inventoryService = require('../services/inventoryService');
 
 const FULFILLMENT_STATUSES = ['processing', 'packed', 'shipped', 'delivered'];
 const SUPPORTED_ADMIN_ACTIONS = ['mark_paid', 'pack', 'ship', 'deliver'];
@@ -667,6 +668,25 @@ function buildAtelierNote(orders = []) {
   };
 }
 
+function getOrderValueDate(order = {}) {
+  return order.paidAt || order.createdAt || new Date();
+}
+
+function formatTrendLabel(currentValue = 0, previousValue = 0) {
+  if (!previousValue && !currentValue) {
+    return '0.0%';
+  }
+
+  if (!previousValue) {
+    return '+100.0%';
+  }
+
+  const percent = ((currentValue - previousValue) / previousValue) * 100;
+  return `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%`;
+}
+
+const analytics = require('./adminService.analytics');
+
 function buildAdminDashboardFromOrders(orders = [], now = new Date()) {
   const sortedOrders = orders;
 
@@ -694,6 +714,17 @@ async function fetchAdminDashboard() {
     .lean();
 
   return buildAdminDashboardFromOrders(orders, new Date());
+}
+
+async function fetchAdminAnalytics() {
+  const orders = await Order.find({})
+    .select('orderItems totalPrice isPaid paidAt fulfillmentStatus createdAt')
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const lowStockData = await inventoryService.getLowStockItems(10, { limit: 1 });
+
+  return analytics.buildAdminAnalyticsFromOrders(orders, lowStockData.totalCount, new Date());
 }
 
 function normalizeAdminNote(note = '') {
@@ -1200,6 +1231,8 @@ module.exports = {
   SUPPORTED_ADMIN_ACTIONS,
   buildAdminDashboardFromOrders,
   fetchAdminDashboard,
+  fetchAdminAnalytics,
+  fetchReorderPlan: analytics.fetchReorderPlan,
   updateAdminOrder,
   applyAdminOrderAction,
   addAdminOrderNote,
