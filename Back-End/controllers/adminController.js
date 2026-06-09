@@ -1,5 +1,7 @@
 const {
   fetchAdminDashboard,
+  fetchAdminAnalytics,
+  fetchReorderPlan,
   updateAdminOrder,
   addAdminOrderNote,
   fetchAdminOrderTimeline,
@@ -42,6 +44,52 @@ async function getAdminDashboard(req, res) {
     return res.status(500).json({
       status: 'error',
       message: 'An unexpected error occurred while fetching the admin dashboard.',
+    });
+  }
+}
+
+async function getAdminAnalytics(req, res) {
+  try {
+    const analytics = await fetchAdminAnalytics();
+
+    return res.status(200).json({
+      status: 'success',
+      data: analytics,
+    });
+  } catch (error) {
+    console.error('getAdminAnalytics error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'An unexpected error occurred while fetching analytics.',
+    });
+  }
+}
+
+async function getReorderPlan(req, res) {
+  try {
+    const reorderPlan = await fetchReorderPlan({
+      threshold: req.query?.threshold,
+      leadTimeDays: req.query?.leadTimeDays,
+      windowDays: req.query?.windowDays,
+    });
+
+    const wantsCsv = String(req.query?.format || '').toLowerCase() === 'csv';
+
+    if (wantsCsv) {
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${reorderPlan.filename}"`);
+      return res.status(200).send(reorderPlan.csv);
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: reorderPlan,
+    });
+  } catch (error) {
+    console.error('getReorderPlan error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'An unexpected error occurred while building reorder recommendations.',
     });
   }
 }
@@ -493,6 +541,8 @@ async function getNotificationStatus(req, res) {
 
 module.exports = {
   getAdminDashboard,
+  getAdminAnalytics,
+  getReorderPlan,
   updateAdminOrderStatus,
   createAdminOrderNote,
   getAdminOrderTimeline,

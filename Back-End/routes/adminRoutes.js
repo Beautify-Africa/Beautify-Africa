@@ -1,6 +1,8 @@
 const express = require('express');
 const {
 	getAdminDashboard,
+	getAdminAnalytics,
+	getReorderPlan,
 	getAdminOrders,
 	getAdminOrderDetail,
 	updateAdminOrderStatus,
@@ -25,6 +27,8 @@ router.use(setPrivateNoStore);
 router.use(protect, requireAdmin);
 
 router.get('/dashboard', getAdminDashboard);
+router.get('/analytics/summary', getAdminAnalytics);
+router.get('/inventory/reorder-plan', getReorderPlan);
 router.get('/orders', getAdminOrders);
 router.get('/orders/:id', getAdminOrderDetail);
 router.patch('/orders/:id', updateAdminOrderStatus);

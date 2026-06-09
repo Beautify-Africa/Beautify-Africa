@@ -5,6 +5,8 @@ const request = require('supertest');
 jest.mock('../models/User');
 jest.mock('../services/adminService', () => ({
   fetchAdminDashboard: jest.fn(),
+  fetchAdminAnalytics: jest.fn(),
+  fetchReorderPlan: jest.fn(),
   fetchAdminOrders: jest.fn(),
   fetchAdminOrderDetail: jest.fn(),
   updateAdminOrder: jest.fn(),
@@ -19,6 +21,8 @@ jest.mock('../services/adminService', () => ({
 const User = require('../models/User');
 const {
   fetchAdminDashboard,
+  fetchAdminAnalytics,
+  fetchReorderPlan,
   fetchAdminOrders,
   fetchAdminOrderDetail,
   updateAdminOrder,
@@ -97,6 +101,62 @@ describe('Admin routes', () => {
     expect(response.body.status).toBe('success');
     expect(fetchAdminDashboard).toHaveBeenCalledTimes(1);
     expect(response.body.data.stats).toHaveLength(1);
+  });
+
+  test('allows admin users to fetch analytics summary', async () => {
+    User.findById.mockResolvedValue({
+      _id: ADMIN_ID,
+      name: 'Admin User',
+      email: 'admin@test.com',
+      isAdmin: true,
+    });
+    fetchAdminAnalytics.mockResolvedValue({
+      summary: { totalOrders: 1, paidOrders: 1 },
+      velocity: { salesSeries: [] },
+      topProducts: [],
+      fulfillmentBreakdown: [],
+      forecast: { next7dRevenue: '$100.00' },
+    });
+
+    const response = await request(app)
+      .get('/api/admin/analytics/summary')
+      .set('Authorization', `Bearer ${authTokenFor(ADMIN_ID)}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(fetchAdminAnalytics).toHaveBeenCalledTimes(1);
+  });
+
+  test('allows admin users to fetch reorder recommendations', async () => {
+    User.findById.mockResolvedValue({
+      _id: ADMIN_ID,
+      name: 'Admin User',
+      email: 'admin@test.com',
+      isAdmin: true,
+    });
+    fetchReorderPlan.mockResolvedValue({
+      summary: { recommendationCount: 1, highPriorityCount: 1, leadTimeDays: 14 },
+      recommendations: [
+        {
+          productId: '507f1f77bcf86cd7994390a1',
+          productName: 'Glow Serum',
+          sku: 'GS-001',
+          type: 'main',
+          recommendedOrderQty: 20,
+          urgency: 'high',
+        },
+      ],
+      csv: 'productName,sku\nGlow Serum,GS-001\n',
+      filename: 'beautify-africa-reorder-plan.csv',
+    });
+
+    const response = await request(app)
+      .get('/api/admin/inventory/reorder-plan')
+      .set('Authorization', `Bearer ${authTokenFor(ADMIN_ID)}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe('success');
+    expect(fetchReorderPlan).toHaveBeenCalledTimes(1);
   });
 
   test('patches order using provided action', async () => {
