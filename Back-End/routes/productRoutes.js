@@ -12,6 +12,8 @@ const {
   removeVariant,
   setProductStatus,
   duplicateProduct,
+  exportProducts,
+  importProducts,
   adjustVariantStock,
   getStockHistory,
 } = require('../controllers/productController');
@@ -27,6 +29,10 @@ router.get('/:idOrSlug', setPublicCache(120, 600), getProductByIdOrSlug);
 router.post('/:id/reviews', protect, createProductReview);
 
 // ===== PHASE 3: Variant & Status Management Routes (Admin Only) =====
+// Bulk import/export (admin only)
+router.get('/bulk/export', protect, requireAdmin, exportProducts);
+router.post('/bulk/import', protect, requireAdmin, importProducts);
+
 // Get variants (public)
 router.get('/:id/variants', getVariants);
 
