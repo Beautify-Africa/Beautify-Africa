@@ -14,7 +14,7 @@ const redisClient = require('../config/redis');
 const authRoutes = require('../routes/authRoutes');
 const { buildJwtBlacklistKey } = require('../services/authService');
 
-const USER_ID = '507f1f77bcf86cd799439011';
+const USER_ID = 'e111a111-a111-a111-a111-a111a111a111';
 
 function createApp() {
   const app = express();
@@ -39,7 +39,8 @@ describe('Auth logout + JWT blacklist flow', () => {
     jest.clearAllMocks();
     app = createApp();
 
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: USER_ID,
       _id: USER_ID,
       name: 'Blacklist Tester',
       email: 'blacklist@test.com',
@@ -90,6 +91,6 @@ describe('Auth logout + JWT blacklist flow', () => {
     expect(response.status).toBe(401);
     expect(response.body.status).toBe('error');
     expect(response.body.message).toMatch(/invalidated/i);
-    expect(User.findById).not.toHaveBeenCalled();
+    expect(User.findByPk).not.toHaveBeenCalled();
   });
 });

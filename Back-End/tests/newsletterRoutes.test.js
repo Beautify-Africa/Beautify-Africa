@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const request = require('supertest');
+const { Op } = require('sequelize');
 
 jest.mock('../models/Newsletter');
 jest.mock('../utils/sendEmail');
@@ -20,8 +21,8 @@ function createSubscriberDoc(overrides = {}) {
   const subscriber = {
     email: 'subscriber@test.com',
     isActive: true,
-    unsubscribeToken: undefined,
-    unsubscribeTokenExpires: undefined,
+    unsubscribeToken: null,
+    unsubscribeTokenExpires: null,
     unsubscribedAt: null,
     save: jest.fn(),
     ...overrides,
@@ -89,8 +90,10 @@ describe('Newsletter unsubscribe routes', () => {
     expect(response.status).toBe(200);
     expect(response.body.status).toBe('success');
     expect(Newsletter.findOne).toHaveBeenCalledWith({
-      email: 'subscriber@test.com',
-      isActive: true,
+      where: {
+        email: 'subscriber@test.com',
+        isActive: true,
+      },
     });
     expect(subscriber.save).toHaveBeenCalledTimes(1);
     expect(subscriber.unsubscribeToken).toEqual(expect.stringMatching(/^[a-f0-9]{64}$/));
@@ -116,8 +119,8 @@ describe('Newsletter unsubscribe routes', () => {
     expect(response.status).toBe(500);
     expect(response.body.status).toBe('error');
     expect(subscriber.save).toHaveBeenCalledTimes(2);
-    expect(subscriber.unsubscribeToken).toBeUndefined();
-    expect(subscriber.unsubscribeTokenExpires).toBeUndefined();
+    expect(subscriber.unsubscribeToken).toBeNull();
+    expect(subscriber.unsubscribeTokenExpires).toBeNull();
   });
 
   test('rejects unsubscribe confirmation without token', async () => {
@@ -163,12 +166,12 @@ describe('Newsletter unsubscribe routes', () => {
     expect(response.body.message).toMatch(/unsubscribed/i);
     expect(subscriber.isActive).toBe(false);
     expect(subscriber.unsubscribedAt).toBeInstanceOf(Date);
-    expect(subscriber.unsubscribeToken).toBeUndefined();
-    expect(subscriber.unsubscribeTokenExpires).toBeUndefined();
+    expect(subscriber.unsubscribeToken).toBeNull();
+    expect(subscriber.unsubscribeTokenExpires).toBeNull();
     expect(subscriber.save).toHaveBeenCalledTimes(1);
 
     const query = Newsletter.findOne.mock.calls[0][0];
-    expect(query.unsubscribeToken).toBe(expectedHashedToken);
-    expect(query.unsubscribeTokenExpires.$gt).toBeInstanceOf(Date);
+    expect(query.where.unsubscribeToken).toBe(expectedHashedToken);
+    expect(query.where.unsubscribeTokenExpires[Op.gt]).toBeInstanceOf(Date);
   });
 });
