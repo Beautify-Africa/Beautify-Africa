@@ -1,12 +1,13 @@
-const mongoose = require('mongoose');
-const Product = require('../models/Product');
+const { Product, ProductVariant } = require('../models/Product');
 const { bumpProductCacheVersion } = require('./productController.cache');
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // PATCH /api/products/:id/status
 // Change product status (draft/published/archived) - admin only
 async function setProductStatus(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
@@ -19,15 +20,15 @@ async function setProductStatus(req, res) {
       });
     }
 
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true }
-    );
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
+
+    product.status = status;
+    product.isArchived = status === 'archived';
+    await product.save();
 
     await bumpProductCacheVersion();
 
@@ -35,7 +36,8 @@ async function setProductStatus(req, res) {
       status: 'success',
       message: 'Product status updated',
       data: {
-        _id: product._id,
+        _id: product.id,
+        id: product.id,
         status: product.status,
         isArchived: product.isArchived,
       },
@@ -43,8 +45,8 @@ async function setProductStatus(req, res) {
   } catch (error) {
     console.error('setProductStatus error:', error);
 
-    if (error.name === 'ValidationError') {
-      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid status';
+    if (error.name === 'SequelizeValidationError') {
+      const firstMessage = error.errors?.[0]?.message || 'Invalid status';
       return res.status(400).json({ status: 'error', message: firstMessage });
     }
 
@@ -56,11 +58,13 @@ async function setProductStatus(req, res) {
 // Clone a product with all its data (admin only)
 async function duplicateProduct(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
-    const sourceProduct = await Product.findById(req.params.id);
+    const sourceProduct = await Product.findByPk(req.params.id, {
+      include: [{ model: ProductVariant, as: 'variants' }],
+    });
 
     if (!sourceProduct) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
@@ -68,40 +72,51 @@ async function duplicateProduct(req, res) {
 
     const newName = req.body.name || `${sourceProduct.name} (Copy)`;
 
-    const newProduct = new Product({
+    const newProduct = await Product.create({
       name: newName,
       brand: sourceProduct.brand,
       category: sourceProduct.category,
+      subcategory: sourceProduct.subcategory,
       price: sourceProduct.price,
       originalPrice: sourceProduct.originalPrice,
       image: sourceProduct.image,
-      images: [...sourceProduct.images],
+      images: [...(sourceProduct.images || [])],
       description: sourceProduct.description,
-      skinType: [...sourceProduct.skinType],
+      skinType: [...(sourceProduct.skinType || [])],
       ingredients: sourceProduct.ingredients,
       howToUse: sourceProduct.howToUse,
-      tags: [...sourceProduct.tags],
+      tags: [...(sourceProduct.tags || [])],
       stockQuantity: sourceProduct.stockQuantity,
       lowStockThreshold: sourceProduct.lowStockThreshold,
-      variants: sourceProduct.variants.map((v) => ({
-        sku: `${v.sku}-copy-${Date.now()}`,
-        attributes: { ...v.attributes },
-        stockQuantity: v.stockQuantity,
-        price: v.price,
-      })),
       status: 'draft',
       isNewProduct: true,
       isBestSeller: false,
     });
 
-    await newProduct.save();
+    // Clone variants if present
+    if (sourceProduct.variants && sourceProduct.variants.length > 0) {
+      await ProductVariant.bulkCreate(
+        sourceProduct.variants.map((v) => ({
+          productId: newProduct.id,
+          sku: `${v.sku}-copy-${Date.now()}`,
+          size: v.size,
+          color: v.color,
+          type: v.type,
+          stockQuantity: v.stockQuantity,
+          price: v.price,
+          inStock: v.stockQuantity > 0,
+        }))
+      );
+    }
+
     await bumpProductCacheVersion();
 
     return res.status(201).json({
       status: 'success',
       message: 'Product duplicated',
       data: {
-        _id: newProduct._id,
+        _id: newProduct.id,
+        id: newProduct.id,
         name: newProduct.name,
         status: newProduct.status,
         slug: newProduct.slug,
@@ -110,8 +125,8 @@ async function duplicateProduct(req, res) {
   } catch (error) {
     console.error('duplicateProduct error:', error);
 
-    if (error.name === 'ValidationError') {
-      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid product data';
+    if (error.name === 'SequelizeValidationError') {
+      const firstMessage = error.errors?.[0]?.message || 'Invalid product data';
       return res.status(400).json({ status: 'error', message: firstMessage });
     }
 

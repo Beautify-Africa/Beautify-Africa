@@ -1,16 +1,17 @@
-const mongoose = require('mongoose');
 const inventoryService = require('../services/inventoryService');
 const { bumpProductCacheVersion } = require('./productController.cache');
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // POST /api/products/:id/variants/:variantId/stock
 // Adjust stock for a specific variant and record in ledger
 async function adjustVariantStock(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.variantId)) {
+    if (!UUID_REGEX.test(String(req.params.variantId || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid variant ID' });
     }
 
@@ -33,7 +34,7 @@ async function adjustVariantStock(req, res) {
       quantity,
       reason,
       notes,
-      req.user?._id || null
+      req.user?.id || req.user?._id || null
     );
 
     await bumpProductCacheVersion();
@@ -54,7 +55,7 @@ async function adjustVariantStock(req, res) {
 // Retrieve inventory ledger history for a product or specific variant
 async function getStockHistory(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
@@ -65,7 +66,7 @@ async function getStockHistory(req, res) {
 
     const history = await inventoryService.getStockHistory(
       req.params.id,
-      variantId && mongoose.Types.ObjectId.isValid(variantId) ? variantId : null,
+      variantId && UUID_REGEX.test(String(variantId)) ? variantId : null,
       parsedLimit,
       parsedSkip,
       type
