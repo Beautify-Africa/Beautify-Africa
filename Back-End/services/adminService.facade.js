@@ -1,2 +1,2 @@
-// Thin façade to preserve public API while allowing future modularization.
+// services/adminService.facade.js
 module.exports = require('./adminService');
