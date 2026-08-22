@@ -1,10 +1,8 @@
-const mongoose = require('mongoose');
+// services/wishlistHelpers.js
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function createServiceError(statusCode, message) {
-  return {
-    statusCode,
-    message,
-  };
+  return { statusCode, message };
 }
 
 function normalizeProductId(productId) {
@@ -14,18 +12,16 @@ function normalizeProductId(productId) {
 }
 
 function validateProductId(productId) {
-  if (!mongoose.Types.ObjectId.isValid(productId)) {
-    return {
-      error: createServiceError(400, 'Invalid product ID'),
-    };
+  if (!UUID_REGEX.test(String(productId || '').trim())) {
+    return { error: createServiceError(400, 'Invalid product ID') };
   }
-
   return {};
 }
 
 function wishlistContainsProduct(wishlist, productId) {
   const normalizedProductId = normalizeProductId(productId);
-  return wishlist.items.some((item) => item.toString() === normalizedProductId);
+  // wishlist.items is an array of product UUIDs (strings)
+  return (wishlist.items || []).some((id) => String(id) === normalizedProductId);
 }
 
 function resolveProductId(payload = {}) {
@@ -38,13 +34,11 @@ function normalizeIncomingProductIds(localItems) {
   return localItems
     .map((item) => {
       if (typeof item === 'string') return item.trim();
-
       if (item && typeof item === 'object') {
         const resolved = resolveProductId(item);
         if (typeof resolved === 'string') return resolved.trim();
         if (resolved) return resolved.toString();
       }
-
       return null;
     })
     .filter(Boolean);

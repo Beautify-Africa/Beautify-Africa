@@ -1,67 +1,53 @@
-const mongoose = require('mongoose');
-const Wishlist = require('../models/Wishlist');
-const Product = require('../models/Product');
+// services/wishlistService.js
+const { Op } = require('sequelize');
+const { Wishlist, WishlistProduct } = require('../models/Wishlist');
+const { Product } = require('../models/Product');
 const {
   createServiceError,
   normalizeProductId,
   validateProductId,
-  wishlistContainsProduct,
   resolveProductId,
   normalizeIncomingProductIds,
 } = require('./wishlistHelpers');
 
-const PRODUCT_SELECT_FIELDS =
-  'name slug brand category price originalPrice rating numReviews inStock image images isNewProduct isBestSeller';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const PRODUCT_SELECT_FIELDS = [
+  'id', 'name', 'slug', 'brand', 'category', 'price', 'originalPrice',
+  'rating', 'numReviews', 'inStock', 'image', 'images', 'isNewProduct', 'isBestSeller',
+];
 
 async function ensureProductExists(productId) {
-  const productQuery = Product.findById(productId);
-  let product;
-
-  if (productQuery && typeof productQuery.select === 'function') {
-    const selected = productQuery.select('_id');
-    product = selected && typeof selected.lean === 'function' ? await selected.lean() : await selected;
-  } else {
-    product = await productQuery;
-  }
-
-  if (!product) {
-    return {
-      error: createServiceError(404, 'Product not found'),
-    };
-  }
-
+  const product = await Product.findByPk(productId, { attributes: ['id'] });
+  if (!product) return { error: createServiceError(404, 'Product not found') };
   return { product };
 }
 
-
 async function findOrCreateWishlist(userId) {
-  let wishlist = await Wishlist.findOne({ user: userId });
-  if (!wishlist) {
-    wishlist = await Wishlist.create({ user: userId, items: [] });
-  }
+  const [wishlist] = await Wishlist.findOrCreate({ where: { userId }, defaults: { userId } });
   return wishlist;
 }
 
-async function populateWishlistProducts(wishlist) {
-  await wishlist.populate({
-    path: 'items',
-    select: PRODUCT_SELECT_FIELDS,
+async function getWishlistProductIds(wishlistId) {
+  const items = await WishlistProduct.findAll({ where: { wishlistId }, attributes: ['productId'] });
+  return items.map((i) => i.productId);
+}
+
+async function populateWishlistProducts(wishlistId) {
+  const productIds = await getWishlistProductIds(wishlistId);
+  if (productIds.length === 0) return [];
+  const products = await Product.findAll({
+    where: { id: { [Op.in]: productIds } },
+    attributes: PRODUCT_SELECT_FIELDS,
+    raw: true,
   });
-
-  const products = wishlist.items.filter((item) => item && item._id);
-
-  if (products.length !== wishlist.items.length) {
-    wishlist.items = products.map((product) => product._id);
-    await wishlist.save();
-  }
-
-  return products;
+  // Map _id for compat
+  return products.map((p) => ({ ...p, _id: p.id }));
 }
 
 async function getWishlistProductsForUser(userId) {
   const wishlist = await findOrCreateWishlist(userId);
-  const products = await populateWishlistProducts(wishlist);
-
+  const products = await populateWishlistProducts(wishlist.id);
   return { products };
 }
 
@@ -75,17 +61,12 @@ async function addProductToWishlist(userId, productId) {
 
   const wishlist = await findOrCreateWishlist(userId);
 
-  if (!wishlistContainsProduct(wishlist, normalizedProductId)) {
-    wishlist.items.push(normalizedProductId);
-    await wishlist.save();
-  }
+  await WishlistProduct.findOrCreate({
+    where: { wishlistId: wishlist.id, productId: normalizedProductId },
+  });
 
-  const products = await populateWishlistProducts(wishlist);
-
-  return {
-    inWishlist: true,
-    products,
-  };
+  const products = await populateWishlistProducts(wishlist.id);
+  return { inWishlist: true, products };
 }
 
 async function toggleWishlistProduct(userId, productId) {
@@ -95,120 +76,81 @@ async function toggleWishlistProduct(userId, productId) {
   const normalizedProductId = normalizeProductId(productId);
   const wishlist = await findOrCreateWishlist(userId);
 
-  const existingIndex = wishlist.items.findIndex(
-    (item) => item.toString() === normalizedProductId
-  );
+  const existing = await WishlistProduct.findOne({
+    where: { wishlistId: wishlist.id, productId: normalizedProductId },
+  });
 
-  let action = 'added';
-
-  if (existingIndex >= 0) {
-    wishlist.items.splice(existingIndex, 1);
+  let action;
+  if (existing) {
+    await existing.destroy();
     action = 'removed';
   } else {
     const { error: productError } = await ensureProductExists(normalizedProductId);
     if (productError) return { error: productError };
-
-    wishlist.items.push(normalizedProductId);
+    await WishlistProduct.create({ wishlistId: wishlist.id, productId: normalizedProductId });
+    action = 'added';
   }
 
-  await wishlist.save();
-  const products = await populateWishlistProducts(wishlist);
-
-  return {
-    action,
-    inWishlist: action === 'added',
-    products,
-  };
+  const products = await populateWishlistProducts(wishlist.id);
+  return { action, inWishlist: action === 'added', products };
 }
 
 async function removeProductFromWishlist(userId, productId) {
   const { error: invalidIdError } = validateProductId(productId);
   if (invalidIdError) return { error: invalidIdError };
 
-  const wishlist = await Wishlist.findOne({ user: userId });
-
-  if (!wishlist) {
-    return {
-      inWishlist: false,
-      products: [],
-    };
-  }
-
   const normalizedProductId = normalizeProductId(productId);
+  const wishlist = await Wishlist.findOne({ where: { userId } });
 
-  wishlist.items = wishlist.items.filter((item) => item.toString() !== normalizedProductId);
-  await wishlist.save();
+  if (!wishlist) return { inWishlist: false, products: [] };
 
-  const products = await populateWishlistProducts(wishlist);
+  await WishlistProduct.destroy({
+    where: { wishlistId: wishlist.id, productId: normalizedProductId },
+  });
 
-  return {
-    inWishlist: false,
-    products,
-  };
+  const products = await populateWishlistProducts(wishlist.id);
+  return { inWishlist: false, products };
 }
 
 async function syncWishlistProducts(userId, localItems) {
   if (!Array.isArray(localItems)) {
-    return {
-      error: createServiceError(400, 'Expected an array of items'),
-    };
+    return { error: createServiceError(400, 'Expected an array of items') };
   }
 
   const normalizedIds = [
     ...new Set(
-      normalizeIncomingProductIds(localItems).filter((id) => mongoose.Types.ObjectId.isValid(id))
+      normalizeIncomingProductIds(localItems).filter((id) => UUID_REGEX.test(id))
     ),
   ];
 
   const wishlist = await findOrCreateWishlist(userId);
-  const existingProductIds = new Set(wishlist.items.map((item) => item.toString()));
-  const missingProductIds = normalizedIds.filter((id) => !existingProductIds.has(id));
+  const existingIds = new Set(await getWishlistProductIds(wishlist.id));
+  const newIds = normalizedIds.filter((id) => !existingIds.has(id));
 
-  if (missingProductIds.length > 0) {
-    const existingProductsQuery = Product.find({ _id: { $in: missingProductIds } });
-    let existingProducts;
-
-    if (existingProductsQuery && typeof existingProductsQuery.select === 'function') {
-      const selected = existingProductsQuery.select('_id');
-      existingProducts = selected && typeof selected.lean === 'function'
-        ? await selected.lean()
-        : await selected;
-    } else {
-      existingProducts = await existingProductsQuery;
-    }
-
-    existingProducts.forEach((product) => {
-      wishlist.items.push(product._id);
+  if (newIds.length > 0) {
+    const existingProducts = await Product.findAll({
+      where: { id: { [Op.in]: newIds } },
+      attributes: ['id'],
+      raw: true,
     });
-
-    if (existingProducts.length > 0) {
-      await wishlist.save();
+    const validIds = existingProducts.map((p) => p.id);
+    if (validIds.length > 0) {
+      await WishlistProduct.bulkCreate(
+        validIds.map((productId) => ({ wishlistId: wishlist.id, productId })),
+        { ignoreDuplicates: true }
+      );
     }
   }
 
-  const products = await populateWishlistProducts(wishlist);
-
-  return {
-    count: products.length,
-    products,
-  };
+  const products = await populateWishlistProducts(wishlist.id);
+  return { count: products.length, products };
 }
 
 async function clearWishlistForUser(userId) {
-  const wishlist = await Wishlist.findOne({ user: userId });
-
-  if (!wishlist) {
-    return {
-      products: [],
-    };
-  }
-
-  wishlist.items = [];
-  await wishlist.save();
-
-  return {
-    products: [],
-  };
+  const wishlist = await Wishlist.findOne({ where: { userId } });
+  if (!wishlist) return { products: [] };
+  await WishlistProduct.destroy({ where: { wishlistId: wishlist.id } });
+  return { products: [] };
 }
 
 module.exports = {
