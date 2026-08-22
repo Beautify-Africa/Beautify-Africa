@@ -1,6 +1,7 @@
 // controllers/newsletterController.js
 const crypto = require('crypto');
 const validator = require('validator');
+const { Op } = require('sequelize');
 const Newsletter = require('../models/Newsletter');
 const sendEmail = require('../utils/sendEmail');
 
@@ -60,15 +61,15 @@ const subscribeNewsletter = async (req, res) => {
   }
 
   try {
-    const existingSubscription = await Newsletter.findOne({ email: normalizedEmail });
+    const existingSubscription = await Newsletter.findOne({ where: { email: normalizedEmail } });
 
     if (existingSubscription) {
       if (!existingSubscription.isActive) {
         existingSubscription.isActive = true;
         existingSubscription.unsubscribedAt = null;
-        existingSubscription.unsubscribeToken = undefined;
-        existingSubscription.unsubscribeTokenExpires = undefined;
-        await existingSubscription.save({ validateBeforeSave: false });
+        existingSubscription.unsubscribeToken = null;
+        existingSubscription.unsubscribeTokenExpires = null;
+        await existingSubscription.save();
       }
 
       return res.status(200).json({ status: 'success', message: 'Already subscribed to the newsletter.' });
@@ -123,7 +124,7 @@ const subscribeNewsletter = async (req, res) => {
       });
     } catch (emailError) {
       console.error('Email dispatch failed:', emailError);
-      await Newsletter.deleteOne({ _id: newSubscriber._id });
+      await Newsletter.destroy({ where: { id: newSubscriber.id } });
       return res.status(500).json({
         status: 'error',
         message: 'Unable to deliver welcome email right now. Please try again shortly.',
@@ -148,7 +149,7 @@ const requestNewsletterUnsubscribe = async (req, res) => {
   }
 
   try {
-    const subscriber = await Newsletter.findOne({ email: normalizedEmail, isActive: true });
+    const subscriber = await Newsletter.findOne({ where: { email: normalizedEmail, isActive: true } });
 
     if (!subscriber) {
       return res.status(200).json({
@@ -160,7 +161,7 @@ const requestNewsletterUnsubscribe = async (req, res) => {
     const { rawToken, hashedToken, expiresAt } = createUnsubscribeTokenPayload();
     subscriber.unsubscribeToken = hashedToken;
     subscriber.unsubscribeTokenExpires = expiresAt;
-    await subscriber.save({ validateBeforeSave: false });
+    await subscriber.save();
 
     const unsubscribeLink = buildNewsletterUnsubscribeLink(rawToken);
 
@@ -194,9 +195,9 @@ const requestNewsletterUnsubscribe = async (req, res) => {
         html: emailHtml,
       });
     } catch (emailError) {
-      subscriber.unsubscribeToken = undefined;
-      subscriber.unsubscribeTokenExpires = undefined;
-      await subscriber.save({ validateBeforeSave: false });
+      subscriber.unsubscribeToken = null;
+      subscriber.unsubscribeTokenExpires = null;
+      await subscriber.save();
 
       return res.status(500).json({
         status: 'error',
@@ -227,8 +228,10 @@ const unsubscribeNewsletter = async (req, res) => {
   try {
     const hashedToken = hashUnsubscribeToken(token);
     const subscriber = await Newsletter.findOne({
-      unsubscribeToken: hashedToken,
-      unsubscribeTokenExpires: { $gt: new Date() },
+      where: {
+        unsubscribeToken: hashedToken,
+        unsubscribeTokenExpires: { [Op.gt]: new Date() },
+      },
     });
 
     if (!subscriber) {
@@ -240,9 +243,9 @@ const unsubscribeNewsletter = async (req, res) => {
 
     subscriber.isActive = false;
     subscriber.unsubscribedAt = new Date();
-    subscriber.unsubscribeToken = undefined;
-    subscriber.unsubscribeTokenExpires = undefined;
-    await subscriber.save({ validateBeforeSave: false });
+    subscriber.unsubscribeToken = null;
+    subscriber.unsubscribeTokenExpires = null;
+    await subscriber.save();
 
     return res.status(200).json({
       status: 'success',
