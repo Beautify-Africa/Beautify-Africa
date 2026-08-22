@@ -6,7 +6,6 @@ const path = require('path');
 // --- Third-party ---
 const express = require('express');
 const dotenv = require('dotenv');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
@@ -16,7 +15,7 @@ const { RedisStore } = require('rate-limit-redis');
 const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
-const connectDB = require('./config/db');
+const { connectDB, sequelize } = require('./config/db');
 
 // Dedicated Redis client for rate limiting.
 // Must be separate from the BullMQ client (config/redis.js) which has
@@ -53,7 +52,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
-const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET'];
+const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
@@ -177,9 +176,14 @@ app.get('/', setPrivateNoStore, (req, res) => {
   res.send('E-commerce API is running...');
 });
 
-app.get('/health', setPrivateNoStore, (req, res) => {
-  const readyState = mongoose.connection.readyState;
-  const isDbConnected = readyState === 1;
+app.get('/health', setPrivateNoStore, async (req, res) => {
+  let isDbConnected = false;
+  try {
+    await sequelize.authenticate();
+    isDbConnected = true;
+  } catch {
+    isDbConnected = false;
+  }
 
   res.status(isDbConnected ? 200 : 503).json({
     status: isDbConnected ? 'ok' : 'degraded',
@@ -228,7 +232,11 @@ const shutdown = async (signal) => {
     await new Promise((resolve) => server.close(resolve));
   }
 
-  await mongoose.connection.close();
+  try {
+    await sequelize.close();
+  } catch (err) {
+    console.warn('Error closing database connection:', err.message);
+  }
   process.exit(0);
 };
 

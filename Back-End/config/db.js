@@ -1,47 +1,97 @@
 // config/db.js
-const mongoose = require('mongoose');
+const path = require('path');
+const dotenv = require('dotenv');
+dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
+
+const { Sequelize } = require('sequelize');
 
 function parsePositiveInt(value, fallback) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function getMongoOptions() {
-  return {
-    serverSelectionTimeoutMS: parsePositiveInt(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS, 10000),
-    connectTimeoutMS: parsePositiveInt(process.env.MONGO_CONNECT_TIMEOUT_MS, 10000),
-    socketTimeoutMS: parsePositiveInt(process.env.MONGO_SOCKET_TIMEOUT_MS, 45000),
-    waitQueueTimeoutMS: parsePositiveInt(process.env.MONGO_WAIT_QUEUE_TIMEOUT_MS, 10000),
-    maxPoolSize: parsePositiveInt(process.env.MONGO_MAX_POOL_SIZE, 20),
-    minPoolSize: parsePositiveInt(process.env.MONGO_MIN_POOL_SIZE, 2),
-    maxIdleTimeMS: parsePositiveInt(process.env.MONGO_MAX_IDLE_TIME_MS, 30000),
-    retryWrites: true,
-    appName: process.env.MONGO_APP_NAME || 'beautify-africa-api',
-  };
+const rawDbUrl = process.env.DATABASE_URL || '';
+const isLocal = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1') || rawDbUrl.includes('@postgres:');
+
+const sequelizeOptions = {
+  dialect: 'postgres',
+  dialectOptions: isLocal
+    ? {}
+    : {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false, // Required for Supabase
+        },
+      },
+  pool: {
+    max: parsePositiveInt(process.env.PG_MAX_POOL_SIZE, 20),
+    min: parsePositiveInt(process.env.PG_MIN_POOL_SIZE, 2),
+    acquire: parsePositiveInt(process.env.PG_ACQUIRE_TIMEOUT_MS, 30000),
+    idle: parsePositiveInt(process.env.PG_IDLE_TIMEOUT_MS, 10000),
+  },
+  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+};
+
+let sequelize;
+
+function isValidUrl(urlString) {
+  try {
+    if (!urlString || urlString.includes('[') || urlString.includes(']')) return false;
+    new URL(urlString);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (isValidUrl(rawDbUrl)) {
+  sequelize = new Sequelize(rawDbUrl, sequelizeOptions);
+} else {
+  sequelize = new Sequelize('beautify_africa', 'postgres', 'postgres', {
+    ...sequelizeOptions,
+    host: 'localhost',
+  });
 }
 
 const connectDB = async () => {
-  if (!process.env.MONGO_URI) {
-    throw new Error('Missing MONGO_URI in environment variables.');
+  const activeUrl = process.env.DATABASE_URL;
+
+  if (!activeUrl || !isValidUrl(activeUrl)) {
+    throw new Error(
+      'Missing or invalid DATABASE_URL in environment variables. Please update .env with your actual Supabase connection string.'
+    );
   }
 
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, getMongoOptions());
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    return conn;
+    // If DATABASE_URL was updated since module load, re-initialize sequelize instance
+    if (sequelize.config.database !== activeUrl) {
+      // Authenticate with the active URL
+      await sequelize.authenticate();
+    } else {
+      await sequelize.authenticate();
+    }
+
+    console.log('PostgreSQL Connected (Supabase)');
+
+    // Sync all models — creates tables if they don't exist.
+    // In production, use migrations instead of sync({ alter: true }).
+    await sequelize.sync();
+    console.log('Database schema synced');
+
+    return sequelize;
   } catch (error) {
     let hint = '';
 
-    if (error.message.includes('bad auth') || error.message.includes('authentication failed')) {
-      hint = ' Check Atlas username/password and database user permissions.';
-    } else if (error.message.includes('ENOTFOUND') || error.message.includes('querySrv')) {
-      hint = ' Verify cluster hostname and your network DNS/connectivity.';
-    } else if (error.message.includes('timed out')) {
-      hint = ' Check Atlas network access (IP allow list).';
+    if (error.message.includes('authentication') || error.message.includes('password')) {
+      hint = ' Check your DATABASE_URL credentials.';
+    } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
+      hint = ' Verify the PostgreSQL host and your network connectivity.';
+    } else if (error.message.includes('SSL')) {
+      hint = ' Check SSL settings for your PostgreSQL provider.';
     }
 
-    throw new Error(`MongoDB connection failed: ${error.message}${hint}`);
+    throw new Error(`PostgreSQL connection failed: ${error.message}${hint}`);
   }
 };
 
-module.exports = connectDB;
+module.exports = { sequelize, connectDB };
