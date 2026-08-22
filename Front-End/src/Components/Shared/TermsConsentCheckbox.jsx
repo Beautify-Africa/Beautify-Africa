@@ -22,7 +22,7 @@ export default function TermsConsentCheckbox({
         required={required}
       />
 
-      <label htmlFor={id} className="text-xs leading-relaxed text-stone-500">
+      <label htmlFor={id} className="text-xs leading-relaxed text-stone-600">
         {prefixText}{' '}
         <AppLink href={termsHref} className="underline hover:text-stone-900">
           {termsLabel}
