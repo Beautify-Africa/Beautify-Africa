@@ -13,6 +13,13 @@ function parsePositiveInt(value, fallback) {
 const rawDbUrl = process.env.DATABASE_URL || '';
 const isLocal = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1') || rawDbUrl.includes('@postgres:');
 
+function safeSqlLogger(sql) {
+  if (process.env.NODE_ENV !== 'development') return;
+  const redacted = sql
+    .replace(/(password|passwordResetToken|token|email)\s*=\s*'[^']+'/gi, '$1 = \'[REDACTED]\'');
+  console.log('[SQL]', redacted);
+}
+
 const sequelizeOptions = {
   dialect: 'postgres',
   dialectOptions: isLocal
@@ -20,7 +27,7 @@ const sequelizeOptions = {
     : {
         ssl: {
           require: true,
-          rejectUnauthorized: false, // Required for Supabase
+          rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true',
         },
       },
   pool: {
@@ -29,7 +36,7 @@ const sequelizeOptions = {
     acquire: parsePositiveInt(process.env.PG_ACQUIRE_TIMEOUT_MS, 30000),
     idle: parsePositiveInt(process.env.PG_IDLE_TIMEOUT_MS, 10000),
   },
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging: process.env.NODE_ENV === 'development' ? safeSqlLogger : false,
 };
 
 let sequelize;
