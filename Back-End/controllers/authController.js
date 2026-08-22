@@ -156,14 +156,21 @@ async function updateUserProfile(req, res) {
   try {
     const user = await User.findByPk(req.user.id || req.user._id);
     if (user) {
-      user.name = req.body.name || user.name;
+      if (req.body.name && typeof req.body.name === 'string') {
+        user.name = req.body.name.trim();
+      }
       const normalizedEmail = normalizeEmail(req.body.email || '');
       if (req.body.email && normalizedEmail !== req.user.email) {
         const existingEmail = await User.findOne({ where: { email: normalizedEmail }, attributes: ['id'] });
         if (existingEmail) return res.status(409).json({ status: 'error', message: 'Email is already taken by another account.' });
         user.email = normalizedEmail;
       }
-      if (req.body.password) user.password = req.body.password;
+      if (req.body.password) {
+        if (typeof req.body.password !== 'string' || req.body.password.length < 8) {
+          return res.status(400).json({ status: 'error', message: 'Password must be at least 8 characters long.' });
+        }
+        user.password = req.body.password;
+      }
       const updatedUser = await user.save();
       return res.status(200).json({ status: 'success', user: sanitizeUser(updatedUser) });
     } else {

@@ -20,13 +20,26 @@ function getConfiguredAdminDashboardPassword() {
   return String(process.env.ADMIN_DASHBOARD_PASSWORD || '').trim();
 }
 
+function timingSafeStringEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = crypto.createHash('sha256').update(a).digest();
+  const hashB = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+}
+
 function isConfiguredAdminDashboardCredential(email, password) {
   const normalizedEmail = normalizeEmail(email || '');
-  return (
-    normalizedEmail.length > 0 &&
-    normalizedEmail === getPrimaryConfiguredAdminEmail() &&
-    String(password || '') === getConfiguredAdminDashboardPassword()
-  );
+  const primaryAdminEmail = getPrimaryConfiguredAdminEmail();
+  const configuredPassword = getConfiguredAdminDashboardPassword();
+
+  if (!normalizedEmail || !primaryAdminEmail || !configuredPassword) {
+    return false;
+  }
+
+  const isEmailMatch = timingSafeStringEqual(normalizedEmail, primaryAdminEmail);
+  const isPasswordMatch = timingSafeStringEqual(String(password || ''), configuredPassword);
+
+  return isEmailMatch && isPasswordMatch;
 }
 
 function isAdminUser(userDoc) {
