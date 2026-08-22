@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const Product = require('../models/Product');
+const { Product, ProductVariant } = require('../models/Product');
 const { buildProductFilter, buildProductSortOption } = require('../services/productService');
 const { bumpProductCacheVersion } = require('./productController.cache');
 const {
@@ -11,6 +10,8 @@ const {
   parseCsvRows,
   parseCsvVariants,
 } = require('./productController.csvParsers');
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const BULK_PRODUCT_CSV_HEADERS = [
   '_id',
@@ -39,7 +40,12 @@ function serializeVariantsForCsv(variants = []) {
   if (!Array.isArray(variants) || variants.length === 0) return '';
   const normalizedVariants = variants.map((variant) => ({
     sku: variant?.sku || '',
-    attributes: variant?.attributes || {},
+    attributes: {
+      size: variant?.size || undefined,
+      color: variant?.color || undefined,
+      type: variant?.type || undefined,
+      ...(variant?.attributes || {}),
+    },
     stockQuantity: Number(variant?.stockQuantity || 0),
     price: variant?.price === null || variant?.price === undefined ? null : Number(variant.price),
     inStock: Boolean(variant?.inStock),
@@ -51,7 +57,7 @@ function buildProductCsv(products) {
   const lines = [BULK_PRODUCT_CSV_HEADERS.join(',')];
   products.forEach((product) => {
     const row = [
-      product._id,
+      product.id || product._id,
       product.name,
       product.brand,
       product.category,
@@ -105,6 +111,7 @@ function normalizeBulkProductPayload(rawProduct = {}) {
     variants: parseCsvVariants(rawProduct.variants),
   };
 }
+
 // GET /api/products/bulk/export
 async function exportProducts(req, res) {
   try {
@@ -116,7 +123,11 @@ async function exportProducts(req, res) {
     });
 
     const sortOption = buildProductSortOption(req.query.sort);
-    const products = await Product.find(filter).sort(sortOption).lean();
+    const products = await Product.findAll({
+      where: filter,
+      order: sortOption,
+      include: [{ model: ProductVariant, as: 'variants' }],
+    });
     const csv = buildProductCsv(products);
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -169,20 +180,72 @@ async function importProducts(req, res) {
           throw new Error('name, brand, category, image, and price are required');
         }
 
-        const hasValidId = rawProduct && mongoose.Types.ObjectId.isValid(rawProduct._id);
+        const rawId = rawProduct._id || rawProduct.id;
+        const hasValidId = rawId && UUID_REGEX.test(String(rawId));
+
+        const variantsToSave = normalizedProduct.variants || [];
+        delete normalizedProduct.variants;
 
         if (hasValidId) {
-          const existingProduct = await Product.findById(rawProduct._id);
+          const existingProduct = await Product.findByPk(rawId);
           if (existingProduct) {
             Object.assign(existingProduct, normalizedProduct);
             const savedProduct = await existingProduct.save();
-            updated.push({ _id: savedProduct._id, name: savedProduct.name });
+
+            if (variantsToSave.length > 0) {
+              for (const v of variantsToSave) {
+                if (!v.sku) continue;
+                const existingV = await ProductVariant.findOne({
+                  where: { productId: savedProduct.id, sku: v.sku },
+                });
+                if (existingV) {
+                  await existingV.update({
+                    size: v.attributes?.size || null,
+                    color: v.attributes?.color || null,
+                    type: v.attributes?.type || null,
+                    stockQuantity: v.stockQuantity || 0,
+                    price: v.price,
+                    inStock: (v.stockQuantity || 0) > 0,
+                  });
+                } else {
+                  await ProductVariant.create({
+                    productId: savedProduct.id,
+                    sku: v.sku,
+                    size: v.attributes?.size || null,
+                    color: v.attributes?.color || null,
+                    type: v.attributes?.type || null,
+                    stockQuantity: v.stockQuantity || 0,
+                    price: v.price,
+                    inStock: (v.stockQuantity || 0) > 0,
+                  });
+                }
+              }
+            }
+
+            updated.push({ _id: savedProduct.id, name: savedProduct.name });
             continue;
           }
         }
 
-        const savedProduct = await new Product(normalizedProduct).save();
-        created.push({ _id: savedProduct._id, name: savedProduct.name });
+        const savedProduct = await Product.create(normalizedProduct);
+
+        if (variantsToSave.length > 0) {
+          for (const v of variantsToSave) {
+            if (!v.sku) continue;
+            await ProductVariant.create({
+              productId: savedProduct.id,
+              sku: v.sku,
+              size: v.attributes?.size || null,
+              color: v.attributes?.color || null,
+              type: v.attributes?.type || null,
+              stockQuantity: v.stockQuantity || 0,
+              price: v.price,
+              inStock: (v.stockQuantity || 0) > 0,
+            });
+          }
+        }
+
+        created.push({ _id: savedProduct.id, name: savedProduct.name });
       } catch (itemError) {
         failed.push({
           name: rawProduct?.name || 'Unnamed product',

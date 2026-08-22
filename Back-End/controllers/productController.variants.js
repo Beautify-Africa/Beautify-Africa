@@ -1,24 +1,32 @@
-const mongoose = require('mongoose');
-const Product = require('../models/Product');
+const { Product, ProductVariant } = require('../models/Product');
 const { bumpProductCacheVersion } = require('./productController.cache');
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // GET /api/products/:id/variants
 async function getVariants(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
-    const product = await Product.findById(req.params.id).select('variants');
-
+    const product = await Product.findByPk(req.params.id);
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
 
+    const variants = await ProductVariant.findAll({
+      where: { productId: req.params.id },
+      order: [['createdAt', 'ASC']],
+      raw: true,
+    });
+
+    const mappedVariants = variants.map((v) => ({ ...v, _id: v.id }));
+
     return res.status(200).json({
       status: 'success',
-      count: product.variants.length,
-      data: product.variants,
+      count: mappedVariants.length,
+      data: mappedVariants,
     });
   } catch (error) {
     console.error('getVariants error:', error);
@@ -29,7 +37,7 @@ async function getVariants(req, res) {
 // POST /api/products/:id/variants
 async function addVariant(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
@@ -43,38 +51,49 @@ async function addVariant(req, res) {
       return res.status(400).json({ status: 'error', message: 'Stock quantity must be non-negative integer' });
     }
 
-    const product = await Product.findById(req.params.id);
-
+    const product = await Product.findByPk(req.params.id);
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
 
-    const skuExists = product.variants.some((v) => v.sku === sku);
-    if (skuExists) {
+    const existingSku = await ProductVariant.findOne({
+      where: { productId: req.params.id, sku: sku.trim() },
+    });
+    if (existingSku) {
       return res.status(400).json({ status: 'error', message: `SKU "${sku}" already exists for this product` });
     }
 
-    product.variants.push({
-      sku,
-      attributes,
+    const variant = await ProductVariant.create({
+      productId: product.id,
+      sku: sku.trim(),
+      size: attributes.size || null,
+      color: attributes.color || null,
+      type: attributes.type || null,
       stockQuantity,
-      price,
+      price: price !== null ? Number(price) : null,
       inStock: stockQuantity > 0,
     });
 
-    await product.save();
+    // Update product inStock if variant has stock
+    if (stockQuantity > 0 && !product.inStock) {
+      await product.update({ inStock: true });
+    }
+
     await bumpProductCacheVersion();
+
+    const variantJson = variant.toJSON();
+    variantJson._id = variantJson.id;
 
     return res.status(201).json({
       status: 'success',
       message: 'Variant added',
-      data: product.variants[product.variants.length - 1],
+      data: variantJson,
     });
   } catch (error) {
     console.error('addVariant error:', error);
 
-    if (error.name === 'ValidationError') {
-      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid variant data';
+    if (error.name === 'SequelizeValidationError') {
+      const firstMessage = error.errors?.[0]?.message || 'Invalid variant data';
       return res.status(400).json({ status: 'error', message: firstMessage });
     }
 
@@ -85,37 +104,43 @@ async function addVariant(req, res) {
 // PUT /api/products/:id/variants/:variantId
 async function updateVariant(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.variantId)) {
+    if (!UUID_REGEX.test(String(req.params.variantId || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid variant ID' });
     }
 
     const { sku, attributes, stockQuantity, price } = req.body;
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
 
-    const variant = product.variants.id(req.params.variantId);
+    const variant = await ProductVariant.findOne({
+      where: { id: req.params.variantId, productId: req.params.id },
+    });
 
     if (!variant) {
       return res.status(404).json({ status: 'error', message: 'Variant not found' });
     }
 
     if (sku !== undefined && sku !== variant.sku) {
-      const skuExists = product.variants.some((v) => v.sku === sku && v._id.toString() !== variant._id.toString());
-      if (skuExists) {
+      const skuExists = await ProductVariant.findOne({
+        where: { productId: req.params.id, sku: sku.trim() },
+      });
+      if (skuExists && skuExists.id !== variant.id) {
         return res.status(400).json({ status: 'error', message: `SKU "${sku}" already exists for this product` });
       }
-      variant.sku = sku;
+      variant.sku = sku.trim();
     }
 
     if (attributes !== undefined) {
-      variant.attributes = { ...variant.attributes, ...attributes };
+      if (attributes.size !== undefined) variant.size = attributes.size;
+      if (attributes.color !== undefined) variant.color = attributes.color;
+      if (attributes.type !== undefined) variant.type = attributes.type;
     }
 
     if (stockQuantity !== undefined) {
@@ -123,25 +148,39 @@ async function updateVariant(req, res) {
         return res.status(400).json({ status: 'error', message: 'Stock quantity must be non-negative integer' });
       }
       variant.stockQuantity = stockQuantity;
+      variant.inStock = stockQuantity > 0;
     }
 
     if (price !== undefined) {
-      variant.price = price;
+      variant.price = price !== null ? Number(price) : null;
     }
 
-    await product.save();
+    await variant.save();
+
+    // Recompute product inStock
+    const allVariants = await ProductVariant.findAll({
+      where: { productId: req.params.id },
+      attributes: ['stockQuantity'],
+      raw: true,
+    });
+    const hasStock = allVariants.some((v) => v.stockQuantity > 0) || (product.stockQuantity > 0);
+    await product.update({ inStock: hasStock });
+
     await bumpProductCacheVersion();
+
+    const variantJson = variant.toJSON();
+    variantJson._id = variantJson.id;
 
     return res.status(200).json({
       status: 'success',
       message: 'Variant updated',
-      data: variant,
+      data: variantJson,
     });
   } catch (error) {
     console.error('updateVariant error:', error);
 
-    if (error.name === 'ValidationError') {
-      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid variant data';
+    if (error.name === 'SequelizeValidationError') {
+      const firstMessage = error.errors?.[0]?.message || 'Invalid variant data';
       return res.status(400).json({ status: 'error', message: firstMessage });
     }
 
@@ -152,30 +191,28 @@ async function updateVariant(req, res) {
 // DELETE /api/products/:id/variants/:variantId
 async function removeVariant(req, res) {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.variantId)) {
+    if (!UUID_REGEX.test(String(req.params.variantId || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid variant ID' });
     }
 
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
 
-    const variantIndex = product.variants.findIndex(
-      (v) => v._id.toString() === req.params.variantId
-    );
+    const deletedCount = await ProductVariant.destroy({
+      where: { id: req.params.variantId, productId: req.params.id },
+    });
 
-    if (variantIndex === -1) {
+    if (deletedCount === 0) {
       return res.status(404).json({ status: 'error', message: 'Variant not found' });
     }
 
-    product.variants.splice(variantIndex, 1);
-    await product.save();
     await bumpProductCacheVersion();
 
     return res.status(200).json({
