@@ -12,7 +12,7 @@ export default function FooterBrandSection() {
       >
         {FOOTER_BRAND.name}
       </AppLink>
-      <p className="mb-8 font-serif text-lg font-light italic text-stone-500 md:mb-12 md:text-xl">
+      <p className="mb-8 font-serif text-lg font-light italic text-stone-300 md:mb-12 md:text-xl">
         {FOOTER_BRAND.tagline}
       </p>
       <RotatingSocialSentence />

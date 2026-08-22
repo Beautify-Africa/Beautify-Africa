@@ -16,7 +16,7 @@ export default function FooterNavColumn({ section, isFirst }) {
           <li key={link.name}>
             <AppLink
               href={link.href}
-              className="inline-block text-[13px] font-light transition-all duration-300 hover:pl-2 hover:text-[#faf9f6] md:text-sm"
+              className="inline-block text-[13px] text-stone-300 font-light transition-all duration-300 hover:pl-2 hover:text-[#faf9f6] md:text-sm"
             >
               {link.name}
             </AppLink>
