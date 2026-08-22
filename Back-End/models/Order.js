@@ -1,132 +1,98 @@
 // models/Order.js
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const adminTimelineEntrySchema = new mongoose.Schema(
+// ===== OrderItem =====
+class OrderItem extends Model {
+  get _id() { return this.id; }
+}
+OrderItem.init(
   {
-    type: {
-      type: String,
-      enum: ['action', 'note'],
-      required: true,
-    },
-    action: {
-      type: String,
-      default: '',
-    },
-    note: {
-      type: String,
-      default: '',
-      maxlength: 600,
-    },
-    adminName: {
-      type: String,
-      default: 'Admin',
-    },
-    adminEmail: {
-      type: String,
-      default: '',
-    },
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    orderId: { type: DataTypes.UUID, allowNull: false, references: { model: 'orders', key: 'id' } },
+    productId: { type: DataTypes.UUID, allowNull: true, references: { model: 'products', key: 'id' } },
+    name: { type: DataTypes.STRING, allowNull: false },
+    qty: { type: DataTypes.INTEGER, allowNull: false },
+    image: { type: DataTypes.TEXT, allowNull: false },
+    price: { type: DataTypes.FLOAT, allowNull: false },
   },
-  {
-    timestamps: { createdAt: true, updatedAt: false },
-  }
+  { sequelize, modelName: 'OrderItem', tableName: 'order_items', timestamps: false }
 );
 
-const orderSchema = new mongoose.Schema(
+// ===== OrderShippingAddress =====
+class OrderShippingAddress extends Model {}
+OrderShippingAddress.init(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: false, // Optional for guest checkouts
-      ref: 'User',
-    },
-    stripePaymentIntentId: {
-      type: String, // Added for Stripe integration
-    },
-    orderItems: [
-      {
-        name: { type: String, required: true },
-        qty: { type: Number, required: true },
-        image: { type: String, required: true },
-        price: { type: Number, required: true },
-        product: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-          ref: 'Product',
-        },
-      },
-    ],
-    shippingAddress: {
-      firstName: { type: String, required: true },
-      lastName: { type: String, required: true },
-      email: { type: String, required: true }, 
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      zip: { type: String, required: true },
-      country: { type: String, required: true },
-    },
-    paymentMethod: {
-      type: String,
-      default: 'Credit Card',
-    },
-    paymentResult: { 
-      id: { type: String },
-      status: { type: String },
-      update_time: { type: String },
-      email_address: { type: String },
-    },
-    itemsPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    taxPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    shippingPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    totalPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
-    },
-    isPaid: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    paidAt: {
-      type: Date,
-    },
-    isDelivered: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    orderId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'orders', key: 'id' } },
+    firstName: { type: DataTypes.STRING, allowNull: false },
+    lastName: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
+    address: { type: DataTypes.STRING, allowNull: false },
+    city: { type: DataTypes.STRING, allowNull: false },
+    zip: { type: DataTypes.STRING, allowNull: false },
+    country: { type: DataTypes.STRING, allowNull: false },
+  },
+  { sequelize, modelName: 'OrderShippingAddress', tableName: 'order_shipping_addresses', timestamps: false }
+);
+
+// ===== AdminTimelineEntry =====
+class AdminTimelineEntry extends Model {
+  get _id() { return this.id; }
+}
+AdminTimelineEntry.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    orderId: { type: DataTypes.UUID, allowNull: false, references: { model: 'orders', key: 'id' } },
+    type: { type: DataTypes.ENUM('action', 'note'), allowNull: false },
+    action: { type: DataTypes.STRING, defaultValue: '' },
+    note: { type: DataTypes.STRING(600), defaultValue: '' },
+    adminName: { type: DataTypes.STRING, defaultValue: 'Admin' },
+    adminEmail: { type: DataTypes.STRING, defaultValue: '' },
+  },
+  { sequelize, modelName: 'AdminTimelineEntry', tableName: 'admin_timeline_entries', timestamps: true, updatedAt: false }
+);
+
+// ===== Order =====
+class Order extends Model {
+  get _id() { return this.id; }
+}
+
+Order.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    userId: { type: DataTypes.UUID, allowNull: true, references: { model: 'users', key: 'id' } },
+    stripePaymentIntentId: { type: DataTypes.STRING, allowNull: true },
+    paymentMethod: { type: DataTypes.STRING, defaultValue: 'Credit Card' },
+    // Flattened paymentResult fields
+    paymentResultId: { type: DataTypes.STRING, allowNull: true },
+    paymentResultStatus: { type: DataTypes.STRING, allowNull: true },
+    paymentResultUpdateTime: { type: DataTypes.STRING, allowNull: true },
+    paymentResultEmail: { type: DataTypes.STRING, allowNull: true },
+    itemsPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    taxPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    shippingPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    totalPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    isPaid: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    paidAt: { type: DataTypes.DATE, allowNull: true },
+    isDelivered: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     fulfillmentStatus: {
-      type: String,
-      enum: ['processing', 'packed', 'shipped', 'delivered'],
-      default: 'processing',
+      type: DataTypes.ENUM('processing', 'packed', 'shipped', 'delivered'),
+      defaultValue: 'processing',
     },
-    deliveredAt: {
-      type: Date,
-    },
-    adminTimeline: {
-      type: [adminTimelineEntrySchema],
-      default: [],
-    },
+    deliveredAt: { type: DataTypes.DATE, allowNull: true },
   },
-  {
-    timestamps: true,
-  }
+  { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }
 );
 
-// Supports GET /api/orders/myorders sorted by newest first.
-orderSchema.index({ user: 1, createdAt: -1 });
-// Supports admin dashboard global order feed sorted by newest first.
-orderSchema.index({ createdAt: -1 });
+// Associations
+Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'orderItems', onDelete: 'CASCADE' });
+OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 
-module.exports = mongoose.model('Order', orderSchema);
+Order.hasOne(OrderShippingAddress, { foreignKey: 'orderId', as: 'shippingAddress', onDelete: 'CASCADE' });
+OrderShippingAddress.belongsTo(Order, { foreignKey: 'orderId' });
+
+Order.hasMany(AdminTimelineEntry, { foreignKey: 'orderId', as: 'adminTimeline', onDelete: 'CASCADE' });
+AdminTimelineEntry.belongsTo(Order, { foreignKey: 'orderId' });
+
+module.exports = { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry };

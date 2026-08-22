@@ -1,34 +1,43 @@
 // models/Cart.js
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const cartItemSchema = mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'Product',
-  },
-  name: { type: String, required: true },
-  price: { type: Number, required: true },
-  image: { type: String, required: true },
-  variant: { type: String },
-  quantity: { type: Number, required: true, default: 1, min: 1 },
-});
-
-const cartSchema = mongoose.Schema(
+// ===== CartItem =====
+class CartItem extends Model {
+  get _id() { return this.id; }
+  // Virtual 'product' getter returns productId for backward compat
+  get product() { return this.productId; }
+}
+CartItem.init(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-      unique: true, // A user should only have 1 active cart
-    },
-    cartItems: [cartItemSchema],
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    cartId: { type: DataTypes.UUID, allowNull: false, references: { model: 'carts', key: 'id' } },
+    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    name: { type: DataTypes.STRING, allowNull: false },
+    price: { type: DataTypes.FLOAT, allowNull: false },
+    image: { type: DataTypes.TEXT, allowNull: false },
+    variant: { type: DataTypes.STRING, allowNull: true },
+    quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1, validate: { min: 1 } },
   },
-  {
-    timestamps: true,
-  }
+  { sequelize, modelName: 'CartItem', tableName: 'cart_items', timestamps: false }
 );
 
-const Cart = mongoose.model('Cart', cartSchema);
+// ===== Cart =====
+class Cart extends Model {
+  get _id() { return this.id; }
+  get user() { return this.userId; }
+}
 
-module.exports = Cart;
+Cart.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    userId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'users', key: 'id' } },
+  },
+  { sequelize, modelName: 'Cart', tableName: 'carts', timestamps: true }
+);
+
+// Associations
+Cart.hasMany(CartItem, { foreignKey: 'cartId', as: 'cartItems', onDelete: 'CASCADE' });
+CartItem.belongsTo(Cart, { foreignKey: 'cartId' });
+
+module.exports = { Cart, CartItem };
