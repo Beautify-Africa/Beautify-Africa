@@ -13,7 +13,7 @@ const {
 // ============================================================
 // Redis Cart Cache Helpers
 // All cart data is stored per-user with a 24-hour TTL.
-// We use a Write-Through strategy: MongoDB is always the
+// We use a Write-Through strategy: PostgreSQL is always the
 // source of truth; Redis is the fast read layer.
 // ============================================================
 const CART_CACHE_TTL_SECONDS = 60 * 60 * 24; // 24 hours
