@@ -29,9 +29,9 @@ const {
 } = require('../services/adminService');
 const adminRoutes = require('../routes/adminRoutes');
 
-const USER_ID = '507f1f77bcf86cd799439011';
-const ADMIN_ID = '507f1f77bcf86cd799439099';
-const ORDER_ID = '507f1f77bcf86cd799439012';
+const USER_ID = 'a111a111-a111-a111-a111-a111a111a111';
+const ADMIN_ID = 'e111a111-a111-a111-a111-a111a111a111';
+const ORDER_ID = 'c111c111-c111-c111-c111-c111c111c111';
 
 function createApp() {
   const app = express();
@@ -65,7 +65,8 @@ describe('Admin routes', () => {
   });
 
   test('rejects authenticated non-admin users', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: USER_ID,
       _id: USER_ID,
       name: 'Regular User',
       email: 'user@test.com',
@@ -82,7 +83,8 @@ describe('Admin routes', () => {
   });
 
   test('allows admin users to fetch dashboard', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
@@ -104,7 +106,8 @@ describe('Admin routes', () => {
   });
 
   test('allows admin users to fetch analytics summary', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
@@ -128,7 +131,8 @@ describe('Admin routes', () => {
   });
 
   test('allows admin users to fetch reorder recommendations', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
@@ -160,13 +164,14 @@ describe('Admin routes', () => {
   });
 
   test('patches order using provided action', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
       isAdmin: true,
     });
-    updateAdminOrder.mockResolvedValue({ _id: ORDER_ID, fulfillmentStatus: 'packed' });
+    updateAdminOrder.mockResolvedValue({ id: ORDER_ID, _id: ORDER_ID, fulfillmentStatus: 'packed' });
 
     const response = await request(app)
       .patch(`/api/admin/orders/${ORDER_ID}`)
@@ -184,7 +189,8 @@ describe('Admin routes', () => {
   });
 
   test('lists admin orders with forwarded query filters', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
@@ -216,7 +222,8 @@ describe('Admin routes', () => {
   });
 
   test('returns full admin order detail for one order', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
@@ -243,7 +250,8 @@ describe('Admin routes', () => {
   });
 
   test('returns service errors with their status code', async () => {
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: ADMIN_ID,
       _id: ADMIN_ID,
       name: 'Admin User',
       email: 'admin@test.com',
