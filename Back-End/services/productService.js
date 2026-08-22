@@ -1,28 +1,26 @@
-const mongoose = require('mongoose');
-const Product = require('../models/Product');
+// services/productService.js
+const { Op } = require('sequelize');
+const { Product } = require('../models/Product');
 
 const DEFAULT_PRODUCT_PAGE = 1;
 const DEFAULT_PRODUCT_LIMIT = 12;
 const MAX_PRODUCT_LIMIT = 48;
 const DEFAULT_PRICE_RANGE_MAX = 200;
-const PRODUCT_LIST_SELECT_FIELDS =
-  'name slug brand category subcategory price originalPrice rating numReviews inStock image skinType isNewProduct isBestSeller createdAt';
+const PRODUCT_LIST_SELECT_FIELDS = [
+  'id', 'name', 'slug', 'brand', 'category', 'price', 'originalPrice',
+  'rating', 'numReviews', 'inStock', 'image', 'skinType', 'isNewProduct', 'isBestSeller', 'createdAt',
+];
 
-// Escapes special RegExp characters in user-supplied strings to prevent ReDoS attacks
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function readFirstString(value) {
-  if (typeof value === 'string') {
-    return value.trim();
-  }
-
+  if (typeof value === 'string') return value.trim();
   if (Array.isArray(value)) {
     const firstString = value.find((entry) => typeof entry === 'string');
     return typeof firstString === 'string' ? firstString.trim() : '';
   }
-
   return '';
 }
 
@@ -33,40 +31,26 @@ function readStringList(value) {
       .map((entry) => entry.trim())
       .filter(Boolean);
   }
-
   if (typeof value === 'string') {
-    return value
-      .split(',')
-      .map((entry) => entry.trim())
-      .filter(Boolean);
+    return value.split(',').map((entry) => entry.trim()).filter(Boolean);
   }
-
   return [];
 }
 
 function toSlugId(value = '') {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  return String(value).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
 function sortWithAllFirst(values = []) {
   const uniqueValues = [...new Set(values.filter(Boolean))];
-  const nonAllValues = uniqueValues
-    .filter((value) => value !== 'All')
-    .sort((left, right) => left.localeCompare(right));
-
+  const nonAllValues = uniqueValues.filter((v) => v !== 'All').sort((a, b) => a.localeCompare(b));
   return ['All', ...nonAllValues];
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function normalizeProductIds(rawIds = []) {
-  return [
-    ...new Set(
-      rawIds.filter((id) => mongoose.Types.ObjectId.isValid(id)).map((id) => String(id))
-    ),
-  ];
+  return [...new Set(rawIds.filter((id) => UUID_REGEX.test(String(id))).map((id) => String(id)))];
 }
 
 function buildProductFilter(query = {}) {
@@ -81,142 +65,117 @@ function buildProductFilter(query = {}) {
   const rawIds = readStringList(query.ids);
   const ids = normalizeProductIds(rawIds);
 
-  const filter = {};
+  const where = {};
 
-  // Archived products should not appear in customer-facing catalog requests.
-  filter.isArchived = { $ne: true };
+  // Archived products excluded from customer catalog
+  where.isArchived = false;
 
-  if (rawIds.length > 0) {
-    filter._id = { $in: ids };
+  if (ids.length > 0) {
+    where.id = { [Op.in]: ids };
   }
 
   if (category) {
-    filter.category = { $regex: new RegExp(`^${escapeRegex(category)}$`, 'i') };
+    where.category = { [Op.iLike]: category };
   }
 
   if (brand) {
-    filter.brand = { $regex: new RegExp(`^${escapeRegex(brand)}$`, 'i') };
+    where.brand = { [Op.iLike]: brand };
   }
 
   if (subcategory) {
-    filter.subcategory = { $regex: new RegExp(`^${escapeRegex(subcategory)}$`, 'i') };
+    where.subcategory = { [Op.iLike]: subcategory };
   }
 
   if (skinType) {
-    filter.skinType = skinType;
+    // skinType is a ARRAY(STRING), check if value is contained in the array
+    where.skinType = { [Op.contains]: [skinType] };
   }
 
   if (inStock === 'true' || inStock === 'false') {
-    filter.inStock = inStock === 'true';
+    where.inStock = inStock === 'true';
   }
 
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    filter.price = {};
-
-    if (minPrice !== '' && !Number.isNaN(Number(minPrice))) {
-      filter.price.$gte = Number(minPrice);
-    }
-
-    if (maxPrice !== '' && !Number.isNaN(Number(maxPrice))) {
-      filter.price.$lte = Number(maxPrice);
-    }
-
-    if (Object.keys(filter.price).length === 0) {
-      delete filter.price;
-    }
+  if (minPrice !== '' || maxPrice !== '') {
+    const priceWhere = {};
+    if (minPrice !== '' && !Number.isNaN(Number(minPrice))) priceWhere[Op.gte] = Number(minPrice);
+    if (maxPrice !== '' && !Number.isNaN(Number(maxPrice))) priceWhere[Op.lte] = Number(maxPrice);
+    if (priceWhere[Op.gte] !== undefined || priceWhere[Op.lte] !== undefined) where.price = priceWhere;
   }
+
 
   if (q) {
-    const searchRegex = new RegExp(escapeRegex(q), 'i');
-    filter.$or = [
-      { name: searchRegex },
-      { brand: searchRegex },
-      { category: searchRegex },
+    const searchPattern = `%${q}%`;
+    where[Op.or] = [
+      { name: { [Op.iLike]: searchPattern } },
+      { brand: { [Op.iLike]: searchPattern } },
+      { category: { [Op.iLike]: searchPattern } },
     ];
   }
 
-  return filter;
+  return where;
 }
 
 function buildProductSortOption(sort) {
-  if (sort === 'price-low') return { price: 1, _id: 1 };
-  if (sort === 'price-high') return { price: -1, _id: 1 };
-  if (sort === 'rating') return { rating: -1, numReviews: -1, _id: 1 };
-  if (sort === 'best-selling') return { isBestSeller: -1, numReviews: -1, _id: 1 };
-  return { createdAt: -1, _id: 1 };
+  if (sort === 'price-low') return [['price', 'ASC'], ['id', 'ASC']];
+  if (sort === 'price-high') return [['price', 'DESC'], ['id', 'ASC']];
+  if (sort === 'rating') return [['rating', 'DESC'], ['numReviews', 'DESC'], ['id', 'ASC']];
+  if (sort === 'best-selling') return [['isBestSeller', 'DESC'], ['numReviews', 'DESC'], ['id', 'ASC']];
+  return [['createdAt', 'DESC'], ['id', 'ASC']];
 }
 
 function buildProductPagination(query = {}) {
   const parsedPage = Number.parseInt(readFirstString(query.page), 10);
   const parsedLimit = Number.parseInt(readFirstString(query.limit), 10);
 
-  const page =
-    Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : DEFAULT_PRODUCT_PAGE;
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : DEFAULT_PRODUCT_PAGE;
   const limit =
     Number.isFinite(parsedLimit) && parsedLimit > 0
       ? Math.min(parsedLimit, MAX_PRODUCT_LIMIT)
       : DEFAULT_PRODUCT_LIMIT;
 
-  return {
-    page,
-    limit,
-    skip: (page - 1) * limit,
-  };
+  return { page, limit, skip: (page - 1) * limit };
 }
 
 function buildCatalogCategories(categoryRows = []) {
   const normalizedRows = categoryRows
-    .filter((row) => typeof row?._id === 'string' && row._id.trim())
+    .filter((row) => typeof row?.category === 'string' && row.category.trim())
     .map((row) => ({
-      label: row._id.trim(),
-      subcategories: [...new Set((row.subcategories || []).filter(Boolean))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
+      label: row.category.trim(),
+      subcategories: [],
     }))
-    .sort((left, right) => left.label.localeCompare(right.label));
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  // Deduplicate
+  const seen = new Set();
+  const deduplicated = normalizedRows.filter((row) => {
+    if (seen.has(row.label)) return false;
+    seen.add(row.label);
+    return true;
+  });
 
   return [
-    {
-      id: 'all',
-      label: 'All',
-      subcategories: [],
-    },
-    ...normalizedRows.map((row) => ({
-      id: toSlugId(row.label),
-      label: row.label,
-      subcategories: row.subcategories,
-    })),
+    { id: 'all', label: 'All', subcategories: [] },
+    ...deduplicated.map((row) => ({ id: toSlugId(row.label), label: row.label, subcategories: [] })),
   ];
 }
 
 function buildCatalogPayload({ categoryRows = [], brands = [], skinTypes = [], maxPrice = 0 }) {
   const roundedMaxPrice =
-    maxPrice > 0
-      ? Math.max(DEFAULT_PRICE_RANGE_MAX, Math.ceil(maxPrice / 10) * 10)
-      : DEFAULT_PRICE_RANGE_MAX;
+    maxPrice > 0 ? Math.max(DEFAULT_PRICE_RANGE_MAX, Math.ceil(maxPrice / 10) * 10) : DEFAULT_PRICE_RANGE_MAX;
 
   return {
     categories: buildCatalogCategories(categoryRows),
     brands: sortWithAllFirst(brands),
     skinTypes: sortWithAllFirst(skinTypes),
-    priceRange: {
-      min: 0,
-      max: roundedMaxPrice,
-    },
+    priceRange: { min: 0, max: roundedMaxPrice },
   };
 }
 
 function normalizeReviewPayload(payload = {}) {
   const normalizedRating = Number(payload.rating);
   const normalizedComment =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim().substring(0, 500)
-      : '';
-
-  return {
-    normalizedRating,
-    normalizedComment,
-  };
+    typeof payload.comment === 'string' ? payload.comment.trim().substring(0, 500) : '';
+  return { normalizedRating, normalizedComment };
 }
 
 function buildReviewFromUser(user, rating, comment) {
@@ -224,31 +183,29 @@ function buildReviewFromUser(user, rating, comment) {
     name: user.name,
     rating,
     comment,
-    user: user._id,
+    userId: user.id || user._id,
+    productId: null, // set when creating
   };
 }
 
-function updateReviewAggregates(product) {
-  product.numReviews = product.reviews.length;
-
-  const rawRating =
-    product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-    product.reviews.length;
-
+function updateReviewAggregates(product, reviews) {
+  product.numReviews = reviews.length;
+  const rawRating = reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length;
   product.rating = Math.round(rawRating * 10) / 10;
 }
 
 async function findProductByIdOrSlug(idOrSlug) {
   let product = null;
 
-  if (idOrSlug.match(/^[0-9a-fA-F]{24}$/)) {
-    product = await Product.findById(idOrSlug).lean();
+  if (UUID_REGEX.test(idOrSlug)) {
+    product = await Product.findByPk(idOrSlug, { raw: true });
   }
 
   if (!product) {
-    product = await Product.findOne({ slug: idOrSlug.toLowerCase() }).lean();
+    product = await Product.findOne({ where: { slug: idOrSlug.toLowerCase() }, raw: true });
   }
 
+  if (product) product._id = product.id;
   return product;
 }
 

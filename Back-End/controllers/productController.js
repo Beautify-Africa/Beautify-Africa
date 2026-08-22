@@ -1,23 +1,67 @@
-const mongoose = require('mongoose');
-const Product = require('../models/Product');
-const { PRODUCT_LIST_SELECT_FIELDS, buildProductFilter, buildProductSortOption, buildProductPagination, buildCatalogPayload, normalizeReviewPayload, buildReviewFromUser, updateReviewAggregates, findProductByIdOrSlug } = require('../services/productService');
-const { PRODUCT_LIST_CACHE_TTL_SECONDS, PRODUCT_CATALOG_CACHE_TTL_SECONDS, buildVersionedCacheKey, readCache, writeCache, bumpProductCacheVersion } = require('./productController.cache');
+// controllers/productController.js
+const { Sequelize, Op } = require('sequelize');
+const { Product, ProductReview } = require('../models/Product');
+const { sequelize } = require('../config/db');
+const {
+  PRODUCT_LIST_SELECT_FIELDS,
+  buildProductFilter,
+  buildProductSortOption,
+  buildProductPagination,
+  buildCatalogPayload,
+  normalizeReviewPayload,
+  findProductByIdOrSlug,
+} = require('../services/productService');
+const {
+  PRODUCT_LIST_CACHE_TTL_SECONDS,
+  PRODUCT_CATALOG_CACHE_TTL_SECONDS,
+  buildVersionedCacheKey,
+  readCache,
+  writeCache,
+  bumpProductCacheVersion,
+} = require('./productController.cache');
 const { getVariants, addVariant, updateVariant, removeVariant } = require('./productController.variants');
 const { exportProducts, importProducts } = require('./productController.csv');
 const { setProductStatus, duplicateProduct } = require('./productController.admin');
 const { adjustVariantStock, getStockHistory } = require('./productController.stock');
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function getProducts(req, res) {
   try {
     const cacheKey = await buildVersionedCacheKey('products:list', req.query);
     const cachedData = await readCache(cacheKey);
     if (cachedData) return res.status(200).json(cachedData);
+
     const filter = buildProductFilter(req.query);
     const sortOption = buildProductSortOption(req.query.sort);
     const { page, limit, skip } = buildProductPagination(req.query);
-    const [products, totalCount] = await Promise.all([Product.find(filter).select(PRODUCT_LIST_SELECT_FIELDS).sort(sortOption).skip(skip).limit(limit).lean(), Product.countDocuments(filter)]);
+
+    const [products, totalCount] = await Promise.all([
+      Product.findAll({
+        where: filter,
+        attributes: PRODUCT_LIST_SELECT_FIELDS,
+        order: sortOption,
+        offset: skip,
+        limit,
+        raw: true,
+      }),
+      Product.count({ where: filter }),
+    ]);
+
+    const mappedProducts = products.map((p) => ({ ...p, _id: p.id }));
     const totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : 0;
-    const payload = { status: 'success', count: products.length, totalCount, page, limit, totalPages, hasNextPage: page < totalPages, hasPreviousPage: page > 1 && totalPages > 0, data: products };
+    const payload = {
+      status: 'success',
+      count: mappedProducts.length,
+      totalCount,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1 && totalPages > 0,
+      data: mappedProducts,
+    };
+
     await writeCache(cacheKey, payload, PRODUCT_LIST_CACHE_TTL_SECONDS);
     return res.status(200).json(payload);
   } catch (error) {
@@ -25,6 +69,7 @@ async function getProducts(req, res) {
     return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while fetching products.' });
   }
 }
+
 async function getProductCatalog(req, res) {
   try {
     const cacheKey = await buildVersionedCacheKey('products:catalog', {});
@@ -33,49 +78,41 @@ async function getProductCatalog(req, res) {
       return res.status(200).json(cachedData);
     }
 
-    const [categoryRows, brands, skinTypes, priceStats] = await Promise.all([
-      Product.aggregate([
-        {
-          $match: {
-            category: { $type: 'string', $ne: '' },
-          },
-        },
-        {
-          $project: {
-            category: 1,
-            subcategory: {
-              $cond: [
-                { $eq: [{ $type: '$subcategory' }, 'string'] },
-                '$subcategory',
-                null,
-              ],
-            },
-          },
-        },
-        {
-          $group: {
-            _id: '$category',
-            subcategories: { $addToSet: '$subcategory' },
-          },
-        },
-      ]),
-      Product.distinct('brand', { brand: { $type: 'string', $ne: '' } }),
-      Product.distinct('skinType', { skinType: { $exists: true, $ne: [] } }),
-      Product.aggregate([
-        {
-          $group: {
-            _id: null,
-            maxPrice: { $max: '$price' },
-          },
-        },
-      ]),
+    const [categoryResults, brandResults, allProducts, maxPriceResult] = await Promise.all([
+      Product.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('category')), 'category']],
+        where: { isArchived: false, category: { [Op.ne]: null } },
+        raw: true,
+      }),
+      Product.findAll({
+        attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('brand')), 'brand']],
+        where: { isArchived: false, brand: { [Op.ne]: null } },
+        raw: true,
+      }),
+      Product.findAll({
+        attributes: ['skinType'],
+        where: { isArchived: false },
+        raw: true,
+      }),
+      Product.max('price', { where: { isArchived: false } }),
     ]);
+
+    const categoryRows = categoryResults.map((r) => ({ category: r.category }));
+    const brands = brandResults.map((r) => r.brand).filter(Boolean);
+    const skinTypesSet = new Set();
+    allProducts.forEach((p) => {
+      if (Array.isArray(p.skinType)) {
+        p.skinType.forEach((st) => skinTypesSet.add(st));
+      }
+    });
+    const skinTypes = Array.from(skinTypesSet);
+    const maxPrice = Number(maxPriceResult) || 0;
 
     const catalog = buildCatalogPayload({
       categoryRows,
       brands,
       skinTypes,
-      maxPrice: priceStats[0]?.maxPrice || 0,
+      maxPrice,
     });
 
     const payload = {
@@ -93,6 +130,7 @@ async function getProductCatalog(req, res) {
     });
   }
 }
+
 async function getProductByIdOrSlug(req, res) {
   try {
     const key = req.params.idOrSlug;
@@ -120,22 +158,18 @@ async function getProductByIdOrSlug(req, res) {
     return res.status(200).json(payload);
   } catch (error) {
     console.error('getProductByIdOrSlug error:', error);
-
-    if (error.name === 'CastError') {
-      return res.status(400).json({ status: 'error', message: 'Invalid product ID format.' });
-    }
-
     return res.status(500).json({
       status: 'error',
       message: 'An unexpected error occurred while fetching the product.',
     });
   }
 }
+
 async function createProductReview(req, res) {
   try {
     const { normalizedRating, normalizedComment } = normalizeReviewPayload(req.body);
 
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    if (!UUID_REGEX.test(String(req.params.id || ''))) {
       return res.status(400).json({ status: 'error', message: 'Invalid product ID' });
     }
 
@@ -147,45 +181,54 @@ async function createProductReview(req, res) {
       return res.status(400).json({ status: 'error', message: 'Comment is required' });
     }
 
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findByPk(req.params.id);
 
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
     }
 
-    const alreadyReviewed = product.reviews.find(
-      (r) => r.user.toString() === req.user._id.toString()
-    );
+    const userId = req.user.id || req.user._id;
+    const existingReview = await ProductReview.findOne({
+      where: { productId: product.id, userId },
+    });
 
-    if (alreadyReviewed) {
+    if (existingReview) {
       return res.status(400).json({ status: 'error', message: 'Product already reviewed' });
     }
 
-    const review = buildReviewFromUser(req.user, normalizedRating, normalizedComment);
+    await ProductReview.create({
+      productId: product.id,
+      userId,
+      name: req.user.name,
+      rating: normalizedRating,
+      comment: normalizedComment,
+    });
 
-    product.reviews.unshift(review);
-    updateReviewAggregates(product);
+    // Update aggregates
+    const reviews = await ProductReview.findAll({
+      where: { productId: product.id },
+      order: [['createdAt', 'DESC']],
+      raw: true,
+    });
 
-    await product.save();
+    const numReviews = reviews.length;
+    const rawRating = reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews;
+    const rating = Math.round(rawRating * 10) / 10;
+
+    await Product.update({ rating, numReviews }, { where: { id: product.id } });
     await bumpProductCacheVersion();
 
     return res.status(201).json({
       status: 'success',
       message: 'Review added',
       data: {
-        rating: product.rating,
-        numReviews: product.numReviews,
-        reviews: product.reviews,
+        rating,
+        numReviews,
+        reviews: reviews.map((r) => ({ ...r, _id: r.id })),
       },
     });
   } catch (error) {
     console.error('createProductReview error:', error);
-
-    if (error.name === 'ValidationError') {
-      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid review data';
-      return res.status(400).json({ status: 'error', message: firstMessage });
-    }
-
     return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while submitting the review.' });
   }
 }
