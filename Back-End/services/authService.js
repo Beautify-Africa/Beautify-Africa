@@ -22,7 +22,6 @@ function getConfiguredAdminDashboardPassword() {
 
 function isConfiguredAdminDashboardCredential(email, password) {
   const normalizedEmail = normalizeEmail(email || '');
-
   return (
     normalizedEmail.length > 0 &&
     normalizedEmail === getPrimaryConfiguredAdminEmail() &&
@@ -32,15 +31,13 @@ function isConfiguredAdminDashboardCredential(email, password) {
 
 function isAdminUser(userDoc) {
   if (!userDoc) return false;
-
   const normalizedEmail = normalizeEmail(userDoc.email || '');
-
   return Boolean(userDoc.isAdmin) || getConfiguredAdminEmails().includes(normalizedEmail);
 }
 
 function sanitizeUser(userDoc) {
   return {
-    id: userDoc._id,
+    id: userDoc.id || userDoc._id,
     name: userDoc.name,
     email: userDoc.email,
     createdAt: userDoc.createdAt,
@@ -70,7 +67,6 @@ function createPasswordResetTokenPayload() {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const configuredMinutes = Number(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES || 30);
   const ttlMinutes = Number.isFinite(configuredMinutes) && configuredMinutes > 0 ? configuredMinutes : 30;
-
   return {
     rawToken,
     hashedToken: hashPasswordResetToken(rawToken),
@@ -88,7 +84,6 @@ function getClientApplicationUrl() {
   )
     .split(',')[0]
     .trim();
-
   return configuredUrl.replace(/\/+$/, '');
 }
 
@@ -97,19 +92,17 @@ function buildPasswordResetLink(rawToken) {
 }
 
 function getAuthErrorResponse(error) {
-  if (error.name === 'ValidationError') {
-    const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid user data';
-
-    return {
-      statusCode: 400,
-      message: firstMessage,
-    };
+  if (error.name === 'SequelizeValidationError' || error.name === 'ValidationError') {
+    const firstMessage =
+      (error.errors && error.errors[0]?.message) ||
+      Object.values(error.errors || {})[0]?.message ||
+      'Invalid user data';
+    return { statusCode: 400, message: firstMessage };
   }
-
-  return {
-    statusCode: 500,
-    message: 'An unexpected error occurred. Please try again.',
-  };
+  if (error.name === 'SequelizeUniqueConstraintError') {
+    return { statusCode: 409, message: 'Email is already registered' };
+  }
+  return { statusCode: 500, message: 'An unexpected error occurred. Please try again.' };
 }
 
 module.exports = {
