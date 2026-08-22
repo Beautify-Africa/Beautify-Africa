@@ -74,6 +74,10 @@ User.init(
     modelName: 'User',
     tableName: 'users',
     timestamps: true,
+    indexes: [
+      { unique: true, fields: ['email'] },
+      { fields: ['passwordResetToken'] },
+    ],
     hooks: {
       beforeSave: async (user) => {
         if (user.changed('password')) {
@@ -83,14 +87,5 @@ User.init(
     },
   }
 );
-
-// Index for password reset token lookups
-User.afterSync(() => {
-  sequelize
-    .query(
-      `CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users ("passwordResetToken") WHERE "passwordResetToken" IS NOT NULL`
-    )
-    .catch(() => {});
-});
 
 module.exports = User;

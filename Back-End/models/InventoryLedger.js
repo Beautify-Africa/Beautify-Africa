@@ -95,6 +95,12 @@ InventoryLedger.init(
     tableName: 'inventory_ledgers',
     timestamps: true,
     updatedAt: false,
+    indexes: [
+      { fields: ['productId'] },
+      { fields: ['variantId'] },
+      { fields: ['type'] },
+      { fields: ['createdAt'] },
+    ],
   }
 );
 

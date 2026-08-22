@@ -30,16 +30,12 @@ Newsletter.init(
     modelName: 'Newsletter',
     tableName: 'newsletters',
     timestamps: true,
+    indexes: [
+      { unique: true, fields: ['email'] },
+      { fields: ['unsubscribeToken'] },
+      { fields: ['isActive'] },
+    ],
   }
 );
-
-// Index for unsubscribe token lookups
-Newsletter.afterSync(() => {
-  sequelize
-    .query(
-      `CREATE INDEX IF NOT EXISTS idx_newsletters_unsub_token ON newsletters ("unsubscribeToken") WHERE "unsubscribeToken" IS NOT NULL`
-    )
-    .catch(() => {});
-});
 
 module.exports = Newsletter;
