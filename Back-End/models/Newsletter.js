@@ -1,48 +1,45 @@
 // models/Newsletter.js
-const mongoose = require('mongoose');
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const newsletterSchema = new mongoose.Schema(
+class Newsletter extends Model {
+  get _id() { return this.id; }
+}
+
+Newsletter.init(
   {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     email: {
-      type: String,
-      required: [true, 'Please provide an email address'],
+      type: DataTypes.STRING,
+      allowNull: false,
       unique: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email address',
-      ],
-      lowercase: true,
+      validate: {
+        isEmail: { msg: 'Please provide a valid email address' },
+      },
+      set(value) {
+        this.setDataValue('email', value ? value.toLowerCase().trim() : value);
+      },
     },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    unsubscribeToken: {
-      type: String,
-      default: null,
-      select: false,
-    },
-    unsubscribeTokenExpires: {
-      type: Date,
-      default: null,
-      select: false,
-    },
-    unsubscribedAt: {
-      type: Date,
-      default: null,
-    },
+    isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+    unsubscribeToken: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    unsubscribeTokenExpires: { type: DataTypes.DATE, allowNull: true, defaultValue: null },
+    unsubscribedAt: { type: DataTypes.DATE, allowNull: true, defaultValue: null },
   },
   {
+    sequelize,
+    modelName: 'Newsletter',
+    tableName: 'newsletters',
     timestamps: true,
   }
 );
 
-// Speeds up unsubscribe token confirmation queries.
-newsletterSchema.index(
-  { unsubscribeToken: 1, unsubscribeTokenExpires: 1 },
-  {
-    partialFilterExpression: { unsubscribeToken: { $type: 'string' } },
-  }
-);
+// Index for unsubscribe token lookups
+Newsletter.afterSync(() => {
+  sequelize
+    .query(
+      `CREATE INDEX IF NOT EXISTS idx_newsletters_unsub_token ON newsletters ("unsubscribeToken") WHERE "unsubscribeToken" IS NOT NULL`
+    )
+    .catch(() => {});
+});
 
-module.exports = mongoose.model('Newsletter', newsletterSchema);
+module.exports = Newsletter;

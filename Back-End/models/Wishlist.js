@@ -1,25 +1,29 @@
-const mongoose = require('mongoose');
+// models/Wishlist.js
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const wishlistSchema = mongoose.Schema(
+// ===== WishlistProduct junction table =====
+class WishlistProduct extends Model {}
+WishlistProduct.init(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-      unique: true,
-    },
-    items: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-      },
-    ],
+    wishlistId: { type: DataTypes.UUID, allowNull: false, references: { model: 'wishlists', key: 'id' } },
+    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
   },
-  {
-    timestamps: true,
-  }
+  { sequelize, modelName: 'WishlistProduct', tableName: 'wishlist_products', timestamps: false }
 );
 
-const Wishlist = mongoose.model('Wishlist', wishlistSchema);
+// ===== Wishlist =====
+class Wishlist extends Model {
+  get _id() { return this.id; }
+  get user() { return this.userId; }
+}
 
-module.exports = Wishlist;
+Wishlist.init(
+  {
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    userId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'users', key: 'id' } },
+  },
+  { sequelize, modelName: 'Wishlist', tableName: 'wishlists', timestamps: true }
+);
+
+module.exports = { Wishlist, WishlistProduct };
