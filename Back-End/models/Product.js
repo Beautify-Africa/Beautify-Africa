@@ -15,10 +15,27 @@ ProductVariant.init(
     color: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     type: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     stockQuantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0, validate: { min: 0 } },
-    price: { type: DataTypes.FLOAT, allowNull: true, defaultValue: null },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: null,
+      get() {
+        const val = this.getDataValue('price');
+        return val === null || val === undefined ? null : parseFloat(val);
+      },
+    },
     inStock: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
-  { sequelize, modelName: 'ProductVariant', tableName: 'product_variants', timestamps: true }
+  {
+    sequelize,
+    modelName: 'ProductVariant',
+    tableName: 'product_variants',
+    timestamps: true,
+    indexes: [
+      { fields: ['productId'] },
+      { fields: ['sku'] },
+    ],
+  }
 );
 
 // ===== ProductReview =====
@@ -34,7 +51,16 @@ ProductReview.init(
     rating: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } },
     comment: { type: DataTypes.TEXT, allowNull: false },
   },
-  { sequelize, modelName: 'ProductReview', tableName: 'product_reviews', timestamps: true }
+  {
+    sequelize,
+    modelName: 'ProductReview',
+    tableName: 'product_reviews',
+    timestamps: true,
+    indexes: [
+      { fields: ['productId'] },
+      { fields: ['userId'] },
+    ],
+  }
 );
 
 // ===== Product =====
@@ -55,8 +81,24 @@ Product.init(
       defaultValue: 'published',
     },
     isArchived: { type: DataTypes.BOOLEAN, defaultValue: false },
-    price: { type: DataTypes.FLOAT, allowNull: false, validate: { min: 0 } },
-    originalPrice: { type: DataTypes.FLOAT, allowNull: true, defaultValue: null },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      validate: { min: 0 },
+      get() {
+        const val = this.getDataValue('price');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
+    originalPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: null,
+      get() {
+        const val = this.getDataValue('originalPrice');
+        return val === null || val === undefined ? null : parseFloat(val);
+      },
+    },
     image: { type: DataTypes.TEXT, allowNull: false, validate: { notEmpty: { msg: 'Product image is required' } } },
     images: { type: DataTypes.ARRAY(DataTypes.TEXT), defaultValue: [] },
     stockQuantity: { type: DataTypes.INTEGER, defaultValue: 25, validate: { min: 0 } },
@@ -77,6 +119,12 @@ Product.init(
     modelName: 'Product',
     tableName: 'products',
     timestamps: true,
+    indexes: [
+      { fields: ['category'] },
+      { fields: ['brand'] },
+      { fields: ['isArchived'] },
+      { fields: ['status'] },
+    ],
     hooks: {
       beforeSave: (product) => {
         // Generate slug from name

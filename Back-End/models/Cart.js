@@ -14,12 +14,28 @@ CartItem.init(
     cartId: { type: DataTypes.UUID, allowNull: false, references: { model: 'carts', key: 'id' } },
     productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
     name: { type: DataTypes.STRING, allowNull: false },
-    price: { type: DataTypes.FLOAT, allowNull: false },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      get() {
+        const val = this.getDataValue('price');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
     image: { type: DataTypes.TEXT, allowNull: false },
     variant: { type: DataTypes.STRING, allowNull: true },
     quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1, validate: { min: 1 } },
   },
-  { sequelize, modelName: 'CartItem', tableName: 'cart_items', timestamps: false }
+  {
+    sequelize,
+    modelName: 'CartItem',
+    tableName: 'cart_items',
+    timestamps: false,
+    indexes: [
+      { fields: ['cartId'] },
+      { fields: ['productId'] },
+    ],
+  }
 );
 
 // ===== Cart =====
@@ -33,7 +49,15 @@ Cart.init(
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     userId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'users', key: 'id' } },
   },
-  { sequelize, modelName: 'Cart', tableName: 'carts', timestamps: true }
+  {
+    sequelize,
+    modelName: 'Cart',
+    tableName: 'carts',
+    timestamps: true,
+    indexes: [
+      { fields: ['userId'] },
+    ],
+  }
 );
 
 // Associations

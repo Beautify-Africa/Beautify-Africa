@@ -14,9 +14,25 @@ OrderItem.init(
     name: { type: DataTypes.STRING, allowNull: false },
     qty: { type: DataTypes.INTEGER, allowNull: false },
     image: { type: DataTypes.TEXT, allowNull: false },
-    price: { type: DataTypes.FLOAT, allowNull: false },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      get() {
+        const val = this.getDataValue('price');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
   },
-  { sequelize, modelName: 'OrderItem', tableName: 'order_items', timestamps: false }
+  {
+    sequelize,
+    modelName: 'OrderItem',
+    tableName: 'order_items',
+    timestamps: false,
+    indexes: [
+      { fields: ['orderId'] },
+      { fields: ['productId'] },
+    ],
+  }
 );
 
 // ===== OrderShippingAddress =====
@@ -33,7 +49,16 @@ OrderShippingAddress.init(
     zip: { type: DataTypes.STRING, allowNull: false },
     country: { type: DataTypes.STRING, allowNull: false },
   },
-  { sequelize, modelName: 'OrderShippingAddress', tableName: 'order_shipping_addresses', timestamps: false }
+  {
+    sequelize,
+    modelName: 'OrderShippingAddress',
+    tableName: 'order_shipping_addresses',
+    timestamps: false,
+    indexes: [
+      { fields: ['orderId'] },
+      { fields: ['email'] },
+    ],
+  }
 );
 
 // ===== AdminTimelineEntry =====
@@ -50,7 +75,17 @@ AdminTimelineEntry.init(
     adminName: { type: DataTypes.STRING, defaultValue: 'Admin' },
     adminEmail: { type: DataTypes.STRING, defaultValue: '' },
   },
-  { sequelize, modelName: 'AdminTimelineEntry', tableName: 'admin_timeline_entries', timestamps: true, updatedAt: false }
+  {
+    sequelize,
+    modelName: 'AdminTimelineEntry',
+    tableName: 'admin_timeline_entries',
+    timestamps: true,
+    updatedAt: false,
+    indexes: [
+      { fields: ['orderId'] },
+      { fields: ['createdAt'] },
+    ],
+  }
 );
 
 // ===== Order =====
@@ -69,10 +104,42 @@ Order.init(
     paymentResultStatus: { type: DataTypes.STRING, allowNull: true },
     paymentResultUpdateTime: { type: DataTypes.STRING, allowNull: true },
     paymentResultEmail: { type: DataTypes.STRING, allowNull: true },
-    itemsPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
-    taxPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
-    shippingPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
-    totalPrice: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
+    itemsPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const val = this.getDataValue('itemsPrice');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
+    taxPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const val = this.getDataValue('taxPrice');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
+    shippingPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const val = this.getDataValue('shippingPrice');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
+    totalPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const val = this.getDataValue('totalPrice');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
     isPaid: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     paidAt: { type: DataTypes.DATE, allowNull: true },
     isDelivered: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
@@ -82,7 +149,19 @@ Order.init(
     },
     deliveredAt: { type: DataTypes.DATE, allowNull: true },
   },
-  { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }
+  {
+    sequelize,
+    modelName: 'Order',
+    tableName: 'orders',
+    timestamps: true,
+    indexes: [
+      { fields: ['userId'] },
+      { fields: ['stripePaymentIntentId'] },
+      { fields: ['createdAt'] },
+      { fields: ['fulfillmentStatus'] },
+      { fields: ['isPaid'] },
+    ],
+  }
 );
 
 // Associations
