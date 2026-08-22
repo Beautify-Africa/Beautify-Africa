@@ -1,4 +1,4 @@
-const Order = require('../models/Order');
+const { Order, OrderItem } = require('../models/Order');
 const inventoryService = require('../services/inventoryService');
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -85,7 +85,7 @@ function buildTopSellingProducts(orders = [], limit = 5) {
     (order.orderItems || []).forEach((item) => {
       const quantity = Number(item.qty || 0);
       const unitPrice = Number(item.price || 0);
-      const key = String(item.product?._id || item.product || item.name || 'unknown');
+      const key = String(item.productId || item.product?.id || item.product?._id || item.product || item.name || 'unknown');
       const current = productMap.get(key) || {
         id: key,
         name: item.name || 'Unknown product',
@@ -156,7 +156,7 @@ function buildProductDemandProfile(orders = [], now = new Date(), windowDays = 3
     }
 
     (order.orderItems || []).forEach((item) => {
-      const key = String(item.product?._id || item.product || item.name || '').trim();
+      const key = String(item.productId || item.product?.id || item.product?._id || item.product || item.name || '').trim();
       if (!key) {
         return;
       }
@@ -329,10 +329,11 @@ async function fetchReorderPlan({ threshold = 10, leadTimeDays = 14, windowDays 
 
   const [lowStockData, orders] = await Promise.all([
     inventoryService.getLowStockItems(parsedThreshold, { limit: 500, includeArchived: false }),
-    Order.find({})
-      .select('orderItems totalPrice isPaid paidAt createdAt')
-      .sort({ createdAt: -1 })
-      .lean(),
+    Order.findAll({
+      attributes: ['totalPrice', 'isPaid', 'paidAt', 'createdAt'],
+      include: [{ model: OrderItem, as: 'orderItems' }],
+      order: [['createdAt', 'DESC']],
+    }),
   ]);
 
   const demandProfile = buildProductDemandProfile(orders, new Date(), parsedWindowDays);

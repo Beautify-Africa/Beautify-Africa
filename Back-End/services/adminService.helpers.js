@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-
+// services/adminService.helpers.js
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 function createAdminError(message, statusCode = 400) {
@@ -44,7 +44,7 @@ function normalizeAdminQueryEnum(value, supportedValues = [], label = 'value', f
 }
 
 function ensureValidOrderId(orderId) {
-  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+  if (!UUID_REGEX.test(String(orderId || ''))) {
     throw createAdminError('Invalid order ID format');
   }
 }
@@ -89,13 +89,14 @@ function createOrderReference(orderId = '') {
 }
 
 function getCustomerName(order = {}) {
-  const fullName = `${order.shippingAddress?.firstName || ''} ${order.shippingAddress?.lastName || ''}`.trim();
+  const addr = order.shippingAddress || {};
+  const fullName = `${addr.firstName || ''} ${addr.lastName || ''}`.trim();
 
   if (fullName) {
     return fullName;
   }
 
-  return order.user?.name || order.shippingAddress?.email || 'Guest checkout';
+  return order.user?.name || addr.email || 'Guest checkout';
 }
 
 function getRegionLabel(country = '') {
@@ -103,7 +104,8 @@ function getRegionLabel(country = '') {
 }
 
 function getOrderLane(order = {}) {
-  const country = order.shippingAddress?.country || '';
+  const addr = order.shippingAddress || {};
+  const country = addr.country || '';
   const itemCount = Array.isArray(order.orderItems)
     ? order.orderItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
     : 0;
@@ -209,14 +211,15 @@ function mapPriorityOrder(order) {
   const itemCount = Array.isArray(order.orderItems)
     ? order.orderItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
     : 0;
-  const country = order.shippingAddress?.country || 'Unknown country';
+  const addr = order.shippingAddress || {};
+  const country = addr.country || 'Unknown country';
 
   return {
-    id: order._id,
-    reference: createOrderReference(order._1),
+    id: order.id || order._id,
+    reference: createOrderReference(order.id || order._id),
     customer: getCustomerName(order),
-    email: order.shippingAddress?.email || order.user?.email || '',
-    city: order.shippingAddress?.city || 'Unknown city',
+    email: addr.email || order.user?.email || '',
+    city: addr.city || 'Unknown city',
     country,
     lane: getOrderLane(order),
     status: statusMeta.label,
@@ -271,12 +274,13 @@ function mapAdminTimelineEntries(timeline = []) {
 function mapAdminOrderDetail(order = {}) {
   const statusMeta = getStatusMeta(order);
   const timeline = mapAdminTimelineEntries(Array.isArray(order.adminTimeline) ? order.adminTimeline : []);
-  const shippingEmail = order.shippingAddress?.email || '';
+  const addr = order.shippingAddress || {};
+  const shippingEmail = addr.email || '';
   const accountCreatedAt = order.user?.createdAt || null;
 
   return {
-    id: order._id,
-    reference: createOrderReference(order._id),
+    id: order.id || order._id,
+    reference: createOrderReference(order.id || order._id),
     customer: {
       name: getCustomerName(order),
       shippingEmail,
@@ -303,21 +307,21 @@ function mapAdminOrderDetail(order = {}) {
     deliveredAt: order.deliveredAt,
     deliveredAtLabel: order.deliveredAt ? formatDateLabel(order.deliveredAt) : '',
     shippingAddress: {
-      firstName: order.shippingAddress?.firstName || '',
-      lastName: order.shippingAddress?.lastName || '',
+      firstName: addr.firstName || '',
+      lastName: addr.lastName || '',
       email: shippingEmail,
-      address: order.shippingAddress?.address || '',
-      city: order.shippingAddress?.city || '',
-      zip: order.shippingAddress?.zip || '',
-      country: order.shippingAddress?.country || '',
+      address: addr.address || '',
+      city: addr.city || '',
+      zip: addr.zip || '',
+      country: addr.country || '',
     },
     payment: {
       method: order.paymentMethod || 'Credit Card',
       stripePaymentIntentId: order.stripePaymentIntentId || '',
-      resultId: order.paymentResult?.id || '',
-      resultStatus: order.paymentResult?.status || (order.isPaid ? 'paid' : 'pending'),
-      updateTime: order.paymentResult?.update_time || '',
-      emailAddress: order.paymentResult?.email_address || '',
+      resultId: order.paymentResultId || '',
+      resultStatus: order.paymentResultStatus || (order.isPaid ? 'paid' : 'pending'),
+      updateTime: order.paymentResultUpdateTime || '',
+      emailAddress: order.paymentResultEmail || '',
     },
     totals: {
       items: formatCurrency(order.itemsPrice),
@@ -335,13 +339,10 @@ function mapAdminOrderDetail(order = {}) {
       const lineTotalValue = quantity * unitPriceValue;
 
       return {
-        productId: item.product?._id || item.product || '',
-        productSlug: item.product?.slug || '',
-        productBrand: item.product?.brand || '',
-        productCategory: item.product?.category || '',
+        productId: item.productId || '',
         name: item.name,
         qty: quantity,
-        image: item.image || item.product?.image || '',
+        image: item.image || '',
         unitPrice: formatCurrency(unitPriceValue),
         unitPriceValue,
         lineTotal: formatCurrency(lineTotalValue),
