@@ -46,6 +46,16 @@ export async function submitPasswordReset(payload) {
   });
 }
 
+export async function logoutUser(token) {
+  if (!token) return { status: 'success' };
+  return requestJson(`${API_URL}/auth/logout`, {
+    method: 'POST',
+    token,
+    cache: 'no-store',
+    fallbackMessage: 'Logout failed',
+  }).catch(() => ({ status: 'success' }));
+}
+
 export async function fetchMe(token, options = {}) {
   return requestJson(`${API_URL}/auth/me`, {
     token,

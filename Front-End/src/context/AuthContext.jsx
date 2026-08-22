@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import React, { useCallback, useEffect, useState } from 'react';
-import { registerUser, loginUser, loginAdminUser, fetchMe, updateUser } from '../services/authApi';
+import { registerUser, loginUser, loginAdminUser, fetchMe, updateUser, logoutUser } from '../services/authApi';
 import { AuthContext } from './auth-context';
 
 export function AuthProvider({ children }) {
@@ -119,11 +119,15 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    const activeToken = token;
     setUser(null);
     setToken(null);
     setIsRestoringSession(false);
     clearError();
     localStorage.removeItem('token');
+    if (activeToken) {
+      logoutUser(activeToken).catch(() => {});
+    }
   };
 
   const isAuthenticated = Boolean(user && token);
