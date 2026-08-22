@@ -1,4 +1,5 @@
 const PROHIBITED_KEY_PATTERN = /^\$|\./;
+const PROHIBITED_PROPERTIES = new Set(['__proto__', 'constructor', 'prototype']);
 
 function isPlainObject(value) {
   return Object.prototype.toString.call(value) === '[object Object]';
@@ -14,7 +15,8 @@ function sanitizeValue(value) {
   }
 
   return Object.entries(value).reduce((sanitized, [key, nestedValue]) => {
-    if (PROHIBITED_KEY_PATTERN.test(key)) {
+    // Block MongoDB operators, dot-notation injection, and prototype pollution keys
+    if (PROHIBITED_KEY_PATTERN.test(key) || PROHIBITED_PROPERTIES.has(key)) {
       return sanitized;
     }
 
@@ -30,6 +32,10 @@ function sanitizeRequest(req, res, next) {
 
   if (req.params && typeof req.params === 'object') {
     req.params = sanitizeValue(req.params);
+  }
+
+  if (req.query && typeof req.query === 'object') {
+    req.query = sanitizeValue(req.query);
   }
 
   next();
