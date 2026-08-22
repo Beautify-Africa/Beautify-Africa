@@ -1,9 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+﻿import { useState, useCallback, useEffect } from 'react';
 import InteractiveButton from '../Shared/InteractiveButton';
 import FadeIn from '../Shared/FadeIn';
 import HeroBackground from './HeroBackground';
 
 import HeroReviews from './HeroReviews';
+import { SCATTERED_REVIEWS } from '../../data/heroReviews';
+import { StarIcon } from '../Shared/Icons';
+import { buildResponsiveImageProps } from '../../utils/imageUtils';
 import { HERO_CONFIG, HERO_COPY, HERO_ROTATING_WORDS, HERO_ROTATION_CONFIG } from '../../data/heroImages';
 
 /**
@@ -96,16 +99,50 @@ const HeroSection = () => {
             </span>
           </FadeIn>
 
-          <FadeIn delay={0.4} direction="up" className="relative mb-10 max-w-6xl">
+              <FadeIn delay={0.4} direction="up" className="relative mb-10 max-w-6xl">
             <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] text-stone-900 tracking-tighter relative z-20">
-              {HERO_COPY.headlineParts[0]} <br />
+              {HERO_COPY.headlineParts[0]}
+              {/* Inline review chip anchored after the word 'The' */}
+              {(() => {
+                const inlineReview = SCATTERED_REVIEWS.find((r) => r.inline);
+                if (!inlineReview) return null;
+                const imageProps = buildResponsiveImageProps(inlineReview.image, { widths: [64, 96], sizes: '32px' });
+
+                return (
+                  <FadeIn
+                    key={`inline-${inlineReview.id}`}
+                    delay={0.6}
+                    className="inline-flex items-center gap-3 ml-6 -translate-y-1 align-middle text-sm bg-white/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-amber-100/50 hover:scale-105 transition-transform duration-300 cursor-default"
+                  >
+                    <img
+                      src={imageProps.src}
+                      srcSet={imageProps.srcSet}
+                      sizes={imageProps.sizes}
+                      alt={inlineReview.name}
+                      className="w-8 h-8 rounded-full object-cover border border-stone-100"
+                      loading="lazy"
+                      decoding="async"
+                      width="32"
+                      height="32"
+                    />
+                    <div className="flex flex-col leading-none">
+                      <div className="flex gap-0.5 text-amber-500" aria-hidden>
+                        {[...Array(5)].map((_, i) => (
+                          <StarIcon key={i} className="w-2.5 h-2.5" filled={true} />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold text-stone-600 mt-1">{inlineReview.name}</span>
+                    </div>
+                  </FadeIn>
+                );
+              })()}
+              <br />
               <span className="italic font-normal pl-4 md:pl-20 text-stone-800/90">
                 <RotatingWord />
               </span>{' '}
               <br />
               {HERO_COPY.headlineParts[1]}
             </h1>
-
             {/* Price label */}
             <div className="absolute -right-4 md:-right-24 bottom-10 hidden sm:flex flex-col items-end origin-right z-20">
               <span className="text-[9px] uppercase tracking-[0.4em] text-stone-400">

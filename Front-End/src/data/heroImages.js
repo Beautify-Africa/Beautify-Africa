@@ -113,6 +113,8 @@ export const HERO_ROTATION_CONFIG = {
   // Responsive inline padding so first/last letters don't appear clipped during animation
   textPaddingInlineMobileEm: 0.08,
   textPaddingInlineDesktopEm: 0.12,
+  // Vertical padding so ascenders/descenders aren't clipped by the parent leading-[0.85] line box
+  textPaddingBlockEm: 0.15,
 };
 
 /** All editorial copy shown in the hero section */
