@@ -9,23 +9,11 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const { Redis } = require('ioredis');
-const { RedisStore } = require('rate-limit-redis');
 const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const { connectDB, sequelize } = require('./config/db');
-
-// Dedicated Redis client for rate limiting.
-// Must be separate from the BullMQ client (config/redis.js) which has
-// enableOfflineQueue: false — that setting crashes rate-limit-redis on startup.
-const rateLimitRedis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  connectTimeout: 2000,
-  lazyConnect: true,
-  retryStrategy: (times) => Math.min(times * 200, 2000),
-});
-rateLimitRedis.on('error', (err) => console.warn('Rate-limit Redis error:', err.message));
+const { apiLimiter, authLimiter, cartLimiter } = require('./middlewares/rateLimiters');
 
 if (process.env.NODE_ENV !== 'test') {
   require('./workers/emailWorker'); // Boot background job pipeline outside of tests
@@ -63,7 +51,11 @@ if (missingEnvVars.length > 0) {
 const app = express();
 
 // 1. HTTP Security Headers (XSS, clickjacking, MIME sniffing, etc.)
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 app.use(compression({ threshold: 1024 }));
 
 // Use Express' simple query parser so querystrings stay flat strings/arrays.
@@ -72,52 +64,13 @@ app.set('query parser', 'simple');
 // 2. Trust Proxy (Required for Render/Cloud load balancers for rate limiting to work)
 app.set('trust proxy', 1);
 
-// 3. Rate Limiting — Redis-backed so counters survive container restarts
-function makeRedisStore(prefix) {
-  return new RedisStore({
-    sendCommand: (...args) => rateLimitRedis.call(...args),
-    prefix,
-  });
-}
-
-// General API limiter: 100 requests per IP per 15 minutes
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: makeRedisStore('rl:api:'),
-  passOnStoreError: true,
-  message: { status: 'error', message: 'Too many requests, please try again later.' },
-});
-
-// Auth limiter: strict 20 requests per IP per 15 minutes — deters brute-force
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: makeRedisStore('rl:auth:'),
-  passOnStoreError: true,
-  message: { status: 'error', message: 'Too many authentication attempts, please try again later.' },
-});
-
-// Cart limiter: tight 30 requests per IP per minute — blocks bot cart abuse
-const cartLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: makeRedisStore('rl:cart:'),
-  passOnStoreError: true,
-  message: { status: 'error', message: 'Too many cart requests, please slow down.' },
-});
+// 3. Rate Limiting — Redis-backed so counters survive container restarts (imported from middlewares/rateLimiters)
 
 function normalizeOrigin(value = '') {
   return String(value).trim().replace(/\/+$/, '').toLowerCase();
 }
 
-// 4. CORS
+// 4. CORS - Strict project domain matching
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -135,17 +88,22 @@ app.use(
         'http://127.0.0.1:5173',
         'http://127.0.0.1:4173',
         'http://127.0.0.1:4174',
+        'https://www.beautifyafrica.app',
+        'https://beautifyafrica.app',
+        'https://beautify-africa.vercel.app'
       ].map((u) => normalizeOrigin(u));
 
-      // Allow exact matches from ENV, local testing, OR any dynamically generated Vercel domain
+      // Match exact configured origins or project-specific Vercel preview domains
+      const isProjectVercelOrigin = /^https:\/\/(beautify-africa|beautifyafrica)[a-z0-9-]*\.vercel\.app$/.test(normalizedOrigin);
+
       if (
         envOrigins.includes(normalizedOrigin) ||
         localOrigins.includes(normalizedOrigin) ||
-        normalizedOrigin.endsWith('.vercel.app')
+        isProjectVercelOrigin
       ) {
         callback(null, true);
       } else {
-        console.warn(`CORS blocked origin: ${origin}`);
+        console.warn(`CORS blocked unauthorized origin: ${origin}`);
         callback(null, false);
       }
     },
@@ -167,7 +125,7 @@ app.use('/api/stripe', stripeRoutes);
 app.use(createJsonBodyParser());
 app.use(createUrlEncodedBodyParser());
 
-// 8. Strip Mongo operator-style keys from mutable request payloads.
+// 8. Strip Mongo operator-style keys & Prototype Pollution from mutable request payloads.
 app.use(sanitizeRequest);
 
 // --- Utility Routes ---
@@ -219,6 +177,25 @@ app.use('/api/upload', apiLimiter, uploadRoutes);
 
 // Surface oversized payloads with a stable API error response.
 app.use(handleBodySizeLimitError);
+
+// Centralized JSON 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Endpoint ${req.method} ${req.originalUrl} not found`,
+  });
+});
+
+// Centralized Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled Application Error:', err);
+  const statusCode = Number(err.statusCode || err.status || 500);
+  const message =
+    process.env.NODE_ENV === 'production' && statusCode === 500
+      ? 'An internal server error occurred.'
+      : err.message || 'An unexpected error occurred.';
+  res.status(statusCode).json({ status: 'error', message });
+});
 
 // --- Server Startup ---
 
