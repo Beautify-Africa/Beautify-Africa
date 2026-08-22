@@ -109,7 +109,7 @@ export default function AuthModeForm({
           </span>
         )}
         <h3 className="font-serif text-2xl text-stone-900">{content.title}</h3>
-        {content.description && <p className="mt-3 text-sm leading-relaxed text-stone-500">{content.description}</p>}
+        {content.description && <p className="mt-3 text-sm leading-relaxed text-stone-600">{content.description}</p>}
       </header>
 
       <form className="space-y-6" onSubmit={handleSubmit}>
@@ -139,7 +139,7 @@ export default function AuthModeForm({
               type="button"
               onClick={handleForgotPassword}
               disabled={loading}
-              className="text-[11px] font-semibold text-stone-500 underline transition-colors hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-stone-500"
+              className="text-[11px] font-semibold text-stone-600 underline transition-colors hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-stone-600"
             >
               {forgotPasswordLabel}
             </button>
@@ -178,7 +178,7 @@ export default function AuthModeForm({
       </form>
 
       {content.switchText && content.switchLabel && onSecondaryAction && (
-        <p className="mt-6 text-center text-xs text-stone-500">
+        <p className="mt-6 text-center text-xs text-stone-600">
           {content.switchText}{' '}
           <button
             type="button"

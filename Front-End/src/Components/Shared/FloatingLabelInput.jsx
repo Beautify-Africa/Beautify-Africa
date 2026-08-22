@@ -18,7 +18,7 @@ export default function FloatingLabelInput({ field, value, onChange, required = 
 
       <label
         htmlFor={field.id}
-        className="absolute top-0 left-0 text-[10px] uppercase tracking-wider text-stone-400 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-xs peer-focus:top-0 peer-focus:text-[10px] peer-focus:text-stone-800"
+        className="absolute top-0 left-0 text-[10px] uppercase tracking-wider text-stone-500 transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-xs peer-placeholder-shown:text-stone-500 peer-focus:top-0 peer-focus:text-[10px] peer-focus:text-stone-800"
       >
         {field.label}
       </label>
