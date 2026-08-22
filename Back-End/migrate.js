@@ -1,32 +1,22 @@
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const Product = require('./models/Product');
+const { connectDB, sequelize } = require('./config/db');
+require('./models'); // Loads and binds all models & associations
 
 async function migrate() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected for migration');
+    await connectDB();
+    console.log('PostgreSQL Connected');
 
-    // Rename old 'reviews' (Number) field to 'numReviews' for all documents
-    // This securely clears the 'reviews' field path so Mongoose can use it as an Array of objects
-    const result = await Product.collection.updateMany(
-      { reviews: { $type: "number" } }, // only rename if it's the old numeric format
-      { $rename: { 'reviews': 'numReviews' } }
-    );
-    
-    // In case there are some that already got updated but still have mismatched arrays
-    await Product.collection.updateMany(
-      { reviews: { $exists: false } },
-      { $set: { reviews: [] } }
-    );
+    await sequelize.sync({ alter: true });
+    console.log('Database sync complete! All tables and relations are up to date.');
 
-    console.log(`Migration Complete! Modified ${result.modifiedCount} documents.`);
+    await sequelize.close();
     process.exit(0);
   } catch (err) {
-    console.error(err);
+    console.error('Migration failed:', err);
     process.exit(1);
   }
 }
