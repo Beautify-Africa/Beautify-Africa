@@ -1,42 +1,28 @@
 // scripts/seedProducts.js
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const path = require('path');
-const seedProducts = require('../data/seedProducts');
-
-// Load environment variables from Back-End/.env
-// path.resolve(__dirname, '../.env') means: go up one folder from scripts/, find .env
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-// Import the Product model from Back-End/models/Product.js
-const Product = require('../models/Product');
+const { connectDB, sequelize } = require('../config/db');
+const { Product } = require('../models/Product');
+const seedProducts = require('../data/seedProducts');
 
 async function seed() {
   try {
-    // 1. Connect to MongoDB using the same MONGO_URI from your .env file
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to MongoDB');
+    await connectDB();
 
-    // 2. Load static seed products from a backend-owned data module
     if (!Array.isArray(seedProducts)) {
       throw new Error('Seed products array not found in Back-End/data/seedProducts.js');
     }
 
-    const products = seedProducts;
-    console.log('Found ' + products.length + ' products in Back-End/data/seedProducts.js');
+    console.log('Found ' + seedProducts.length + ' products in Back-End/data/seedProducts.js');
 
-    // 3. Clear any existing products in MongoDB
-    const deleteResult = await Product.deleteMany({});
-    console.log('Cleared ' + deleteResult.deletedCount + ' existing products from database');
+    // Clear existing products
+    await Product.destroy({ where: {}, truncate: { cascade: true } });
+    console.log('Cleared existing products from database');
 
-    // 4. Insert each product one by one using Product.create()
-    //    We use create() instead of insertMany() because create() triggers
-    //    the pre('save') hook that auto-generates the slug field
     const inserted = [];
-    for (const productData of products) {
-      // Map front-end-only fields to the Product schema before creating docs.
-      // Seed data uses "reviews" as a number and "isNew" as a boolean, while
-      // the schema expects "reviews" as an array and uses "numReviews" / "isNewProduct".
+    for (const productData of seedProducts) {
       const {
         id,
         reviews,
@@ -48,14 +34,12 @@ async function seed() {
         ...rest,
         numReviews: typeof reviews === 'number' ? reviews : 0,
         isNewProduct: Boolean(isNew),
-        reviews: [],
       };
 
       const product = await Product.create(normalizedProduct);
       inserted.push(product);
     }
 
-    // 5. Print results to confirm everything worked
     console.log('');
     console.log('Successfully seeded ' + inserted.length + ' products:');
     console.log('');
@@ -63,15 +47,21 @@ async function seed() {
       console.log('  Name:  ' + p.name);
       console.log('  Slug:  ' + p.slug);
       console.log('  Price: $' + p.price);
-      console.log('  _id:   ' + p._id);
-      console.log('');
     });
 
+    const { bumpProductCacheVersion } = require('../controllers/productController.cache');
+    await bumpProductCacheVersion();
+    console.log('Product cache version invalidated.');
   } catch (error) {
     console.error('Seed failed:', error.message);
   } finally {
-    // Always close the database connection when done
-    await mongoose.connection.close();
+    try {
+      const redisClient = require('../config/redis');
+      await redisClient.quit();
+    } catch {}
+    try {
+      await sequelize.close();
+    } catch {}
     console.log('Database connection closed');
   }
 }
