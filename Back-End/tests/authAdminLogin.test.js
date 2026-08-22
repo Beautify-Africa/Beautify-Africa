@@ -8,7 +8,7 @@ const authRoutes = require('../routes/authRoutes');
 
 const ADMIN_EMAIL = 'stephenmutheu@gmail.com';
 const ADMIN_PASSWORD = 'Mutheu@2020';
-const ADMIN_USER_ID = '507f1f77bcf86cd799439099';
+const ADMIN_USER_ID = 'e111a111-a111-a111-a111-a111a111a111';
 
 function createApp() {
   const app = express();
@@ -63,9 +63,9 @@ describe('POST /api/auth/admin-login', () => {
   });
 
   test('logs in with configured credentials and creates admin user when missing', async () => {
-    const selectMock = jest.fn().mockResolvedValue(null);
-    User.findOne.mockReturnValue({ select: selectMock });
+    User.findOne.mockResolvedValue(null);
     User.create.mockResolvedValue({
+      id: ADMIN_USER_ID,
       _id: ADMIN_USER_ID,
       name: 'Admin User',
       email: ADMIN_EMAIL,
@@ -82,8 +82,7 @@ describe('POST /api/auth/admin-login', () => {
     expect(response.body.user.email).toBe(ADMIN_EMAIL);
     expect(response.body.user.isAdmin).toBe(true);
 
-    expect(User.findOne).toHaveBeenCalledWith({ email: ADMIN_EMAIL });
-    expect(selectMock).toHaveBeenCalledWith('+password');
+    expect(User.findOne).toHaveBeenCalledWith({ where: { email: ADMIN_EMAIL } });
     expect(User.create).toHaveBeenCalledWith({
       name: 'Admin User',
       email: ADMIN_EMAIL,
@@ -94,6 +93,7 @@ describe('POST /api/auth/admin-login', () => {
 
   test('elevates and updates existing user password when credentials match server config', async () => {
     const userDoc = {
+      id: ADMIN_USER_ID,
       _id: ADMIN_USER_ID,
       name: 'Stephen',
       email: ADMIN_EMAIL,
@@ -102,8 +102,7 @@ describe('POST /api/auth/admin-login', () => {
       save: jest.fn().mockResolvedValue(undefined),
     };
 
-    const selectMock = jest.fn().mockResolvedValue(userDoc);
-    User.findOne.mockReturnValue({ select: selectMock });
+    User.findOne.mockResolvedValue(userDoc);
 
     const response = await request(app)
       .post('/api/auth/admin-login')

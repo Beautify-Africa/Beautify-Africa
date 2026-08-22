@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const request = require('supertest');
+const { Op } = require('sequelize');
 
 jest.mock('../models/User');
 jest.mock('../utils/sendEmail', () => jest.fn());
@@ -76,7 +77,7 @@ describe('Password reset auth flow', () => {
 
     expect(userDoc.passwordResetToken).toBeTruthy();
     expect(userDoc.passwordResetExpires).toBeInstanceOf(Date);
-    expect(userDoc.save).toHaveBeenCalledWith({ validateBeforeSave: false });
+    expect(userDoc.save).toHaveBeenCalled();
 
     expect(sendEmail).toHaveBeenCalledTimes(1);
     const sentPayload = sendEmail.mock.calls[0][0];
@@ -110,11 +111,9 @@ describe('Password reset auth flow', () => {
     expect(response.status).toBe(500);
     expect(response.body.status).toBe('error');
     expect(response.body.message).toMatch(/unable to deliver password reset email/i);
-    expect(userDoc.passwordResetToken).toBeUndefined();
-    expect(userDoc.passwordResetExpires).toBeUndefined();
+    expect(userDoc.passwordResetToken).toBeNull();
+    expect(userDoc.passwordResetExpires).toBeNull();
     expect(userDoc.save).toHaveBeenCalledTimes(2);
-    expect(userDoc.save).toHaveBeenNthCalledWith(1, { validateBeforeSave: false });
-    expect(userDoc.save).toHaveBeenNthCalledWith(2, { validateBeforeSave: false });
   });
 
   test('reset-password rejects invalid or expired token', async () => {
@@ -151,13 +150,15 @@ describe('Password reset auth flow', () => {
     expect(response.body.message).toMatch(/password reset successful/i);
 
     expect(User.findOne).toHaveBeenCalledWith({
-      passwordResetToken: expectedHash,
-      passwordResetExpires: { $gt: expect.any(Date) },
+      where: {
+        passwordResetToken: expectedHash,
+        passwordResetExpires: { [Op.gt]: expect.any(Date) },
+      },
     });
 
     expect(userDoc.password).toBe('NewPass@123');
-    expect(userDoc.passwordResetToken).toBeUndefined();
-    expect(userDoc.passwordResetExpires).toBeUndefined();
+    expect(userDoc.passwordResetToken).toBeNull();
+    expect(userDoc.passwordResetExpires).toBeNull();
     expect(userDoc.save).toHaveBeenCalledTimes(1);
   });
 });
