@@ -1,243 +1,114 @@
-const mongoose = require('mongoose');
+// models/Product.js
+const { DataTypes, Model } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const reviewSchema = new mongoose.Schema(
+// ===== ProductVariant =====
+class ProductVariant extends Model {
+  get _id() { return this.id; }
+}
+ProductVariant.init(
   {
-    name: { type: String, required: true },
-    rating: { type: Number, required: true, min: 1, max: 5 },
-    comment: { type: String, required: true },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-    },
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    sku: { type: DataTypes.STRING, allowNull: false },
+    size: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    color: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    type: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    stockQuantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0, validate: { min: 0 } },
+    price: { type: DataTypes.FLOAT, allowNull: true, defaultValue: null },
+    inStock: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
-  {
-    timestamps: true,
-  }
+  { sequelize, modelName: 'ProductVariant', tableName: 'product_variants', timestamps: true }
 );
 
-// Variant sub-schema for product variations (size, color, type, etc.)
-// Each variant tracks its own SKU and stock independently
-const variantSchema = new mongoose.Schema(
+// ===== ProductReview =====
+class ProductReview extends Model {
+  get _id() { return this.id; }
+}
+ProductReview.init(
   {
-    sku: {
-      type: String,
-      required: [true, 'SKU is required for variant'],
-      trim: true,
-    },
-    attributes: {
-      size: { type: String, default: null },
-      color: { type: String, default: null },
-      type: { type: String, default: null },
-      // Additional attributes can be added here
-    },
-    stockQuantity: {
-      type: Number,
-      required: true,
-      min: [0, 'Stock quantity cannot be negative'],
-      default: 0,
-    },
-    price: {
-      type: Number,
-      default: null, // If null, inherits from parent product price
-    },
-    inStock: {
-      type: Boolean,
-      default: false,
-    },
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    userId: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
+    name: { type: DataTypes.STRING, allowNull: false },
+    rating: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } },
+    comment: { type: DataTypes.TEXT, allowNull: false },
   },
-  { timestamps: true }
+  { sequelize, modelName: 'ProductReview', tableName: 'product_reviews', timestamps: true }
 );
 
-const productSchema = new mongoose.Schema(
+// ===== Product =====
+class Product extends Model {
+  get _id() { return this.id; }
+}
+
+Product.init(
   {
-    name: {
-      type: String,
-      required: [true, 'Product name is required'],
-      trim: true,
-    },
-    slug: {
-      type: String,
-      unique: true,
-      lowercase: true,
-    },
-    brand: {
-      type: String,
-      required: [true, 'Brand is required'],
-      trim: true,
-    },
-    category: {
-      type: String,
-      required: [true, 'Category is required'],
-      trim: true,
-    },
-    // ===== Status & Lifecycle =====
+    id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'Product name is required' } } },
+    slug: { type: DataTypes.STRING, unique: true },
+    brand: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'Brand is required' } } },
+    category: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'Category is required' } } },
+    subcategory: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     status: {
-      type: String,
-      enum: ['draft', 'published', 'archived'],
-      default: 'published',
+      type: DataTypes.ENUM('draft', 'published', 'archived'),
+      defaultValue: 'published',
     },
-    // For backward compatibility: keep isArchived but status takes precedence
-    isArchived: {
-      type: Boolean,
-      default: false,
-      deprecated: true, // Use status field instead
-    },
-    // ===== Pricing =====
-    price: {
-      type: Number,
-      required: [true, 'Price is required'],
-      min: [0, 'Price cannot be negative'],
-    },
-    originalPrice: {
-      type: Number,
-      default: null,
-    },
-    // ===== Images & Gallery =====
-    image: {
-      type: String,
-      required: [true, 'Product image is required'],
-      // Primary/base image displayed in listings
-    },
-    images: {
-      type: [String],
-      default: [],
-      // Gallery of additional product images
-    },
-    // ===== Stock & Inventory =====
-    stockQuantity: {
-      type: Number,
-      min: [0, 'Stock quantity cannot be negative'],
-      default: 25,
-      // Total stock when no variants exist; otherwise sum of variant stock
-    },
-    lowStockThreshold: {
-      type: Number,
-      min: [0, 'Low stock threshold cannot be negative'],
-      default: 5,
-    },
-    inStock: {
-      type: Boolean,
-      default: true,
-      // Computed from stockQuantity or variant stock
-    },
-    // ===== Product Variants (Size, Color, Type, etc.) =====
-    variants: {
-      type: [variantSchema],
-      default: [],
-      // If empty, product uses single stockQuantity model
-      // If populated, each variant has independent stock tracking
-    },
-    // ===== Stock History Audit Trail =====
-    stockHistory: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'InventoryLedger',
-      },
-    ],
-    // ===== Ratings & Reviews =====
-    rating: {
-      type: Number,
-      default: 0,
-    },
-    reviews: [reviewSchema],
-    numReviews: {
-      type: Number,
-      default: 0,
-    },
-    // ===== Product Details =====
-    description: {
-      type: String,
-      default: '',
-    },
-    skinType: {
-      type: [String],
-      default: ['All'],
-    },
-    ingredients: {
-      type: String,
-      default: '',
-    },
-    howToUse: {
-      type: String,
-      default: '',
-    },
-    tags: {
-      type: [String],
-      default: [],
-    },
-    // ===== Flags =====
-    isNewProduct: {
-      type: Boolean,
-      default: false,
-    },
-    isBestSeller: {
-      type: Boolean,
-      default: false,
-    },
+    isArchived: { type: DataTypes.BOOLEAN, defaultValue: false },
+    price: { type: DataTypes.FLOAT, allowNull: false, validate: { min: 0 } },
+    originalPrice: { type: DataTypes.FLOAT, allowNull: true, defaultValue: null },
+    image: { type: DataTypes.TEXT, allowNull: false, validate: { notEmpty: { msg: 'Product image is required' } } },
+    images: { type: DataTypes.ARRAY(DataTypes.TEXT), defaultValue: [] },
+    stockQuantity: { type: DataTypes.INTEGER, defaultValue: 25, validate: { min: 0 } },
+    lowStockThreshold: { type: DataTypes.INTEGER, defaultValue: 5, validate: { min: 0 } },
+    inStock: { type: DataTypes.BOOLEAN, defaultValue: true },
+    rating: { type: DataTypes.FLOAT, defaultValue: 0 },
+    numReviews: { type: DataTypes.INTEGER, defaultValue: 0 },
+    description: { type: DataTypes.TEXT, defaultValue: '' },
+    skinType: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: ['All'] },
+    ingredients: { type: DataTypes.TEXT, defaultValue: '' },
+    howToUse: { type: DataTypes.TEXT, defaultValue: '' },
+    tags: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
+    isNewProduct: { type: DataTypes.BOOLEAN, defaultValue: false },
+    isBestSeller: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
-  { timestamps: true }
-);
-
-// Optimize common product listing sorts.
-productSchema.index({ createdAt: -1 });
-productSchema.index({ price: 1 });
-productSchema.index({ rating: -1 });
-productSchema.index({ isBestSeller: -1, numReviews: -1 });
-productSchema.index({ category: 1, createdAt: -1 });
-productSchema.index({ brand: 1, createdAt: -1 });
-productSchema.index({ skinType: 1, createdAt: -1 });
-productSchema.index({ inStock: 1, createdAt: -1 });
-// Phase 3: Compound index for status-filtered listing queries (covers single-field status lookups as prefix)
-productSchema.index({ status: 1, createdAt: -1 });
-// Unique index on variant SKU within each product
-productSchema.index({ 'variants.sku': 1 }, { sparse: true, unique: false });
-productSchema.index(
-  { name: 'text', brand: 'text', category: 'text', description: 'text' },
   {
-    weights: {
-      name: 5,
-      brand: 3,
-      category: 2,
-      description: 1,
+    sequelize,
+    modelName: 'Product',
+    tableName: 'products',
+    timestamps: true,
+    hooks: {
+      beforeSave: (product) => {
+        // Generate slug from name
+        if (product.changed('name') || !product.slug) {
+          product.slug = product.name
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        }
+
+        // Sync status and isArchived
+        if (product.status === 'archived') {
+          product.isArchived = true;
+        } else {
+          product.isArchived = false;
+        }
+
+        // inStock is computed from stockQuantity (variants are handled at service level)
+        if (!product.changed('inStock')) {
+          product.inStock = Number(product.stockQuantity || 0) > 0;
+        }
+      },
     },
   }
 );
 
-// Auto-generate a URL-friendly slug from the product name before saving
-// Example: "The Velvet Botanique" becomes "the-velvet-botanique"
-// Also compute inStock status from stock levels and status field
-productSchema.pre('save', function computeProductStatus() {
-  // Generate slug if name changed
-  if (this.isModified('name')) {
-    this.slug = this.name
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  }
+// Associations
+Product.hasMany(ProductVariant, { foreignKey: 'productId', as: 'variants', onDelete: 'CASCADE' });
+ProductVariant.belongsTo(Product, { foreignKey: 'productId' });
 
-  // Sync status and isArchived fields (status takes precedence)
-  if (this.status === 'archived') {
-    this.isArchived = true;
-  } else if (this.status === 'draft' || this.status === 'published') {
-    // For backward compatibility: isArchived false for non-archived statuses
-    this.isArchived = false;
-  }
+Product.hasMany(ProductReview, { foreignKey: 'productId', as: 'reviews', onDelete: 'CASCADE' });
+ProductReview.belongsTo(Product, { foreignKey: 'productId' });
 
-  // Compute inStock based on stock levels and variants
-  if (this.variants && this.variants.length > 0) {
-    // If variants exist, product is in stock if ANY variant has stock
-    const hasVariantStock = this.variants.some((v) => v.stockQuantity > 0);
-    // Also update each variant's inStock status
-    this.variants.forEach((variant) => {
-      variant.inStock = variant.stockQuantity > 0;
-    });
-    this.inStock = hasVariantStock;
-  } else {
-    // Otherwise, check main stockQuantity
-    this.inStock = Number(this.stockQuantity || 0) > 0;
-  }
-});
-
-module.exports = mongoose.model('Product', productSchema);
+module.exports = { Product, ProductVariant, ProductReview };
