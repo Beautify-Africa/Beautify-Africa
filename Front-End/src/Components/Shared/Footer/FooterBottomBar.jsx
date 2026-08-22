@@ -10,7 +10,7 @@ function LegalLinks() {
   return (
     <nav className="order-2 flex flex-wrap justify-center gap-4 sm:gap-8" aria-label="Legal information">
       {LEGAL_LINKS.map((link) => (
-        <AppLink key={link.name} href={link.href} className="transition-colors hover:text-stone-400">
+        <AppLink key={link.name} href={link.href} className="transition-colors hover:text-stone-200">
           {link.name}
         </AppLink>
       ))}
@@ -22,7 +22,7 @@ function LocaleSelector() {
   return (
     <button
       type="button"
-      className="flex items-center gap-2 rounded-full border border-stone-800 px-4 py-1.5 transition-colors hover:border-stone-600 hover:text-stone-300"
+      className="flex items-center gap-2 rounded-full border border-stone-700 px-4 py-1.5 transition-colors hover:border-stone-500 hover:text-stone-200"
       aria-label={`Change region, currently ${LOCALE_CONFIG.currentLocale}`}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-stone-500" aria-hidden="true" />
@@ -52,7 +52,7 @@ function PaymentIcons() {
 
 export default function FooterBottomBar() {
   return (
-    <div className="flex flex-col items-center justify-between gap-6 text-center text-[9px] font-medium uppercase tracking-[0.1em] text-stone-600 lg:flex-row lg:text-left md:gap-8 md:text-[10px]">
+    <div className="flex flex-col items-center justify-between gap-6 text-center text-[9px] font-medium uppercase tracking-[0.1em] text-stone-400 lg:flex-row lg:text-left md:gap-8 md:text-[10px]">
       <p className="order-3 lg:order-1">
         Copyright {COPYRIGHT.year} {COPYRIGHT.company}. {COPYRIGHT.text}
       </p>

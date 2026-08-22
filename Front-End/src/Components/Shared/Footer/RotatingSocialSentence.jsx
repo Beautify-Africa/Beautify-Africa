@@ -36,7 +36,7 @@ export default function RotatingSocialSentence() {
   const { Icon } = current;
 
   return (
-    <p className="font-serif italic text-base leading-relaxed text-stone-400 md:text-lg">
+    <p className="font-serif italic text-base leading-relaxed text-stone-300 md:text-lg">
       {ROTATING_SOCIAL_SENTENCE.prefix}{' '}
       <a
         href={current.href}
