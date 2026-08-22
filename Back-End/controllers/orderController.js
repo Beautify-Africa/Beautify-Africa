@@ -1,4 +1,5 @@
 // controllers/orderController.js
+const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress } = require('../models/Order');
 const {
   buildVerifiedOrderItems,
@@ -37,46 +38,56 @@ const addOrderItems = async (req, res) => {
 
     const { shippingPrice, taxPrice, totalPrice } = calculateOrderTotals(itemsPrice);
 
-    const order = await Order.create({
-      userId: req.user ? (req.user.id || req.user._id) : null,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-    });
+    // Atomically create order, items, and shipping address inside a transaction
+    const createdOrder = await sequelize.transaction(async (t) => {
+      const order = await Order.create(
+        {
+          userId: req.user ? (req.user.id || req.user._id) : null,
+          paymentMethod,
+          itemsPrice,
+          taxPrice,
+          shippingPrice,
+          totalPrice,
+        },
+        { transaction: t }
+      );
 
-    // Create order items
-    await OrderItem.bulkCreate(
-      verifiedOrderItems.map((item) => ({
-        orderId: order.id,
-        productId: item.productId,
-        name: item.name,
-        qty: item.qty,
-        image: item.image,
-        price: item.price,
-      }))
-    );
+      // Create order items
+      await OrderItem.bulkCreate(
+        verifiedOrderItems.map((item) => ({
+          orderId: order.id,
+          productId: item.productId,
+          name: item.name,
+          qty: item.qty,
+          image: item.image,
+          price: item.price,
+        })),
+        { transaction: t }
+      );
 
-    // Create shipping address
-    await OrderShippingAddress.create({
-      orderId: order.id,
-      firstName: shippingAddress.firstName,
-      lastName: shippingAddress.lastName,
-      email: shippingAddress.email,
-      address: shippingAddress.address,
-      city: shippingAddress.city,
-      zip: shippingAddress.zip,
-      country: shippingAddress.country,
-    });
+      // Create shipping address
+      await OrderShippingAddress.create(
+        {
+          orderId: order.id,
+          firstName: shippingAddress.firstName,
+          lastName: shippingAddress.lastName,
+          email: shippingAddress.email,
+          address: shippingAddress.address,
+          city: shippingAddress.city,
+          zip: shippingAddress.zip,
+          country: shippingAddress.country,
+        },
+        { transaction: t }
+      );
 
-    // Re-fetch with associations
-    const { Order: OrderModel, OrderItem: OrderItemModel, OrderShippingAddress: ShippingModel } = require('../models/Order');
-    const createdOrder = await Order.findByPk(order.id, {
-      include: [
-        { model: OrderItem, as: 'orderItems' },
-        { model: OrderShippingAddress, as: 'shippingAddress' },
-      ],
+      // Re-fetch with associations inside transaction
+      return Order.findByPk(order.id, {
+        include: [
+          { model: OrderItem, as: 'orderItems' },
+          { model: OrderShippingAddress, as: 'shippingAddress' },
+        ],
+        transaction: t,
+      });
     });
 
     res.status(201).json({ status: 'success', data: createdOrder });
