@@ -1,6 +1,10 @@
 // CSV parsing utilities
 function csvEscape(value) {
-  const stringValue = value === null || value === undefined ? '' : String(value);
+  let stringValue = value === null || value === undefined ? '' : String(value);
+  // Protect against CSV Formula Injection (CWE-1236)
+  if (/^[=+\-@\t\r]/.test(stringValue)) {
+    stringValue = `'${stringValue}`;
+  }
   if (/[",\n\r]/.test(stringValue)) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }

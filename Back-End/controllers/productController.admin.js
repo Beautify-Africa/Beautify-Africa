@@ -1,4 +1,5 @@
 const { Product, ProductVariant } = require('../models/Product');
+const { sequelize } = require('../config/db');
 const { bumpProductCacheVersion } = require('./productController.cache');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -72,42 +73,50 @@ async function duplicateProduct(req, res) {
 
     const newName = req.body.name || `${sourceProduct.name} (Copy)`;
 
-    const newProduct = await Product.create({
-      name: newName,
-      brand: sourceProduct.brand,
-      category: sourceProduct.category,
-      subcategory: sourceProduct.subcategory,
-      price: sourceProduct.price,
-      originalPrice: sourceProduct.originalPrice,
-      image: sourceProduct.image,
-      images: [...(sourceProduct.images || [])],
-      description: sourceProduct.description,
-      skinType: [...(sourceProduct.skinType || [])],
-      ingredients: sourceProduct.ingredients,
-      howToUse: sourceProduct.howToUse,
-      tags: [...(sourceProduct.tags || [])],
-      stockQuantity: sourceProduct.stockQuantity,
-      lowStockThreshold: sourceProduct.lowStockThreshold,
-      status: 'draft',
-      isNewProduct: true,
-      isBestSeller: false,
-    });
-
-    // Clone variants if present
-    if (sourceProduct.variants && sourceProduct.variants.length > 0) {
-      await ProductVariant.bulkCreate(
-        sourceProduct.variants.map((v) => ({
-          productId: newProduct.id,
-          sku: `${v.sku}-copy-${Date.now()}`,
-          size: v.size,
-          color: v.color,
-          type: v.type,
-          stockQuantity: v.stockQuantity,
-          price: v.price,
-          inStock: v.stockQuantity > 0,
-        }))
+    const newProduct = await sequelize.transaction(async (t) => {
+      const created = await Product.create(
+        {
+          name: newName,
+          brand: sourceProduct.brand,
+          category: sourceProduct.category,
+          subcategory: sourceProduct.subcategory,
+          price: sourceProduct.price,
+          originalPrice: sourceProduct.originalPrice,
+          image: sourceProduct.image,
+          images: [...(sourceProduct.images || [])],
+          description: sourceProduct.description,
+          skinType: [...(sourceProduct.skinType || [])],
+          ingredients: sourceProduct.ingredients,
+          howToUse: sourceProduct.howToUse,
+          tags: [...(sourceProduct.tags || [])],
+          stockQuantity: sourceProduct.stockQuantity,
+          lowStockThreshold: sourceProduct.lowStockThreshold,
+          status: 'draft',
+          isNewProduct: true,
+          isBestSeller: false,
+        },
+        { transaction: t }
       );
-    }
+
+      // Clone variants if present
+      if (sourceProduct.variants && sourceProduct.variants.length > 0) {
+        await ProductVariant.bulkCreate(
+          sourceProduct.variants.map((v) => ({
+            productId: created.id,
+            sku: `${v.sku}-copy-${Date.now()}`,
+            size: v.size,
+            color: v.color,
+            type: v.type,
+            stockQuantity: v.stockQuantity,
+            price: v.price,
+            inStock: v.stockQuantity > 0,
+          })),
+          { transaction: t }
+        );
+      }
+
+      return created;
+    });
 
     await bumpProductCacheVersion();
 
