@@ -42,7 +42,7 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen pt-32 pb-20 flex items-center justify-center bg-[#faf9f6]">
-        <p className="text-xs font-bold uppercase tracking-widest text-stone-500">Please log in to view your profile.</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-stone-700">Please log in to view your profile.</p>
       </div>
     );
   }

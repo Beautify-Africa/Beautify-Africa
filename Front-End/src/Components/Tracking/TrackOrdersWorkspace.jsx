@@ -18,7 +18,7 @@ function SignInGate() {
     <section className="rounded-sm border border-stone-200 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">Track Your Order</p>
       <h2 className="mt-3 font-serif text-4xl text-stone-900">Sign in to continue</h2>
-      <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-stone-500">
+      <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-stone-600">
         Use the customer account you used during checkout to view purchase history and live shipping progress updates.
       </p>
       <Link
@@ -42,7 +42,7 @@ export default function TrackOrdersWorkspace() {
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-amber-700">Shipping Concierge</p>
             <h1 className="mt-2 font-serif text-5xl leading-none text-stone-900 md:text-6xl">Track Your Order</h1>
-            <p className="mt-3 max-w-2xl text-sm text-stone-500">
+            <p className="mt-3 max-w-2xl text-sm text-stone-600">
               Purchase history and shipping stages update as soon as your admin team changes shipment status.
             </p>
           </div>
@@ -75,7 +75,7 @@ export default function TrackOrdersWorkspace() {
         ) : orders.length === 0 ? (
           <section className="rounded-sm border border-stone-200 bg-white px-6 py-12 text-center shadow-sm">
             <p className="font-serif text-3xl text-stone-900">No orders yet</p>
-            <p className="mx-auto mt-3 max-w-lg text-sm text-stone-500">Your shipping timeline will appear here once you complete a purchase.</p>
+            <p className="mx-auto mt-3 max-w-lg text-sm text-stone-600">Your shipping timeline will appear here once you complete a purchase.</p>
             <Link
               to="/shop"
               className="mt-7 inline-flex rounded-sm border border-stone-900 px-8 py-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors hover:bg-stone-900 hover:text-white"
