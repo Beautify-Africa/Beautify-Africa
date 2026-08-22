@@ -1,4 +1,5 @@
-const Order = require('../models/Order');
+// controllers/orderController.js
+const { Order, OrderItem, OrderShippingAddress } = require('../models/Order');
 const {
   buildVerifiedOrderItems,
   calculateOrderTotals,
@@ -11,71 +12,79 @@ const addOrderItems = async (req, res) => {
   try {
     const { orderItems, shippingAddress, paymentMethod } = req.body;
 
-    // Validate order items
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ status: 'error', message: 'No order items' });
     }
 
-    // Validate shipping address — all required fields must be present
     const requiredAddressFields = ['firstName', 'lastName', 'email', 'address', 'city', 'zip', 'country'];
     const missingFields = requiredAddressFields.filter((field) => !shippingAddress?.[field]);
-
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Shipping address is missing: ${missingFields.join(', ')}`,
-      });
+      return res.status(400).json({ status: 'error', message: `Shipping address is missing: ${missingFields.join(', ')}` });
     }
 
-    // Validate payment method
     if (!paymentMethod) {
       return res.status(400).json({ status: 'error', message: 'Payment method is required' });
     }
 
-    // Verify all products exist in DB and are in stock — server-side price is used, not client price
-    const {
-      verifiedOrderItems,
-      itemsPrice,
-      error: verificationError,
-    } = await buildVerifiedOrderItems(orderItems, req.user?._id);
+    const { verifiedOrderItems, itemsPrice, error: verificationError } = await buildVerifiedOrderItems(
+      orderItems,
+      req.user?._id
+    );
 
     if (verificationError) {
-      return res
-        .status(verificationError.statusCode)
-        .json({ status: 'error', message: verificationError.message });
+      return res.status(verificationError.statusCode).json({ status: 'error', message: verificationError.message });
     }
 
     const { shippingPrice, taxPrice, totalPrice } = calculateOrderTotals(itemsPrice);
 
-    const order = new Order({
-      orderItems: verifiedOrderItems,
-      user: req.user ? req.user._id : null,
-      shippingAddress,
+    const order = await Order.create({
+      userId: req.user ? (req.user.id || req.user._id) : null,
       paymentMethod,
       itemsPrice,
       taxPrice,
       shippingPrice,
       totalPrice,
-      // isPaid and paidAt are intentionally omitted here.
-      // They will be set to true by the Stripe webhook handler
-      // (POST /api/stripe/webhook) after payment is confirmed server-side.
     });
 
-    const createdOrder = await order.save();
+    // Create order items
+    await OrderItem.bulkCreate(
+      verifiedOrderItems.map((item) => ({
+        orderId: order.id,
+        productId: item.productId,
+        name: item.name,
+        qty: item.qty,
+        image: item.image,
+        price: item.price,
+      }))
+    );
+
+    // Create shipping address
+    await OrderShippingAddress.create({
+      orderId: order.id,
+      firstName: shippingAddress.firstName,
+      lastName: shippingAddress.lastName,
+      email: shippingAddress.email,
+      address: shippingAddress.address,
+      city: shippingAddress.city,
+      zip: shippingAddress.zip,
+      country: shippingAddress.country,
+    });
+
+    // Re-fetch with associations
+    const { Order: OrderModel, OrderItem: OrderItemModel, OrderShippingAddress: ShippingModel } = require('../models/Order');
+    const createdOrder = await Order.findByPk(order.id, {
+      include: [
+        { model: OrderItem, as: 'orderItems' },
+        { model: OrderShippingAddress, as: 'shippingAddress' },
+      ],
+    });
 
     res.status(201).json({ status: 'success', data: createdOrder });
   } catch (error) {
     console.error('addOrderItems error:', error);
 
-    if (error.name === 'CastError' || error.message?.includes('Cast to ObjectId failed')) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid product ID detected. Please clear your cart and try again.',
-      });
-    }
-
-    if (error.name === 'ValidationError') {
-      const firstMessage = Object.values(error.errors)[0]?.message || 'Invalid order data';
+    if (error.name === 'SequelizeValidationError') {
+      const firstMessage = error.errors?.[0]?.message || 'Invalid order data';
       return res.status(400).json({ status: 'error', message: firstMessage });
     }
 
@@ -92,12 +101,17 @@ const getMyOrders = async (req, res) => {
       return res.status(401).json({ status: 'error', message: 'Not authorized' });
     }
 
-    const orders = await Order.find({ user: req.user._id })
-      .select(
-        'orderItems shippingAddress paymentMethod itemsPrice taxPrice shippingPrice totalPrice isPaid paidAt fulfillmentStatus isDelivered deliveredAt createdAt'
-      )
-      .sort({ createdAt: -1 })
-      .lean();
+    const userId = req.user.id || req.user._id;
+
+    const orders = await Order.findAll({
+      where: { userId },
+      include: [
+        { model: OrderItem, as: 'orderItems' },
+        { model: OrderShippingAddress, as: 'shippingAddress' },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
     res.status(200).json({ status: 'success', data: orders });
   } catch (error) {
     console.error('getMyOrders error:', error);
