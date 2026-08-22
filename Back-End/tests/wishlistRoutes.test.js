@@ -3,44 +3,43 @@ const jwt = require('jsonwebtoken');
 const request = require('supertest');
 
 jest.mock('../models/User');
-jest.mock('../models/Wishlist');
-jest.mock('../models/Product');
+jest.mock('../models/Wishlist', () => ({
+  Wishlist: {
+    findOrCreate: jest.fn(),
+    findOne: jest.fn(),
+  },
+  WishlistProduct: {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    destroy: jest.fn(),
+    findOrCreate: jest.fn(),
+    bulkCreate: jest.fn(),
+  },
+}));
+jest.mock('../models/Product', () => ({
+  Product: {
+    findByPk: jest.fn(),
+    findAll: jest.fn(),
+  },
+}));
 
 const User = require('../models/User');
-const Wishlist = require('../models/Wishlist');
-const Product = require('../models/Product');
+const { Wishlist, WishlistProduct } = require('../models/Wishlist');
+const { Product } = require('../models/Product');
 const wishlistRoutes = require('../routes/wishlistRoutes');
 
-const USER_ID = '507f1f77bcf86cd799439011';
-const PRODUCT_ID_A = '507f1f77bcf86cd799439012';
-const PRODUCT_ID_B = '507f1f77bcf86cd799439013';
-const PRODUCT_ID_C = '507f1f77bcf86cd799439014';
+const USER_ID = 'a111a111-a111-a111-a111-a111a111a111';
+const WISHLIST_ID = 'w111w111-w111-w111-w111-w111w111w111';
+const PRODUCT_ID_A = 'b111b111-b111-b111-b111-b111b111b111';
+const PRODUCT_ID_B = 'c111c111-c111-c111-c111-c111c111c111';
+const PRODUCT_ID_C = 'd111d111-d111-d111-d111-d111d111d111';
 
 function createApp() {
   const app = express();
   app.use(express.json());
   app.use('/api/wishlist', wishlistRoutes);
   return app;
-}
-
-function createWishlistDoc(initialItems = [], populatedItems = []) {
-  const wishlistDoc = {
-    user: USER_ID,
-    items: [...initialItems],
-    populate: jest.fn(),
-    save: jest.fn(),
-  };
-
-  wishlistDoc.populate.mockImplementation(async function populate() {
-    this.items = [...populatedItems];
-    return this;
-  });
-
-  wishlistDoc.save.mockImplementation(async function save() {
-    return this;
-  });
-
-  return wishlistDoc;
 }
 
 describe('Wishlist routes', () => {
@@ -58,11 +57,15 @@ describe('Wishlist routes', () => {
     app = createApp();
     authToken = jwt.sign({ id: USER_ID }, process.env.JWT_SECRET);
 
-    User.findById.mockResolvedValue({
+    User.findByPk.mockResolvedValue({
+      id: USER_ID,
       _id: USER_ID,
       name: 'Wishlist Tester',
       email: 'wishlist@test.com',
     });
+
+    Wishlist.findOrCreate.mockResolvedValue([{ id: WISHLIST_ID, userId: USER_ID }]);
+    Wishlist.findOne.mockResolvedValue({ id: WISHLIST_ID, userId: USER_ID });
   });
 
   afterEach(() => {
@@ -80,16 +83,14 @@ describe('Wishlist routes', () => {
   });
 
   test('returns wishlist products for authenticated user', async () => {
-    const populatedProducts = [
+    WishlistProduct.findAll.mockResolvedValue([{ productId: PRODUCT_ID_A }]);
+    Product.findAll.mockResolvedValue([
       {
-        _id: PRODUCT_ID_A,
+        id: PRODUCT_ID_A,
         name: 'Product A',
         price: 20,
       },
-    ];
-
-    const wishlistDoc = createWishlistDoc([PRODUCT_ID_A], populatedProducts);
-    Wishlist.findOne.mockResolvedValue(wishlistDoc);
+    ]);
 
     const response = await request(app)
       .get('/api/wishlist')
@@ -102,8 +103,12 @@ describe('Wishlist routes', () => {
   });
 
   test('toggles an existing product off the wishlist', async () => {
-    const wishlistDoc = createWishlistDoc([PRODUCT_ID_A], []);
-    Wishlist.findOne.mockResolvedValue(wishlistDoc);
+    const existingEntry = {
+      destroy: jest.fn().mockResolvedValue(undefined),
+    };
+    WishlistProduct.findOne.mockResolvedValue(existingEntry);
+    WishlistProduct.findAll.mockResolvedValue([]);
+    Product.findAll.mockResolvedValue([]);
 
     const response = await request(app)
       .post('/api/wishlist/toggle')
@@ -114,19 +119,23 @@ describe('Wishlist routes', () => {
     expect(response.body.status).toBe('success');
     expect(response.body.action).toBe('removed');
     expect(response.body.inWishlist).toBe(false);
-    expect(wishlistDoc.save).toHaveBeenCalledTimes(1);
+    expect(existingEntry.destroy).toHaveBeenCalledTimes(1);
   });
 
   test('syncs guest wishlist items into the authenticated wishlist', async () => {
-    const populatedProducts = [
-      { _id: PRODUCT_ID_A, name: 'Product A' },
-      { _id: PRODUCT_ID_B, name: 'Product B' },
-    ];
+    WishlistProduct.findAll
+      .mockResolvedValueOnce([{ productId: PRODUCT_ID_A }])
+      .mockResolvedValueOnce([
+        { productId: PRODUCT_ID_A },
+        { productId: PRODUCT_ID_B },
+      ]);
 
-    const wishlistDoc = createWishlistDoc([PRODUCT_ID_A], populatedProducts);
-    Wishlist.findOne.mockResolvedValue(wishlistDoc);
-    const selectMock = jest.fn().mockResolvedValue([{ _id: PRODUCT_ID_B }]);
-    Product.find.mockReturnValue({ select: selectMock });
+    Product.findAll
+      .mockResolvedValueOnce([{ id: PRODUCT_ID_B }, { id: PRODUCT_ID_C }])
+      .mockResolvedValueOnce([
+        { id: PRODUCT_ID_A, name: 'Product A' },
+        { id: PRODUCT_ID_B, name: 'Product B' },
+      ]);
 
     const response = await request(app)
       .post('/api/wishlist/sync')
@@ -145,11 +154,7 @@ describe('Wishlist routes', () => {
     expect(response.body.status).toBe('success');
     expect(response.body.count).toBe(2);
     expect(response.body.data.map((item) => item._id)).toEqual([PRODUCT_ID_A, PRODUCT_ID_B]);
-    expect(Product.find).toHaveBeenCalledWith({
-      _id: { $in: [PRODUCT_ID_B, PRODUCT_ID_C] },
-    });
-    expect(selectMock).toHaveBeenCalledWith('_id');
-    expect(wishlistDoc.save).toHaveBeenCalledTimes(1);
+    expect(WishlistProduct.bulkCreate).toHaveBeenCalled();
   });
 
   test('validates sync payload shape', async () => {

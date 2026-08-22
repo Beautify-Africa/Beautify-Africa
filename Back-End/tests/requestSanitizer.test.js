@@ -73,6 +73,8 @@ describe('request sanitizer', () => {
   });
 });
 
+const { Op } = require('sequelize');
+
 describe('buildProductFilter', () => {
   test('ignores non-string query values and escapes the search term', () => {
     const filter = buildProductFilter({
@@ -86,11 +88,14 @@ describe('buildProductFilter', () => {
     expect(filter.skinType).toBeUndefined();
     expect(filter.inStock).toBe(true);
     expect(filter.price).toEqual({
-      $gte: 10,
-      $lte: 25,
+      [Op.gte]: 10,
+      [Op.lte]: 25,
     });
-    expect(filter.$or).toHaveLength(3);
-    expect(filter.$or[0].name.test('dry+(skin) cleanser')).toBe(true);
-    expect(filter.$or[0].name.test('dryyyy skin cleanser')).toBe(false);
+    expect(filter[Op.or]).toEqual([
+      { name: { [Op.iLike]: '%dry+(skin)%' } },
+      { brand: { [Op.iLike]: '%dry+(skin)%' } },
+      { category: { [Op.iLike]: '%dry+(skin)%' } },
+    ]);
   });
 });
+
