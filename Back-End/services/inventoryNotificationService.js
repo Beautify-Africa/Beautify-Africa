@@ -3,6 +3,7 @@
 const inventoryService = require('./inventoryService');
 const { emailQueue } = require('../queues/emailQueue');
 const User = require('../models/User');
+const { Product, ProductVariant } = require('../models/Product');
 
 /**
  * Generate HTML email for low stock alert
@@ -17,7 +18,7 @@ function generateLowStockEmailHTML(items, threshold) {
         `
     <tr style="border-bottom: 1px solid #ddd;">
       <td style="padding: 12px; text-align: left;">${item.productName}</td>
-      <td style="padding: 12px; text-align: left;">${item.sku}</td>
+      <td style="padding: 12px; text-align: left;">${item.sku || 'N/A'}</td>
       <td style="padding: 12px; text-align: center;"><strong>${item.stock}</strong></td>
       <td style="padding: 12px; text-align: center;">${item.type === 'variant' ? 'Variant' : 'Main'}</td>
       <td style="padding: 12px; text-align: center;">
@@ -113,7 +114,7 @@ function generateLowStockEmailText(items, threshold) {
   const itemLines = items
     .map(
       (item) =>
-        `\n• ${item.productName} (SKU: ${item.sku})\n  Current Stock: ${item.stock} units\n  Type: ${
+        `\n• ${item.productName} (SKU: ${item.sku || 'N/A'})\n  Current Stock: ${item.stock} units\n  Type: ${
           item.type === 'variant' ? 'Variant' : 'Main'
         }\n  Status: ${item.stock === 0 ? 'OUT OF STOCK' : 'LOW'}`
     )
@@ -158,11 +159,12 @@ async function notifyLowStockToAdmins(threshold = 10) {
     }
 
     // Get all admin users
-    const adminUsers = await User.find(
-      { role: 'admin' },
-      'email name',
-      { limit: 100 }
-    ).lean();
+    const adminUsers = await User.findAll({
+      where: { isAdmin: true },
+      attributes: ['email', 'name'],
+      limit: 100,
+      raw: true,
+    });
 
     if (adminUsers.length === 0) {
       return {
@@ -236,28 +238,28 @@ async function notifyLowStockToAdmins(threshold = 10) {
  */
 async function notifyRestockCompletion(productId, variantId = null, newStock) {
   try {
-    const Product = require('../models/Product');
-
-    const product = await Product.findById(productId, 'name sku variants').lean();
+    const product = await Product.findByPk(productId, {
+      include: [{ model: ProductVariant, as: 'variants' }],
+    });
 
     if (!product) {
       throw new Error('Product not found');
     }
 
-    let variant = null;
-    let itemSku = product.sku;
+    let itemSku = 'N/A';
 
     if (variantId) {
-      variant = product.variants.id(variantId);
+      const variant = (product.variants || []).find((v) => v.id === variantId);
       if (variant) {
         itemSku = variant.sku;
       }
     }
 
-    const adminUsers = await User.find(
-      { role: 'admin' },
-      'email name'
-    ).lean();
+    const adminUsers = await User.findAll({
+      where: { isAdmin: true },
+      attributes: ['email', 'name'],
+      raw: true,
+    });
 
     if (adminUsers.length === 0) {
       return {

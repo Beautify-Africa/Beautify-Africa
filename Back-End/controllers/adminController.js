@@ -1,3 +1,4 @@
+const { Sequelize, Op } = require('sequelize');
 const {
   fetchAdminDashboard,
   fetchAdminAnalytics,
@@ -15,7 +16,7 @@ const {
 const inventoryService = require('../services/inventoryService');
 const inventoryNotificationService = require('../services/inventoryNotificationService');
 const { inventoryNotificationQueue } = require('../queues/inventoryNotificationQueue');
-const Product = require('../models/Product');
+const { Product, ProductVariant } = require('../models/Product');
 
 function handleAdminError(error, res, fallbackMessage, logLabel) {
   const statusCode = error.statusCode || 500;
@@ -297,68 +298,38 @@ async function getLowStockDashboard(req, res) {
 
 async function getInventoryDashboard(req, res) {
   try {
-    // Aggregate inventory stats
-    const [products, stats] = await Promise.all([
-      Product.countDocuments({ status: { $ne: 'archived' } }),
-      Product.aggregate([
-        { $match: { status: { $ne: 'archived' } } },
-        {
-          $facet: {
-            totalVariants: [
-              { $project: { variantCount: { $size: '$variants' } } },
-              { $group: { _id: null, total: { $sum: '$variantCount' } } },
-            ],
-            stockMetrics: [
-              {
-                $project: {
-                  mainStock: '$stockQuantity',
-                  variantStocks: '$variants.stockQuantity',
-                },
-              },
-              {
-                $group: {
-                  _id: null,
-                  mainTotal: { $sum: '$mainStock' },
-                  variantTotal: {
-                    $sum: {
-                      $sum: '$variantStocks',
-                    },
-                  },
-                },
-              },
-            ],
-            statusBreakdown: [
-              { $group: { _id: '$status', count: { $sum: 1 } } },
-            ],
-          },
-        },
-      ]),
-    ]);
+    const [productsCount, totalVariants, mainStockSum, variantStockSum, statusRows, lowStockData] =
+      await Promise.all([
+        Product.count({ where: { status: { [Op.ne]: 'archived' } } }),
+        ProductVariant.count(),
+        Product.sum('stockQuantity', { where: { status: { [Op.ne]: 'archived' } } }),
+        ProductVariant.sum('stockQuantity'),
+        Product.findAll({
+          attributes: ['status', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
+          group: ['status'],
+          raw: true,
+        }),
+        inventoryService.getLowStockItems(10, { limit: 1 }),
+      ]);
 
-    const statsResult = stats[0] || {};
-    const variantStats = statsResult.totalVariants?.[0] || { total: 0 };
-    const stockStats = statsResult.stockMetrics?.[0] || { mainTotal: 0, variantTotal: 0 };
-    const statusBreakdown = statsResult.statusBreakdown || [];
+    const mainTotal = Number(mainStockSum) || 0;
+    const variantTotal = Number(variantStockSum) || 0;
 
-    // Calculate low stock items count (default threshold 10)
-    const lowStockData = await inventoryService.getLowStockItems(10, { limit: 1 });
+    const statusDistribution = (statusRows || []).reduce((acc, item) => {
+      acc[item.status || 'unknown'] = parseInt(item.count, 10) || 0;
+      return acc;
+    }, {});
 
     return res.status(200).json({
       status: 'success',
       data: {
-        totalProducts: products,
-        totalVariants: variantStats.total || 0,
-        totalStock: (stockStats.mainTotal || 0) + (stockStats.variantTotal || 0),
-        mainStock: stockStats.mainTotal || 0,
-        variantStock: stockStats.variantTotal || 0,
+        totalProducts: productsCount,
+        totalVariants: totalVariants || 0,
+        totalStock: mainTotal + variantTotal,
+        mainStock: mainTotal,
+        variantStock: variantTotal,
         lowStockItemsCount: lowStockData.totalCount,
-        statusDistribution: statusBreakdown.reduce(
-          (acc, item) => {
-            acc[item._id || 'unknown'] = item.count;
-            return acc;
-          },
-          {}
-        ),
+        statusDistribution,
         lastUpdated: new Date().toISOString(),
       },
     });
@@ -389,7 +360,7 @@ async function triggerLowStockNotification(req, res) {
       {
         type: 'low-stock-check',
         threshold,
-        triggeredBy: req.user._id,
+        triggeredBy: req.user?.id || req.user?._id,
         triggeredAt: new Date(),
       },
       {
@@ -417,7 +388,6 @@ async function scheduleRecurringLowStockCheck(req, res) {
   try {
     const { interval = '0 0 * * *', threshold = 10, enabled = true } = req.body;
 
-    // Cron expression validation (basic check)
     if (!interval || !interval.match(/^[0-9\s\*\-,/]+$/)) {
       return res.status(400).json({
         status: 'error',
@@ -434,7 +404,6 @@ async function scheduleRecurringLowStockCheck(req, res) {
     }
 
     if (!enabled) {
-      // Remove existing scheduled jobs
       const jobs = await inventoryNotificationQueue.getJobs([
         'wait',
         'delayed',
@@ -452,7 +421,6 @@ async function scheduleRecurringLowStockCheck(req, res) {
       });
     }
 
-    // Add or update recurring job
     const job = await inventoryNotificationQueue.add(
       'low-stock-notification',
       {
@@ -462,7 +430,7 @@ async function scheduleRecurringLowStockCheck(req, res) {
       },
       {
         repeat: {
-          pattern: interval, // Cron expression
+          pattern: interval,
         },
         removeOnComplete: true,
         jobId: 'recurring-low-stock-check',
@@ -492,7 +460,6 @@ async function scheduleRecurringLowStockCheck(req, res) {
 
 async function getNotificationStatus(req, res) {
   try {
-    // Get job counts from queue
     const [waiting, active, completed, failed, delayed] = await Promise.all([
       inventoryNotificationQueue.getWaitingCount(),
       inventoryNotificationQueue.getActiveCount(),
@@ -501,7 +468,6 @@ async function getNotificationStatus(req, res) {
       inventoryNotificationQueue.getDelayedCount(),
     ]);
 
-    // Get recent jobs
     const recentJobs = await inventoryNotificationQueue.getJobs(
       ['completed', 'failed'],
       0,
