@@ -71,17 +71,90 @@ const TrustCard = ({ item }) => {
   );
 };
 
+const TrustBackgroundPattern = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+    <div
+      className="absolute inset-0 opacity-[0.32]"
+      style={{
+        backgroundImage: [
+          'linear-gradient(90deg, rgba(120, 113, 108, 0.08) 1px, transparent 1px)',
+          'linear-gradient(0deg, rgba(120, 113, 108, 0.06) 1px, transparent 1px)',
+          'radial-gradient(circle at center, rgba(180, 83, 9, 0.10) 1px, transparent 1.6px)',
+        ].join(', '),
+        backgroundSize: '112px 112px, 112px 112px, 28px 28px',
+      }}
+    />
+
+    <svg
+      className="absolute inset-0 h-full w-full"
+      viewBox="0 0 1440 760"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      style={{ color: 'rgba(28, 25, 23, 0.085)' }}
+    >
+      <defs>
+        <pattern
+          id="trust-botanical-pattern"
+          width="240"
+          height="190"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(-6)"
+        >
+          <path
+            d="M24 168 C78 132 118 104 158 36"
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeLinecap="round"
+          />
+          <path
+            d="M72 128 C48 112 36 88 42 66 C66 72 82 92 72 128Z"
+            stroke="currentColor"
+            strokeWidth="1"
+          />
+          <path
+            d="M116 90 C94 74 86 50 96 30 C118 40 130 62 116 90Z"
+            stroke="currentColor"
+            strokeWidth="1"
+          />
+          <path
+            d="M148 48 C168 34 194 30 212 42 C196 64 172 68 148 48Z"
+            stroke="currentColor"
+            strokeWidth="1"
+          />
+          <path
+            d="M58 146 C82 150 104 164 116 184"
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeLinecap="round"
+          />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#trust-botanical-pattern)" />
+    </svg>
+
+    <div
+      className="absolute inset-0"
+      style={{
+        background:
+          'linear-gradient(180deg, rgba(250, 249, 246, 0.92) 0%, rgba(250, 249, 246, 0.64) 42%, rgba(250, 249, 246, 0.88) 100%)',
+      }}
+    />
+  </div>
+);
+
 const TrustBar = () => {
   return (
     <section
-      className="relative z-10 py-16 md:py-24 px-4 sm:px-6 md:px-12 bg-[#faf9f6] overflow-hidden"
+      className="relative isolate z-10 py-16 md:py-24 px-4 sm:px-6 md:px-12 bg-[#faf9f6] overflow-hidden"
       aria-labelledby="usp-heading"
       id="trust"
     >
-      {/* Clean amber accent line */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" aria-hidden="true" />
+      <TrustBackgroundPattern />
 
-      <div className="max-w-[1400px] mx-auto">
+      {/* Clean amber accent line */}
+      <div className="absolute top-0 left-1/2 z-10 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" aria-hidden="true" />
+
+      <div className="relative z-10 max-w-[1400px] mx-auto">
         {/* Section Header */}
         <FadeIn as="header" className="text-center mb-12 md:mb-16">
           <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-800 mb-4 block">

@@ -115,10 +115,10 @@ export default function PromoBanner() {
 
               {/* Decorative right element */}
               <div className="hidden md:flex flex-col items-end justify-center text-right ml-auto pr-4">
-                <span className="text-5xl lg:text-6xl font-serif font-bold text-white/20 leading-none">
+                <span className="text-5xl lg:text-6xl font-serif font-bold text-white/40 leading-none">
                   {String(activeIndex + 1).padStart(2, '0')}
                 </span>
-                <span className="text-[9px] uppercase tracking-[0.3em] text-white/40 mt-1">
+                <span className="text-[9px] uppercase tracking-[0.3em] text-white/60 mt-1">
                   / {String(totalBanners).padStart(2, '0')}
                 </span>
               </div>
