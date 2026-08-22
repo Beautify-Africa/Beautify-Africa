@@ -108,7 +108,7 @@ export default function ShopFilterBar({
 
             {/* Result count + clear */}
             <div className="flex items-center justify-between mt-3 px-1">
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-stone-600">
                     <span className="font-medium text-stone-700">{resultCount}</span>{' '}
                     product{resultCount !== 1 ? 's' : ''} found
                 </p>

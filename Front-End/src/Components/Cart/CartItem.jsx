@@ -25,7 +25,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
             <h3 className="font-serif text-lg text-stone-900 leading-none">{item.name}</h3>
             <span className="text-sm text-stone-900 font-medium">${item.price.toFixed(2)}</span>
           </div>
-          <p className="text-stone-500 text-xs mt-1">{item.variant}</p>
+          <p className="text-stone-600 text-xs mt-1">{item.variant}</p>
         </div>
         <div className="flex justify-between items-end">
           <div className="flex items-center border border-stone-200">
@@ -50,7 +50,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
           </div>
           <button
             onClick={() => onRemove(item.id)}
-            className="text-[10px] uppercase tracking-wider text-stone-400 hover:text-stone-900 underline transition-colors"
+            className="text-[10px] uppercase tracking-wider text-stone-500 hover:text-stone-900 underline transition-colors"
             aria-label={`Remove ${item.name} from cart`}
           >
             Remove
