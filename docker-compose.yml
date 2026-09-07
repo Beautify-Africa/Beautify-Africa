@@ -31,7 +31,7 @@ services:
       # During compilation, Vite bakes the API URL in. We point it to the exposed backend.
       args:
         VITE_API_URL: http://localhost:5000
-        VITE_STRIPE_PUBLISHABLE_KEY: pk_test_51RBFvFFSeF38x7miiv5gZvt0o4IiAcx8VMLJq6j4zKchX8VVwWwqgvaJtps8gZAyiWfs3pAzbNFYw8sfQ3SwaNYb009qB6Hrfq
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-pk_test_replace_me}
     container_name: beautify_frontend
     # Map it to port 4173 which closely matches your Vite Preview port
     ports:

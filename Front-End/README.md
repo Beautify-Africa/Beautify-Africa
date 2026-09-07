@@ -37,6 +37,8 @@ Required for full functionality:
 - `VITE_API_URL`: Base URL to backend service (example: `http://localhost:5000`)
 - `VITE_STRIPE_PUBLISHABLE_KEY`: Stripe publishable key for payment UI
 
+Copy `.env.example` to `.env` and set local values before running or building.
+
 Important: Vite embeds environment values at build time. Changing these values requires rebuilding the frontend image/build artifacts.
 
 ## Local Development
@@ -78,6 +80,7 @@ Build output is emitted to `dist/`.
 - Build arguments used in `Front-End/Dockerfile`:
   - `VITE_API_URL`
   - `VITE_STRIPE_PUBLISHABLE_KEY`
+- `docker-compose.yml` reads `VITE_STRIPE_PUBLISHABLE_KEY` from your shell environment and falls back to `pk_test_replace_me`.
 - In `docker-compose.yml`, frontend is exposed on `http://localhost:4173`.
 
 ## Primary Routes
