@@ -23,7 +23,9 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
         <div>
           <div className="flex justify-between items-start">
             <h3 className="font-serif text-lg text-stone-900 leading-none">{item.name}</h3>
-            <span className="text-sm text-stone-900 font-medium">${item.price.toFixed(2)}</span>
+            <span className="text-sm text-stone-900 font-medium">
+              ${Number(item.price || 0).toFixed(2)}
+            </span>
           </div>
           <p className="text-stone-600 text-xs mt-1">{item.variant}</p>
         </div>

@@ -37,7 +37,9 @@ function RecentOrdersBlock({ isLoadingOrders, ordersError, orders }) {
             <p className="text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</p>
           </div>
           <div className="text-right">
-            <p className="mb-0.5 font-bold text-stone-900">${order.totalPrice.toFixed(2)}</p>
+            <p className="mb-0.5 font-bold text-stone-900">
+              ${Number(order.totalPrice || 0).toFixed(2)}
+            </p>
             <p className="text-[9px] uppercase tracking-wider text-amber-600">
               {order.isDelivered ? 'Delivered' : 'Processing'}
             </p>

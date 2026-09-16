@@ -9,8 +9,9 @@ import { useCheckoutFlow } from './useCheckoutFlow';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
-// Init Stripe globally
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Init Stripe safely (only if key is provided)
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
   const { user, isAuthenticated, token } = useAuth();

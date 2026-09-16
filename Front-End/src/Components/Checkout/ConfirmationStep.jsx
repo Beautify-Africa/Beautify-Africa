@@ -147,12 +147,12 @@ export default function ConfirmationStep({ order, isGuest, onClose }) {
             <span>
               {item.name} <span className="text-stone-400">x{item.qty}</span>
             </span>
-            <span>${(item.price * item.qty).toFixed(2)}</span>
+            <span>${(Number(item.price || 0) * (item.qty || 1)).toFixed(2)}</span>
           </div>
         ))}
         <div className="mt-2 flex justify-between border-t border-stone-200 pt-3 text-sm font-bold text-stone-900">
           <span>{C.totalLabel}</span>
-          <span>${total.toFixed(2)}</span>
+          <span>${Number(total || 0).toFixed(2)}</span>
         </div>
       </div>
 

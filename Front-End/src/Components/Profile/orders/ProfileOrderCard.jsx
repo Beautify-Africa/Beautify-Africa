@@ -38,7 +38,9 @@ export default function ProfileOrderCard({ order }) {
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
             Total Amount
           </p>
-          <p className="text-sm font-bold text-stone-900">${order.totalPrice.toFixed(2)}</p>
+          <p className="text-sm font-bold text-stone-900">
+            ${Number(order.totalPrice || 0).toFixed(2)}
+          </p>
         </div>
         <div className="flex-grow text-right md:flex-grow-0">
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
@@ -91,7 +93,7 @@ export default function ProfileOrderCard({ order }) {
                   {item.name}
                 </Link>
                 <p className="mt-1 text-xs text-stone-500">
-                  Qty: {item.qty} × ${item.price.toFixed(2)}
+                  Qty: {item.qty} × ${Number(item.price || 0).toFixed(2)}
                 </p>
               </div>
             </li>

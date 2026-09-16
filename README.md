@@ -50,19 +50,20 @@ Beautify-Africa/
 
 ## 🛠 Technology Stack
 
-| Layer | Technologies |
-|---|---|
-| **Frontend** | React 18, Vite 7, Tailwind CSS 4, TanStack Query v5, Zod, Sonner, Framer Motion |
-| **Backend** | Node.js 20, Express 5, Sequelize v6, PostgreSQL 16, Redis 7, BullMQ, Pino Logger |
-| **Testing** | Vitest, React Testing Library, Jest, Playwright E2E |
-| **DevOps** | Docker, Docker Compose, Nginx, GitHub Actions CI/CD |
-| **Security** | RBAC, Bcrypt, httpOnly cookies, Helmet, Express Rate Limit, RFC 7807 Errors |
+| Layer        | Technologies                                                                     |
+| ------------ | -------------------------------------------------------------------------------- |
+| **Frontend** | React 18, Vite 7, Tailwind CSS 4, TanStack Query v5, Zod, Sonner, Framer Motion  |
+| **Backend**  | Node.js 20, Express 5, Sequelize v6, PostgreSQL 16, Redis 7, BullMQ, Pino Logger |
+| **Testing**  | Vitest, React Testing Library, Jest, Playwright E2E                              |
+| **DevOps**   | Docker, Docker Compose, Nginx, GitHub Actions CI/CD                              |
+| **Security** | RBAC, Bcrypt, httpOnly cookies, Helmet, Express Rate Limit, RFC 7807 Errors      |
 
 ---
 
 ## 🚀 Quickstart Guide
 
 ### Prerequisites
+
 - **Node.js**: `v20.x` or higher
 - **npm**: `v10.x` or higher
 - **Docker & Docker Compose**: (optional, for containerized execution)
@@ -75,12 +76,14 @@ Beautify-Africa/
 The easiest way to boot the full production stack including database and cache:
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/Beautify-Africa/Beautify-Africa.git
    cd Beautify-Africa
    ```
 
 2. **Configure Environment Variables**:
+
    ```bash
    cp .env.example .env
    cp Back-End/.env.example Back-End/.env
@@ -88,6 +91,7 @@ The easiest way to boot the full production stack including database and cache:
    ```
 
 3. **Start All Services**:
+
    ```bash
    docker compose up --build -d
    ```
@@ -102,6 +106,7 @@ The easiest way to boot the full production stack including database and cache:
 ### Option B: Native Local Development
 
 1. **Install All Workspace Dependencies**:
+
    ```bash
    npm install
    ```
@@ -110,11 +115,13 @@ The easiest way to boot the full production stack including database and cache:
    Create `Back-End/.env` and `Front-End/.env` from their respective `.env.example` templates.
 
 3. **Run Database Migrations**:
+
    ```bash
    npm run migrate
    ```
 
 4. **Seed Initial Products (Optional)**:
+
    ```bash
    npm --prefix Back-End run seed
    ```
@@ -130,21 +137,21 @@ The easiest way to boot the full production stack including database and cache:
 
 ## 📜 Monorepo Command Reference
 
-| Command | Action |
-|---|---|
-| `npm run dev` | Starts Backend and Frontend development servers concurrently |
-| `npm run dev:backend` | Starts Express backend with nodemon hot reload |
-| `npm run dev:frontend` | Starts Vite frontend development server |
-| `npm run build` | Compiles production-optimized frontend bundle with Vite |
-| `npm run migrate` | Executes pending Umzug database migrations |
-| `npm run migrate:rollback` | Reverts the most recent database migration |
-| `npm run test:all` | Executes all 114 backend (Jest) and frontend (Vitest) tests |
-| `npm run test:backend` | Runs backend Jest test suites (13 suites, 86 tests) |
-| `npm run test:frontend` | Runs frontend Vitest test suites (5 suites, 28 tests) |
-| `npm run test:e2e` | Runs Playwright browser end-to-end tests (5 scenarios) |
-| `npm run lint` | Checks frontend code quality with ESLint |
-| `npm run format` | Auto-formats all codebase files using Prettier |
-| `npm run format:check` | Verifies code formatting conformance |
+| Command                    | Action                                                       |
+| -------------------------- | ------------------------------------------------------------ |
+| `npm run dev`              | Starts Backend and Frontend development servers concurrently |
+| `npm run dev:backend`      | Starts Express backend with nodemon hot reload               |
+| `npm run dev:frontend`     | Starts Vite frontend development server                      |
+| `npm run build`            | Compiles production-optimized frontend bundle with Vite      |
+| `npm run migrate`          | Executes pending Umzug database migrations                   |
+| `npm run migrate:rollback` | Reverts the most recent database migration                   |
+| `npm run test:all`         | Executes all 114 backend (Jest) and frontend (Vitest) tests  |
+| `npm run test:backend`     | Runs backend Jest test suites (13 suites, 86 tests)          |
+| `npm run test:frontend`    | Runs frontend Vitest test suites (5 suites, 28 tests)        |
+| `npm run test:e2e`         | Runs Playwright browser end-to-end tests (5 scenarios)       |
+| `npm run lint`             | Checks frontend code quality with ESLint                     |
+| `npm run format`           | Auto-formats all codebase files using Prettier               |
+| `npm run format:check`     | Verifies code formatting conformance                         |
 
 ---
 
@@ -211,4 +218,5 @@ Tests (119 Total)
 ---
 
 ## 📄 License
+
 This project is licensed under the ISC License.
