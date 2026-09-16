@@ -97,7 +97,12 @@ async function getReorderPlan(req, res) {
 
 async function updateAdminOrderStatus(req, res) {
   try {
-    const updatedOrder = await updateAdminOrder(req.params.id, req.body?.action, req.user, req.body?.note);
+    const updatedOrder = await updateAdminOrder(
+      req.params.id,
+      req.body?.action,
+      req.user,
+      req.body?.note
+    );
 
     return res.status(200).json({
       status: 'success',
@@ -404,11 +409,7 @@ async function scheduleRecurringLowStockCheck(req, res) {
     }
 
     if (!enabled) {
-      const jobs = await inventoryNotificationQueue.getJobs([
-        'wait',
-        'delayed',
-        'repeat',
-      ]);
+      const jobs = await inventoryNotificationQueue.getJobs(['wait', 'delayed', 'repeat']);
       for (const job of jobs) {
         if (job.name === 'low-stock-notification' && job.repeatJobKey) {
           await job.remove();
@@ -447,10 +448,9 @@ async function scheduleRecurringLowStockCheck(req, res) {
     });
   } catch (error) {
     console.error('scheduleRecurringLowStockCheck error:', error);
-    const message =
-      error.message.includes('duplicate key')
-        ? 'Recurring job already exists'
-        : 'Failed to schedule recurring check';
+    const message = error.message.includes('duplicate key')
+      ? 'Recurring job already exists'
+      : 'Failed to schedule recurring check';
     return res.status(500).json({
       status: 'error',
       message,
@@ -468,11 +468,7 @@ async function getNotificationStatus(req, res) {
       inventoryNotificationQueue.getDelayedCount(),
     ]);
 
-    const recentJobs = await inventoryNotificationQueue.getJobs(
-      ['completed', 'failed'],
-      0,
-      10
-    );
+    const recentJobs = await inventoryNotificationQueue.getJobs(['completed', 'failed'], 0, 10);
 
     return res.status(200).json({
       status: 'success',

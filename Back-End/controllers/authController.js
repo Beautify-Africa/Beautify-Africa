@@ -1,3 +1,4 @@
+// controllers/authController.js
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const User = require('../models/User');
@@ -13,12 +14,36 @@ const {
   createPasswordResetTokenPayload,
   buildPasswordResetLink,
   sanitizeUser,
+  validatePasswordStrength,
   signToken,
   getAuthErrorResponse,
 } = require('../services/authService');
 
 const PASSWORD_RESET_SUCCESS_MESSAGE =
   'If an account with that email exists, we have sent password reset instructions.';
+
+const AUTH_COOKIE_NAME = 'token';
+
+function setAuthCookie(res, token) {
+  if (typeof res.cookie === 'function') {
+    res.cookie(AUTH_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
+}
+
+function clearAuthCookie(res) {
+  if (typeof res.clearCookie === 'function') {
+    res.clearCookie(AUTH_COOKIE_NAME, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+  }
+}
 
 function handleAuthError(res, error) {
   const { statusCode, message } = getAuthErrorResponse(error);
@@ -30,12 +55,23 @@ async function register(req, res) {
     const { name, email, password } = req.body;
     const normalizedEmail = normalizeEmail(email || '');
     if (!name || !email || !password) {
-      return res.status(400).json({ status: 'error', message: 'Name, email, and password are required' });
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Name, email, and password are required' });
     }
+
+    const passwordCheck = validatePasswordStrength(password);
+    if (!passwordCheck.isValid) {
+      return res.status(400).json({ status: 'error', message: passwordCheck.message });
+    }
+
     const existing = await User.findOne({ where: { email: normalizedEmail }, attributes: ['id'] });
-    if (existing) return res.status(409).json({ status: 'error', message: 'Email is already registered' });
+    if (existing)
+      return res.status(409).json({ status: 'error', message: 'Email is already registered' });
+
     const user = await User.create({ name: name.trim(), email: normalizedEmail, password });
     const token = signToken(user.id);
+    setAuthCookie(res, token);
     return res.status(201).json({ status: 'success', token, user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
@@ -46,12 +82,35 @@ async function login(req, res) {
   try {
     const { email, password } = req.body;
     const normalizedEmail = normalizeEmail(email || '');
-    if (!email || !password) return res.status(400).json({ status: 'error', message: 'Email and password are required' });
+    if (!email || !password)
+      return res.status(400).json({ status: 'error', message: 'Email and password are required' });
+
     const user = await User.findOne({ where: { email: normalizedEmail } });
     if (!user) return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
+
+    // Brute-force account lockout check
+    if (typeof user.isLocked === 'function' && user.isLocked()) {
+      return res.status(429).json({
+        status: 'error',
+        message:
+          'Account temporarily locked due to excessive failed attempts. Please try again in 15 minutes or reset your password.',
+      });
+    }
+
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
+    if (!isMatch) {
+      if (typeof user.recordFailedLogin === 'function') {
+        await user.recordFailedLogin();
+      }
+      return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
+    }
+
+    if (typeof user.recordSuccessfulLogin === 'function') {
+      await user.recordSuccessfulLogin();
+    }
+
     const token = signToken(user.id);
+    setAuthCookie(res, token);
     return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
@@ -62,22 +121,46 @@ async function adminDashboardLogin(req, res) {
   try {
     const { email, password } = req.body;
     const normalizedEmail = normalizeEmail(email || '');
-    if (!email || !password) return res.status(400).json({ status: 'error', message: 'Email and password are required' });
+    if (!email || !password)
+      return res.status(400).json({ status: 'error', message: 'Email and password are required' });
+
     const configuredEmail = getPrimaryConfiguredAdminEmail();
     const configuredPassword = getConfiguredAdminDashboardPassword();
-    if (!configuredEmail || !configuredPassword) return res.status(503).json({ status: 'error', message: 'Admin dashboard credentials are not configured on the server.' });
-    if (!isConfiguredAdminDashboardCredential(normalizedEmail, password)) return res.status(401).json({ status: 'error', message: 'Invalid admin dashboard credentials' });
+    if (!configuredEmail || !configuredPassword) {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Admin dashboard credentials are not configured on the server.',
+      });
+    }
+    if (!isConfiguredAdminDashboardCredential(normalizedEmail, password)) {
+      return res
+        .status(401)
+        .json({ status: 'error', message: 'Invalid admin dashboard credentials' });
+    }
+
     let user = await User.findOne({ where: { email: normalizedEmail } });
     if (!user) {
-      user = await User.create({ name: 'Admin User', email: normalizedEmail, password, isAdmin: true });
+      user = await User.create({
+        name: 'Admin User',
+        email: normalizedEmail,
+        password,
+        isAdmin: true,
+      });
     } else {
       let requiresSave = false;
-      if (!user.isAdmin) { user.isAdmin = true; requiresSave = true; }
+      if (!user.isAdmin) {
+        user.isAdmin = true;
+        requiresSave = true;
+      }
       const matchesConfiguredPassword = await user.comparePassword(password);
-      if (!matchesConfiguredPassword) { user.password = password; requiresSave = true; }
+      if (!matchesConfiguredPassword) {
+        user.password = password;
+        requiresSave = true;
+      }
       if (requiresSave) await user.save();
     }
     const token = signToken(user.id);
+    setAuthCookie(res, token);
     return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
@@ -87,23 +170,41 @@ async function adminDashboardLogin(req, res) {
 async function forgotPassword(req, res) {
   try {
     const normalizedEmail = normalizeEmail(req.body?.email || '');
-    if (!normalizedEmail) return res.status(400).json({ status: 'error', message: 'Email is required' });
+    if (!normalizedEmail)
+      return res.status(400).json({ status: 'error', message: 'Email is required' });
     const user = await User.findOne({ where: { email: normalizedEmail } });
-    if (!user) return res.status(200).json({ status: 'success', message: PASSWORD_RESET_SUCCESS_MESSAGE });
+    if (!user)
+      return res.status(200).json({ status: 'success', message: PASSWORD_RESET_SUCCESS_MESSAGE });
     const { rawToken, hashedToken, expiresAt } = createPasswordResetTokenPayload();
     user.passwordResetToken = hashedToken;
     user.passwordResetExpires = expiresAt;
     await user.save();
     const resetLink = buildPasswordResetLink(rawToken);
-    const emailText = ['Reset your Beautify Africa password', '', 'We received a request to reset your password.', 'Use the link below to set a new password:', resetLink, '', 'If you did not request this, you can ignore this email.'].join('\n');
+    const emailText = [
+      'Reset your Beautify Africa password',
+      '',
+      'We received a request to reset your password.',
+      'Use the link below to set a new password:',
+      resetLink,
+      '',
+      'If you did not request this, you can ignore this email.',
+    ].join('\n');
     const emailHtml = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#292524;max-width:620px;margin:0 auto;"><h2 style="font-size:24px;margin-bottom:16px;">Reset your Beautify Africa password</h2><p style="margin-bottom:12px;">We received a request to reset your password.</p><p style="margin-bottom:18px;">Click the button below to set a new password. This link expires shortly for security reasons.</p><p style="margin:24px 0;"><a href="${resetLink}" style="display:inline-block;background:#1c1917;color:#ffffff;text-decoration:none;padding:12px 18px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">Reset Password</a></p><p style="font-size:13px;color:#57534e;word-break:break-all;">If the button does not work, copy and paste this link into your browser:<br />${resetLink}</p></div>`;
     try {
-      await sendEmail({ email: user.email, subject: 'Beautify Africa Password Reset', text: emailText, html: emailHtml });
+      await sendEmail({
+        email: user.email,
+        subject: 'Beautify Africa Password Reset',
+        text: emailText,
+        html: emailHtml,
+      });
     } catch (emailError) {
       user.passwordResetToken = null;
       user.passwordResetExpires = null;
       await user.save();
-      return res.status(500).json({ status: 'error', message: 'Unable to deliver password reset email right now. Please try again shortly.' });
+      return res.status(500).json({
+        status: 'error',
+        message: 'Unable to deliver password reset email right now. Please try again shortly.',
+      });
     }
     return res.status(200).json({ status: 'success', message: PASSWORD_RESET_SUCCESS_MESSAGE });
   } catch (error) {
@@ -115,18 +216,35 @@ async function resetPassword(req, res) {
   try {
     const token = String(req.body?.token || '').trim();
     const password = String(req.body?.password || '');
-    if (!token || !password) return res.status(400).json({ status: 'error', message: 'Reset token and new password are required' });
-    if (password.length < 8) return res.status(400).json({ status: 'error', message: 'Password must be at least 8 characters' });
+    if (!token || !password)
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Reset token and new password are required' });
+
+    const passwordCheck = validatePasswordStrength(password);
+    if (!passwordCheck.isValid) {
+      return res.status(400).json({ status: 'error', message: passwordCheck.message });
+    }
+
     const hashedToken = hashPasswordResetToken(token);
     const user = await User.findOne({
       where: { passwordResetToken: hashedToken, passwordResetExpires: { [Op.gt]: new Date() } },
     });
-    if (!user) return res.status(400).json({ status: 'error', message: 'Password reset token is invalid or has expired' });
+    if (!user)
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Password reset token is invalid or has expired' });
     user.password = password;
     user.passwordResetToken = null;
     user.passwordResetExpires = null;
+    if (typeof user.recordSuccessfulLogin === 'function') {
+      await user.recordSuccessfulLogin();
+    }
     await user.save();
-    return res.status(200).json({ status: 'success', message: 'Password reset successful. You can now sign in with your new password.' });
+    return res.status(200).json({
+      status: 'success',
+      message: 'Password reset successful. You can now sign in with your new password.',
+    });
   } catch (error) {
     return handleAuthError(res, error);
   }
@@ -138,17 +256,25 @@ async function me(req, res) {
 
 async function logout(req, res) {
   try {
-    const token = (req.headers.authorization || '').split(' ')[1];
-    if (!token) return res.status(400).json({ status: 'error', message: 'No token provided' });
-    const decoded = jwt.decode(token);
-    if (decoded && decoded.exp) {
-      const secondsRemaining = decoded.exp - Math.floor(Date.now() / 1000);
-      if (secondsRemaining > 0) await redisClient.set(buildJwtBlacklistKey(token), '1', 'EX', secondsRemaining);
+    const token =
+      (req.headers.authorization || '').split(' ')[1] ||
+      req.headers.cookie?.match(/(?:^|;\s*)token=([^;]+)/)?.[1];
+
+    if (token) {
+      const decoded = jwt.decode(token);
+      if (decoded && decoded.exp) {
+        const secondsRemaining = decoded.exp - Math.floor(Date.now() / 1000);
+        if (secondsRemaining > 0) {
+          await redisClient.set(buildJwtBlacklistKey(token), '1', 'EX', secondsRemaining);
+        }
+      }
     }
+    clearAuthCookie(res);
     return res.status(200).json({ status: 'success', message: 'Logged out successfully' });
   } catch (error) {
     console.error('logout error:', error);
-    return res.status(500).json({ status: 'error', message: 'Logout failed' });
+    clearAuthCookie(res);
+    return res.status(200).json({ status: 'success', message: 'Logged out successfully' });
   }
 }
 
@@ -161,13 +287,20 @@ async function updateUserProfile(req, res) {
       }
       const normalizedEmail = normalizeEmail(req.body.email || '');
       if (req.body.email && normalizedEmail !== req.user.email) {
-        const existingEmail = await User.findOne({ where: { email: normalizedEmail }, attributes: ['id'] });
-        if (existingEmail) return res.status(409).json({ status: 'error', message: 'Email is already taken by another account.' });
+        const existingEmail = await User.findOne({
+          where: { email: normalizedEmail },
+          attributes: ['id'],
+        });
+        if (existingEmail)
+          return res
+            .status(409)
+            .json({ status: 'error', message: 'Email is already taken by another account.' });
         user.email = normalizedEmail;
       }
       if (req.body.password) {
-        if (typeof req.body.password !== 'string' || req.body.password.length < 8) {
-          return res.status(400).json({ status: 'error', message: 'Password must be at least 8 characters long.' });
+        const passwordCheck = validatePasswordStrength(req.body.password);
+        if (!passwordCheck.isValid) {
+          return res.status(400).json({ status: 'error', message: passwordCheck.message });
         }
         user.password = req.body.password;
       }
@@ -181,4 +314,13 @@ async function updateUserProfile(req, res) {
   }
 }
 
-module.exports = { register, login, adminDashboardLogin, forgotPassword, resetPassword, me, logout, updateUserProfile };
+module.exports = {
+  register,
+  login,
+  adminDashboardLogin,
+  forgotPassword,
+  resetPassword,
+  me,
+  logout,
+  updateUserProfile,
+};

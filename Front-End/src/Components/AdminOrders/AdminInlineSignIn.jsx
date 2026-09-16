@@ -47,15 +47,27 @@ export default function AdminInlineSignIn() {
 
   return (
     <div className="mx-auto mt-8 max-w-md rounded-[1.5rem] border border-stone-200/80 bg-white/90 p-6 text-left shadow-[0_14px_38px_rgba(28,25,23,0.08)]">
-      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">Admin Sign In</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
+        Admin Sign In
+      </p>
       <h2 className="mt-2 font-serif text-2xl text-stone-900">Access Operations Console</h2>
 
       <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
-        <FloatingLabelInput field={emailField} value={email} onChange={(e) => setEmail(e.target.value)} />
-        <FloatingLabelInput field={passwordField} value={password} onChange={(e) => setPassword(e.target.value)} />
+        <FloatingLabelInput
+          field={emailField}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <FloatingLabelInput
+          field={passwordField}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
         {error ? (
-          <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
+          <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
+          </p>
         ) : null}
 
         <button

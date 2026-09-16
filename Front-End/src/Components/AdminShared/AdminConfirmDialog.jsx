@@ -23,7 +23,9 @@ export default function AdminConfirmDialog({
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-stone-950/50 px-4 py-6">
       <div className="w-full max-w-lg rounded-[1.8rem] border border-stone-200 bg-white p-6 shadow-[0_24px_60px_rgba(28,25,23,0.18)]">
-        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-400">Confirm action</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-400">
+          Confirm action
+        </p>
         <h2 className="mt-3 font-serif text-3xl text-stone-900">{title}</h2>
         <p className="mt-4 text-sm leading-relaxed text-stone-600">{description}</p>
 
@@ -48,4 +50,3 @@ export default function AdminConfirmDialog({
     </div>
   );
 }
-

@@ -31,7 +31,9 @@ function RecentOrdersBlock({ isLoadingOrders, ordersError, orders }) {
           className="flex items-center justify-between rounded-sm border border-stone-100 bg-stone-50 p-3 text-xs"
         >
           <div>
-            <p className="mb-0.5 font-bold text-stone-900">#{order._id.substring(18).toUpperCase()}</p>
+            <p className="mb-0.5 font-bold text-stone-900">
+              #{order._id.substring(18).toUpperCase()}
+            </p>
             <p className="text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</p>
           </div>
           <div className="text-right">
@@ -98,7 +100,11 @@ export default function CustomerProfilePanel({
         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-600">
           <span
             className={`h-2 w-2 rounded-full ${
-              isAuthenticated ? 'bg-emerald-500' : isRestoringSession ? 'bg-amber-500' : 'bg-stone-300'
+              isAuthenticated
+                ? 'bg-emerald-500'
+                : isRestoringSession
+                  ? 'bg-amber-500'
+                  : 'bg-stone-300'
             }`}
             aria-hidden="true"
           />
@@ -129,7 +135,8 @@ export default function CustomerProfilePanel({
             </div>
 
             <p className="mt-5 text-sm leading-relaxed text-stone-500">
-              Manage your profile details here, then use Track Your Order for full purchase history and live shipment progress.
+              Manage your profile details here, then use Track Your Order for full purchase history
+              and live shipment progress.
             </p>
 
             <div className="flex flex-col gap-3 pt-2">
@@ -163,7 +170,8 @@ export default function CustomerProfilePanel({
             <InfoRow label="Account Status" value="Signed out" subtle />
 
             <p className="text-sm leading-relaxed text-stone-500">
-              Sign in here to keep your session ready while you shop. When you later open checkout, we will recognize your account automatically.
+              Sign in here to keep your session ready while you shop. When you later open checkout,
+              we will recognize your account automatically.
             </p>
           </>
         )}

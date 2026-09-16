@@ -28,4 +28,3 @@ export default function AdminFlashNotice({ tone = 'info', message, onDismiss }) 
     </div>
   );
 }
-

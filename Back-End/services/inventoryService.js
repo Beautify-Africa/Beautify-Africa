@@ -5,13 +5,27 @@ const InventoryLedger = require('../models/InventoryLedger');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function adjustStock(productId, variantId, delta, reason, notes = '', createdBy = null, relatedOrder = null) {
+async function adjustStock(
+  productId,
+  variantId,
+  delta,
+  reason,
+  notes = '',
+  createdBy = null,
+  relatedOrder = null,
+  options = {}
+) {
   if (!UUID_REGEX.test(String(productId || ''))) throw new Error('Invalid product ID');
   if (!Number.isInteger(delta) || delta === 0) throw new Error('Delta must be a non-zero integer');
   if (!reason || reason.trim() === '') throw new Error('Reason is required');
 
+  const transaction = options.transaction || null;
+  const lock = transaction ? transaction.LOCK.UPDATE : undefined;
+
   const product = await Product.findByPk(productId, {
     include: [{ model: ProductVariant, as: 'variants' }],
+    transaction,
+    lock,
   });
   if (!product) throw new Error('Product not found');
 
@@ -30,36 +44,58 @@ async function adjustStock(productId, variantId, delta, reason, notes = '', crea
     updateTarget = { type: 'main', variant: null };
   }
 
-  if (stockAfter < 0) throw new Error(`Cannot adjust stock: would result in negative quantity (${stockAfter})`);
+  if (stockAfter < 0) {
+    const itemName = updateTarget.variant
+      ? `Variant ${updateTarget.variant.sku || variantId}`
+      : `Product "${product.name}"`;
+    throw new Error(
+      `Cannot adjust stock: would result in negative quantity (${stockAfter}) for ${itemName}`
+    );
+  }
 
   if (updateTarget.type === 'variant') {
     await ProductVariant.update(
       { stockQuantity: stockAfter, inStock: stockAfter > 0 },
-      { where: { id: variantId } }
+      { where: { id: variantId }, transaction }
     );
     // Recompute product inStock from variants
-    const allVariants = await ProductVariant.findAll({ where: { productId }, attributes: ['stockQuantity'], raw: true });
+    const allVariants = await ProductVariant.findAll({
+      where: { productId },
+      attributes: ['stockQuantity'],
+      raw: true,
+      transaction,
+    });
     const hasStock = allVariants.some((v) => v.stockQuantity > 0);
-    await Product.update({ inStock: hasStock }, { where: { id: productId } });
+    await Product.update({ inStock: hasStock }, { where: { id: productId }, transaction });
   } else {
     await Product.update(
       { stockQuantity: stockAfter, inStock: stockAfter > 0 },
-      { where: { id: productId } }
+      { where: { id: productId }, transaction }
     );
   }
 
-  const ledgerEntry = await InventoryLedger.recordMovement({
-    product: productId,
-    variant: updateTarget.variant ? updateTarget.variant.id : null,
-    type: delta > 0 ? 'restock' : 'adjustment',
-    quantity: delta,
-    reason: reason.trim(),
-    notes: notes.trim(),
-    createdBy,
-    relatedOrder,
-    stockBefore,
-    stockAfter,
-  });
+  const ledgerEntry = await InventoryLedger.recordMovement(
+    {
+      product: productId,
+      variant: updateTarget.variant ? updateTarget.variant.id : null,
+      type:
+        delta > 0
+          ? reason === 'return'
+            ? 'return'
+            : 'restock'
+          : reason === 'purchase'
+            ? 'purchase'
+            : 'adjustment',
+      quantity: delta,
+      reason: reason.trim(),
+      notes: notes.trim(),
+      createdBy,
+      relatedOrder,
+      stockBefore,
+      stockAfter,
+    },
+    { transaction }
+  );
 
   return {
     productId,
@@ -121,7 +157,10 @@ async function getCurrentStock(productId, variantId = null) {
   if (!UUID_REGEX.test(String(productId || ''))) throw new Error('Invalid product ID');
 
   if (variantId && UUID_REGEX.test(String(variantId))) {
-    const variant = await ProductVariant.findOne({ where: { id: variantId, productId }, raw: true });
+    const variant = await ProductVariant.findOne({
+      where: { id: variantId, productId },
+      raw: true,
+    });
     if (!variant) throw new Error('Variant not found');
     return variant.stockQuantity;
   }
@@ -135,9 +174,7 @@ async function getLowStockItems(threshold = 10, options = {}) {
   const { limit = 100, skip = 0, includeArchived = false } = options;
 
   const where = {
-    [Op.or]: [
-      { stockQuantity: { [Op.lt]: threshold, [Op.gte]: 0 } },
-    ],
+    [Op.or]: [{ stockQuantity: { [Op.lt]: threshold, [Op.gte]: 0 } }],
   };
 
   if (!includeArchived) where.status = { [Op.ne]: 'archived' };
@@ -146,7 +183,14 @@ async function getLowStockItems(threshold = 10, options = {}) {
     Product.findAll({
       where,
       attributes: ['id', 'name', 'stockQuantity', 'status'],
-      include: [{ model: ProductVariant, as: 'variants', attributes: ['id', 'sku', 'stockQuantity'], required: false }],
+      include: [
+        {
+          model: ProductVariant,
+          as: 'variants',
+          attributes: ['id', 'sku', 'stockQuantity'],
+          required: false,
+        },
+      ],
       limit,
       offset: skip,
     }),
@@ -187,22 +231,58 @@ async function getLowStockItems(threshold = 10, options = {}) {
   return { items: lowStockItems, totalCount, limit, skip, hasMore: skip + limit < totalCount };
 }
 
-async function processPurchase(productId, variantId, quantity, orderId, userId) {
-  if (!Number.isInteger(quantity) || quantity <= 0) throw new Error('Quantity must be a positive integer');
+async function processPurchase(productId, variantId, quantity, orderId, userId, options = {}) {
+  if (!Number.isInteger(quantity) || quantity <= 0)
+    throw new Error('Quantity must be a positive integer');
   try {
-    return await adjustStock(productId, variantId || null, -quantity, 'purchase', `Order: ${orderId}`, userId, orderId);
+    return await adjustStock(
+      productId,
+      variantId || null,
+      -quantity,
+      'purchase',
+      `Order: ${orderId}`,
+      userId,
+      orderId,
+      options
+    );
   } catch (error) {
     throw new Error(`Purchase processing failed: ${error.message}`);
   }
 }
 
-async function processReturn(productId, variantId, quantity, orderId, reason = '', userId) {
-  if (!Number.isInteger(quantity) || quantity <= 0) throw new Error('Quantity must be a positive integer');
+async function processReturn(
+  productId,
+  variantId,
+  quantity,
+  orderId,
+  reason = '',
+  userId,
+  options = {}
+) {
+  if (!Number.isInteger(quantity) || quantity <= 0)
+    throw new Error('Quantity must be a positive integer');
   try {
-    return await adjustStock(productId, variantId || null, quantity, 'return', `Order: ${orderId} | Reason: ${reason}`, userId, orderId);
+    return await adjustStock(
+      productId,
+      variantId || null,
+      quantity,
+      'return',
+      `Order: ${orderId} | Reason: ${reason}`,
+      userId,
+      orderId,
+      options
+    );
   } catch (error) {
     throw new Error(`Return processing failed: ${error.message}`);
   }
 }
 
-module.exports = { adjustStock, recordInventoryMovement, getStockHistory, getCurrentStock, getLowStockItems, processPurchase, processReturn };
+module.exports = {
+  adjustStock,
+  recordInventoryMovement,
+  getStockHistory,
+  getCurrentStock,
+  getLowStockItems,
+  processPurchase,
+  processReturn,
+};

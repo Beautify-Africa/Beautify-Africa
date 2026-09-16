@@ -8,7 +8,7 @@ export function useCheckoutFlow({ cartItems, isAuthenticated, user, token, clear
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
   const [shipping, setShipping] = useState(() => buildInitialShipping(isAuthenticated, user));
-  
+
   const [clientSecret, setClientSecret] = useState(null);
   const [checkoutOrder, setCheckoutOrder] = useState(null);
 
@@ -34,13 +34,13 @@ export function useCheckoutFlow({ cartItems, isAuthenticated, user, token, clear
 
     try {
       const orderPayload = buildOrderPayload(cartItems, shipping);
-      
+
       const { clientSecret: secret, orderId } = await createPaymentIntent(
-        orderPayload.orderItems, 
-        orderPayload.shippingAddress, 
+        orderPayload.orderItems,
+        orderPayload.shippingAddress,
         token
       );
-      
+
       setClientSecret(secret);
       setCheckoutOrder({
         _id: orderId,
@@ -54,7 +54,7 @@ export function useCheckoutFlow({ cartItems, isAuthenticated, user, token, clear
         shippingAddress: { ...shipping },
         totalPrice: cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0),
       });
-      setStep(2); 
+      setStep(2);
     } catch (err) {
       setErrors({ form: err.message || 'Failed to initialize payment.' });
     } finally {

@@ -27,13 +27,13 @@ const componentsMap = {
   Newsletter: 'Shared',
   SocialProof: 'Shared',
   TrustBar: 'Shared',
-  CheckoutModal: 'Checkout'
+  CheckoutModal: 'Checkout',
 };
 
 function walk(dir) {
   let results = [];
   const list = fs.readdirSync(dir);
-  list.forEach(file => {
+  list.forEach((file) => {
     const fullPath = path.join(dir, file);
     const stat = fs.statSync(fullPath);
     if (stat && stat.isDirectory()) {
@@ -46,7 +46,7 @@ function walk(dir) {
 }
 
 const files = walk('./src');
-files.forEach(file => {
+files.forEach((file) => {
   let content = fs.readFileSync(file, 'utf8');
   let changed = false;
 
@@ -61,7 +61,7 @@ files.forEach(file => {
   }
 
   // 1. External imports: `from '.../Components/X'` -> `from '.../Components/Domain/X'`
-  Object.keys(componentsMap).forEach(comp => {
+  Object.keys(componentsMap).forEach((comp) => {
     const domain = componentsMap[comp];
 
     // External generic: from '../Components/Comp' / '@/Components/Comp'
@@ -110,6 +110,6 @@ files.forEach(file => {
 
   if (changed) {
     fs.writeFileSync(file, content);
-    console.log("Updated", file);
+    console.log('Updated', file);
   }
 });

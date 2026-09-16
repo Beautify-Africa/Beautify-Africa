@@ -125,10 +125,7 @@ describe('Wishlist routes', () => {
   test('syncs guest wishlist items into the authenticated wishlist', async () => {
     WishlistProduct.findAll
       .mockResolvedValueOnce([{ productId: PRODUCT_ID_A }])
-      .mockResolvedValueOnce([
-        { productId: PRODUCT_ID_A },
-        { productId: PRODUCT_ID_B },
-      ]);
+      .mockResolvedValueOnce([{ productId: PRODUCT_ID_A }, { productId: PRODUCT_ID_B }]);
 
     Product.findAll
       .mockResolvedValueOnce([{ id: PRODUCT_ID_B }, { id: PRODUCT_ID_C }])

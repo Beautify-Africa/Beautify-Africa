@@ -20,7 +20,9 @@ export default function CartDrawer({ isOpen, onClose }) {
   // Close drawer on Escape
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
@@ -34,8 +36,9 @@ export default function CartDrawer({ isOpen, onClose }) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[150] bg-stone-900/40 backdrop-blur-sm transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
+        className={`fixed inset-0 z-[150] bg-stone-900/40 backdrop-blur-sm transition-opacity duration-500 ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -43,8 +46,9 @@ export default function CartDrawer({ isOpen, onClose }) {
       {/* Drawer */}
       <aside
         ref={trapRef}
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-[#faf9f6] z-[160] shadow-2xl transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-[#faf9f6] z-[160] shadow-2xl transform transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
@@ -53,9 +57,7 @@ export default function CartDrawer({ isOpen, onClose }) {
         <div className="h-full flex flex-col">
           {/* Header */}
           <header className="flex items-center justify-between p-6 md:p-8 border-b border-stone-200">
-            <h2 className="font-serif text-2xl text-stone-900">
-              {CART_CONTENT.heading}
-            </h2>
+            <h2 className="font-serif text-2xl text-stone-900">{CART_CONTENT.heading}</h2>
             <button
               onClick={onClose}
               className="text-stone-500 hover:text-stone-900 transition-colors"
@@ -95,4 +97,3 @@ export default function CartDrawer({ isOpen, onClose }) {
     </>
   );
 }
-

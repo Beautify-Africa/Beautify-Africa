@@ -48,7 +48,9 @@ async function addVariant(req, res) {
     }
 
     if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
-      return res.status(400).json({ status: 'error', message: 'Stock quantity must be non-negative integer' });
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Stock quantity must be non-negative integer' });
     }
 
     const product = await Product.findByPk(req.params.id);
@@ -60,7 +62,9 @@ async function addVariant(req, res) {
       where: { productId: req.params.id, sku: sku.trim() },
     });
     if (existingSku) {
-      return res.status(400).json({ status: 'error', message: `SKU "${sku}" already exists for this product` });
+      return res
+        .status(400)
+        .json({ status: 'error', message: `SKU "${sku}" already exists for this product` });
     }
 
     const variant = await ProductVariant.create({
@@ -132,7 +136,9 @@ async function updateVariant(req, res) {
         where: { productId: req.params.id, sku: sku.trim() },
       });
       if (skuExists && skuExists.id !== variant.id) {
-        return res.status(400).json({ status: 'error', message: `SKU "${sku}" already exists for this product` });
+        return res
+          .status(400)
+          .json({ status: 'error', message: `SKU "${sku}" already exists for this product` });
       }
       variant.sku = sku.trim();
     }
@@ -145,7 +151,9 @@ async function updateVariant(req, res) {
 
     if (stockQuantity !== undefined) {
       if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
-        return res.status(400).json({ status: 'error', message: 'Stock quantity must be non-negative integer' });
+        return res
+          .status(400)
+          .json({ status: 'error', message: 'Stock quantity must be non-negative integer' });
       }
       variant.stockQuantity = stockQuantity;
       variant.inStock = stockQuantity > 0;
@@ -163,7 +171,7 @@ async function updateVariant(req, res) {
       attributes: ['stockQuantity'],
       raw: true,
     });
-    const hasStock = allVariants.some((v) => v.stockQuantity > 0) || (product.stockQuantity > 0);
+    const hasStock = allVariants.some((v) => v.stockQuantity > 0) || product.stockQuantity > 0;
     await product.update({ inStock: hasStock });
 
     await bumpProductCacheVersion();

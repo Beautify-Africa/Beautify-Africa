@@ -1,6 +1,6 @@
 // services/orderService.js
 const { Op } = require('sequelize');
-const { Product } = require('../models/Product');
+const { Product, ProductVariant } = require('../models/Product');
 const { Cart, CartItem } = require('../models/Cart');
 const { withInventoryLock } = require('./inventoryLock');
 
@@ -45,7 +45,14 @@ async function buildProductLookupMaps(orderItems = [], userId = null) {
   if (userId && unresolvedIds.length > 0) {
     const cart = await Cart.findOne({
       where: { userId },
-      include: [{ model: CartItem, as: 'cartItems', where: { id: { [Op.in]: unresolvedIds } }, required: false }],
+      include: [
+        {
+          model: CartItem,
+          as: 'cartItems',
+          where: { id: { [Op.in]: unresolvedIds } },
+          required: false,
+        },
+      ],
     });
 
     const cartItemToProductId = new Map(
@@ -88,22 +95,96 @@ async function buildVerifiedOrderItems(orderItems = [], userId = null) {
       directProductMap.get(normalizedProductId) || cartProductMap.get(normalizedProductId);
 
     if (!dbProduct) {
-      return { error: { statusCode: 404, message: `Product not found: ${item.name || productId}` } };
+      return {
+        error: { statusCode: 404, message: `Product not found: ${item.name || productId}` },
+      };
     }
 
     if (!dbProduct.inStock) {
-      return { error: { statusCode: 400, message: `Product is completely out of stock: ${dbProduct.name}` } };
+      return {
+        error: {
+          statusCode: 400,
+          message: `Product is completely out of stock: ${dbProduct.name}`,
+        },
+      };
+    }
+
+    const variantId =
+      item.variantId ||
+      (typeof item.variant === 'string' ? item.variant : item.variant?.id) ||
+      null;
+    let resolvedPrice = dbProduct.price;
+    let variantSku = null;
+    let variantName = null;
+
+    if (
+      variantId &&
+      typeof ProductVariant !== 'undefined' &&
+      typeof ProductVariant.findOne === 'function'
+    ) {
+      const variant = await ProductVariant.findOne({
+        where: { id: variantId, productId: dbProduct.id },
+        raw: true,
+      });
+
+      if (!variant) {
+        return {
+          error: {
+            statusCode: 400,
+            message: `Variant does not belong to product ${dbProduct.name}`,
+          },
+        };
+      }
+
+      if (
+        variant.stockQuantity !== undefined &&
+        variant.stockQuantity !== null &&
+        variant.stockQuantity < quantity
+      ) {
+        return {
+          error: {
+            statusCode: 400,
+            message: `Selected variant for "${dbProduct.name}" is out of stock (available: ${variant.stockQuantity})`,
+          },
+        };
+      }
+
+      if (variant.price !== null && variant.price !== undefined) {
+        resolvedPrice = parseFloat(variant.price);
+      }
+      variantSku = variant.sku || null;
+      variantName =
+        [variant.size, variant.color, variant.type].filter(Boolean).join(' / ') ||
+        variant.sku ||
+        null;
+    } else if (
+      dbProduct.stockQuantity !== undefined &&
+      dbProduct.stockQuantity !== null &&
+      dbProduct.stockQuantity < quantity
+    ) {
+      return {
+        error: {
+          statusCode: 400,
+          message: `Insufficient stock for "${dbProduct.name}" (requested ${quantity}, available ${dbProduct.stockQuantity})`,
+        },
+      };
     }
 
     const { conflict } = await withInventoryLock(normalizedProductId, async () => {
-      itemsPrice += dbProduct.price * quantity;
-      verifiedOrderItems.push({
+      itemsPrice += resolvedPrice * quantity;
+      const orderItemRecord = {
         name: dbProduct.name,
         qty: quantity,
         image: dbProduct.image,
-        price: dbProduct.price,
+        price: resolvedPrice,
         productId: dbProduct.id,
-      });
+      };
+      if (variantId) {
+        orderItemRecord.variantId = variantId;
+        orderItemRecord.sku = variantSku;
+        orderItemRecord.variantName = variantName;
+      }
+      verifiedOrderItems.push(orderItemRecord);
     });
 
     if (conflict) {

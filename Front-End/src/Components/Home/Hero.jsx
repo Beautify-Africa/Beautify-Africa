@@ -7,7 +7,12 @@ import HeroReviews from './HeroReviews';
 import { SCATTERED_REVIEWS } from '../../data/heroReviews';
 import { StarIcon } from '../Shared/Icons';
 import { buildResponsiveImageProps } from '../../utils/imageUtils';
-import { HERO_CONFIG, HERO_COPY, HERO_ROTATING_WORDS, HERO_ROTATION_CONFIG } from '../../data/heroImages';
+import {
+  HERO_CONFIG,
+  HERO_COPY,
+  HERO_ROTATING_WORDS,
+  HERO_ROTATION_CONFIG,
+} from '../../data/heroImages';
 
 /**
  * RotatingWord — cycles through luxury words with a fade + slide transition
@@ -86,12 +91,8 @@ const HeroSection = () => {
       {/* Background + overlay + particles */}
       <HeroBackground parallaxTransform={parallaxTransform} />
 
-
-
       {/* Editorial content */}
-      <article
-        className="relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 z-30"
-      >
+      <article className="relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 z-30">
         <header>
           <FadeIn delay={0.2} direction="up">
             <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-900 mb-6 block">
@@ -99,14 +100,17 @@ const HeroSection = () => {
             </span>
           </FadeIn>
 
-              <FadeIn delay={0.4} direction="up" className="relative mb-10 max-w-6xl">
+          <FadeIn delay={0.4} direction="up" className="relative mb-10 max-w-6xl">
             <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] text-stone-900 tracking-tighter relative z-20">
               {HERO_COPY.headlineParts[0]}
               {/* Inline review chip anchored after the word 'The' */}
               {(() => {
                 const inlineReview = SCATTERED_REVIEWS.find((r) => r.inline);
                 if (!inlineReview) return null;
-                const imageProps = buildResponsiveImageProps(inlineReview.image, { widths: [64, 96], sizes: '32px' });
+                const imageProps = buildResponsiveImageProps(inlineReview.image, {
+                  widths: [64, 96],
+                  sizes: '32px',
+                });
 
                 return (
                   <FadeIn
@@ -131,7 +135,9 @@ const HeroSection = () => {
                           <StarIcon key={i} className="w-2.5 h-2.5" filled={true} />
                         ))}
                       </div>
-                      <span className="text-[10px] font-bold text-stone-600 mt-1">{inlineReview.name}</span>
+                      <span className="text-[10px] font-bold text-stone-600 mt-1">
+                        {inlineReview.name}
+                      </span>
                     </div>
                   </FadeIn>
                 );
@@ -158,7 +164,10 @@ const HeroSection = () => {
             {HERO_COPY.subtitle}
           </p>
 
-          <nav className="flex flex-col sm:flex-row items-center gap-8 relative z-20" aria-label="Hero actions">
+          <nav
+            className="flex flex-col sm:flex-row items-center gap-8 relative z-20"
+            aria-label="Hero actions"
+          >
             <InteractiveButton label={HERO_COPY.primaryCta} primary />
             <button
               type="button"
@@ -187,7 +196,10 @@ const HeroSection = () => {
           </p>
           <p className="text-sm font-serif italic text-stone-500">{HERO_COPY.featuredProduct}</p>
         </div>
-        <div className="w-px h-24 bg-gradient-to-b from-stone-200 to-transparent" aria-hidden="true" />
+        <div
+          className="w-px h-24 bg-gradient-to-b from-stone-200 to-transparent"
+          aria-hidden="true"
+        />
       </aside>
 
       {/* Scroll hint */}

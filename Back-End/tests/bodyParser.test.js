@@ -32,9 +32,7 @@ describe('body parser size limit middleware', () => {
   test('accepts payloads under configured limit', async () => {
     const app = createApp();
 
-    const response = await request(app)
-      .post('/echo')
-      .send({ message: 'small payload' });
+    const response = await request(app).post('/echo').send({ message: 'small payload' });
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe('success');

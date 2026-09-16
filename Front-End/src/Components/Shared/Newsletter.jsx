@@ -70,10 +70,13 @@ const Newsletter = () => {
               className="absolute inset-0 pointer-events-none"
               aria-hidden="true"
               style={{
-                backgroundImage: 'radial-gradient(circle, rgba(160,110,40,0.55) 1.5px, transparent 1.5px)',
+                backgroundImage:
+                  'radial-gradient(circle, rgba(160,110,40,0.55) 1.5px, transparent 1.5px)',
                 backgroundSize: '22px 22px',
-                maskImage: 'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
-                WebkitMaskImage: 'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
+                maskImage:
+                  'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
+                WebkitMaskImage:
+                  'radial-gradient(ellipse 75% 75% at 50% 50%, black 0%, transparent 100%)',
                 opacity: 0.7,
               }}
             />
@@ -83,7 +86,13 @@ const Newsletter = () => {
               className="absolute top-6 right-6 md:top-10 md:right-10 opacity-5 pointer-events-none hidden sm:block"
               aria-hidden="true"
             >
-              <svg width="80" height="80" viewBox="0 0 100 100" fill="currentColor" className="text-stone-900">
+              <svg
+                width="80"
+                height="80"
+                viewBox="0 0 100 100"
+                fill="currentColor"
+                className="text-stone-900"
+              >
                 <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1" fill="none" />
                 <path d="M50 20v60M20 50h60" stroke="currentColor" strokeWidth="1" />
               </svg>
@@ -155,7 +164,10 @@ const Newsletter = () => {
                 </AppLink>
 
                 {statusMessage && (
-                  <p role="status" className={`mt-3 text-xs md:text-sm font-semibold tracking-wide ${isSuccess ? 'text-green-600' : 'text-red-500'}`}>
+                  <p
+                    role="status"
+                    className={`mt-3 text-xs md:text-sm font-semibold tracking-wide ${isSuccess ? 'text-green-600' : 'text-red-500'}`}
+                  >
                     {statusMessage}
                   </p>
                 )}
@@ -169,4 +181,3 @@ const Newsletter = () => {
 };
 
 export default Newsletter;
-

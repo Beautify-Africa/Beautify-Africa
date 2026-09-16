@@ -84,9 +84,7 @@ describe('Auth logout + JWT blacklist flow', () => {
 
     redisClient.get.mockResolvedValue('1');
 
-    const response = await request(app)
-      .get('/api/auth/me')
-      .set('Authorization', `Bearer ${token}`);
+    const response = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(401);
     expect(response.body.status).toBe('error');

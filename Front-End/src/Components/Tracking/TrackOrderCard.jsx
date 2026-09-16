@@ -29,8 +29,12 @@ export default function TrackOrderCard({ order }) {
       <div className="border-b border-stone-200 bg-[#f4f1eb] px-6 py-5">
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Tracking Code</p>
-            <p className="mt-1 font-serif text-2xl text-stone-900">#{getPublicOrderCode(order._id)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+              Tracking Code
+            </p>
+            <p className="mt-1 font-serif text-2xl text-stone-900">
+              #{getPublicOrderCode(order._id)}
+            </p>
             <p className="mt-1 text-xs text-stone-500">
               Ordered on{' '}
               {new Date(order.createdAt).toLocaleDateString('en-US', {
@@ -42,9 +46,13 @@ export default function TrackOrderCard({ order }) {
           </div>
 
           <div className="text-right">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Order Total</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+              Order Total
+            </p>
             <p className="mt-1 text-xl font-bold text-stone-900">${order.totalPrice.toFixed(2)}</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">{stage.label}</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">
+              {stage.label}
+            </p>
           </div>
         </div>
 
@@ -58,7 +66,9 @@ export default function TrackOrderCard({ order }) {
         <ShippingProgressTimeline order={order} />
 
         <section>
-          <h3 className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Items In Shipment</h3>
+          <h3 className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+            Items In Shipment
+          </h3>
           <ul className="divide-y divide-stone-100 rounded-sm border border-stone-100">
             {order.orderItems.map((item, idx) => (
               <li key={`${order._id}-${idx}`} className="flex items-center gap-4 px-4 py-4">
@@ -76,10 +86,15 @@ export default function TrackOrderCard({ order }) {
                   ) : null}
                 </div>
                 <div className="flex-grow">
-                  <Link to={`/shop/${item.product?._id || item.product}`} className="font-serif text-lg text-stone-900 hover:text-amber-800">
+                  <Link
+                    to={`/shop/${item.product?._id || item.product}`}
+                    className="font-serif text-lg text-stone-900 hover:text-amber-800"
+                  >
                     {item.name}
                   </Link>
-                  <p className="mt-1 text-xs text-stone-500">Qty: {item.qty} x ${item.price.toFixed(2)}</p>
+                  <p className="mt-1 text-xs text-stone-500">
+                    Qty: {item.qty} x ${item.price.toFixed(2)}
+                  </p>
                 </div>
               </li>
             ))}

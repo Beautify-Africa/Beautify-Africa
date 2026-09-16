@@ -1,9 +1,6 @@
 function setPublicCache(seconds, staleWhileRevalidateSeconds = 0) {
   return function cacheHeaderMiddleware(req, res, next) {
-    const directives = [
-      'public',
-      `max-age=${Math.max(0, Number(seconds) || 0)}`,
-    ];
+    const directives = ['public', `max-age=${Math.max(0, Number(seconds) || 0)}`];
 
     if ((Number(staleWhileRevalidateSeconds) || 0) > 0) {
       directives.push(

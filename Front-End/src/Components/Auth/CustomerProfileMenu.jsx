@@ -38,10 +38,10 @@ export default function CustomerProfileMenu() {
 
     async function loadOrders() {
       if (!isOpen || !isAuthenticated || !token) return;
-      
+
       setIsLoadingOrders(true);
       setOrdersError(null);
-      
+
       try {
         const data = await fetchMyOrders(token);
         if (active) setOrders(data);
@@ -107,7 +107,6 @@ export default function CustomerProfileMenu() {
         orders={orders}
         handleLogout={handleLogout}
       />
-
     </div>
   );
 }

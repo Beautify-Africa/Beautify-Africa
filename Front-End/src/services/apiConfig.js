@@ -64,7 +64,11 @@ export async function requestJson(url, options = {}) {
 
   const requestHeaders = {
     ...headers,
-    ...(body !== undefined ? jsonHeaders(token) : token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(body !== undefined
+      ? jsonHeaders(token)
+      : token
+        ? { Authorization: `Bearer ${token}` }
+        : {}),
   };
 
   const requestInit = {

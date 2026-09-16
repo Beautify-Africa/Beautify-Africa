@@ -39,8 +39,17 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 // ======================== ORDER INCLUDES ========================
 
-const ORDER_USER_INCLUDE = { model: User, as: 'user', attributes: ['id', 'name', 'email', 'createdAt'], required: false };
-const ORDER_SHIPPING_INCLUDE = { model: OrderShippingAddress, as: 'shippingAddress', required: false };
+const ORDER_USER_INCLUDE = {
+  model: User,
+  as: 'user',
+  attributes: ['id', 'name', 'email', 'createdAt'],
+  required: false,
+};
+const ORDER_SHIPPING_INCLUDE = {
+  model: OrderShippingAddress,
+  as: 'shippingAddress',
+  required: false,
+};
 const ORDER_ITEMS_INCLUDE = { model: OrderItem, as: 'orderItems', required: false };
 const ORDER_TIMELINE_INCLUDE = { model: AdminTimelineEntry, as: 'adminTimeline', required: false };
 
@@ -86,10 +95,18 @@ function buildRegionalPulse(orders = [], now = new Date()) {
 function buildAdminDashboardFromOrders(orders = [], lowStockCount = 0, now = new Date()) {
   const paidOrders = orders.filter((order) => order.isPaid);
   const totalRevenue = paidOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0);
-  const recentPaidOrders = paidOrders.filter((order) => now - new Date(order.paidAt || order.createdAt) <= 7 * DAY_IN_MS);
-  const recentRevenue = recentPaidOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0);
+  const recentPaidOrders = paidOrders.filter(
+    (order) => now - new Date(order.paidAt || order.createdAt) <= 7 * DAY_IN_MS
+  );
+  const recentRevenue = recentPaidOrders.reduce(
+    (sum, order) => sum + Number(order.totalPrice || 0),
+    0
+  );
   const averageOrderValue = paidOrders.length ? totalRevenue / paidOrders.length : 0;
-  const priorityOrders = sortOrdersForPriority(orders.filter((o) => !o.isDelivered).slice(0, 20), now);
+  const priorityOrders = sortOrdersForPriority(
+    orders.filter((o) => !o.isDelivered).slice(0, 20),
+    now
+  );
 
   return {
     metrics: {
@@ -159,26 +176,36 @@ function applyAdminOrderAction(order, action) {
   if (!order) throw createAdminError('Order not found', 404);
   const normalizedAction = normalizeAdminAction(action);
   if (!normalizedAction) throw createAdminError('Action is required');
-  if (!SUPPORTED_ADMIN_ACTIONS.includes(normalizedAction)) throw createAdminError(`Unsupported admin action: ${action}`);
+  if (!SUPPORTED_ADMIN_ACTIONS.includes(normalizedAction))
+    throw createAdminError(`Unsupported admin action: ${action}`);
 
   if (normalizedAction === 'mark_paid') {
-    if (!order.isPaid) { order.isPaid = true; order.paidAt = new Date(); }
+    if (!order.isPaid) {
+      order.isPaid = true;
+      order.paidAt = new Date();
+    }
     return order;
   }
   ensurePaidOrder(order);
   if (normalizedAction === 'pack') {
     ensureOrderStatus(order, 'processing', 'pack');
-    order.fulfillmentStatus = 'packed'; order.isDelivered = false; order.deliveredAt = null;
+    order.fulfillmentStatus = 'packed';
+    order.isDelivered = false;
+    order.deliveredAt = null;
     return order;
   }
   if (normalizedAction === 'ship') {
     ensureOrderStatus(order, 'packed', 'ship');
-    order.fulfillmentStatus = 'shipped'; order.isDelivered = false; order.deliveredAt = null;
+    order.fulfillmentStatus = 'shipped';
+    order.isDelivered = false;
+    order.deliveredAt = null;
     return order;
   }
   if (normalizedAction === 'deliver') {
     ensureOrderStatus(order, 'shipped', 'deliver');
-    order.fulfillmentStatus = 'delivered'; order.isDelivered = true; order.deliveredAt = new Date();
+    order.fulfillmentStatus = 'delivered';
+    order.isDelivered = true;
+    order.deliveredAt = new Date();
     return order;
   }
   throw createAdminError(`Unsupported admin action: ${action}`);
@@ -193,7 +220,12 @@ async function updateAdminOrder(orderId, action, adminUser = null, note = '') {
   const normalizedAction = normalizeAdminAction(action);
   applyAdminOrderAction(order, normalizedAction);
   await order.save();
-  await appendOrderTimelineEntry(order, { type: 'action', action: normalizedAction, adminUser, note });
+  await appendOrderTimelineEntry(order, {
+    type: 'action',
+    action: normalizedAction,
+    adminUser,
+    note,
+  });
 
   // Re-fetch with fresh data
   return Order.findByPk(orderId, { include: buildFullOrderInclude() });
@@ -239,18 +271,25 @@ function buildAdminOrderFilter(query = {}) {
   const normalizedFilters = {};
 
   // Payment filter
-  const payment = String(query.payment || 'all').trim().toLowerCase();
+  const payment = String(query.payment || 'all')
+    .trim()
+    .toLowerCase();
   if (payment === 'paid') where.isPaid = true;
   else if (payment === 'unpaid') where.isPaid = false;
   normalizedFilters.payment = payment;
 
   // Fulfillment status filter
-  const fulfillment = String(query.fulfillment || 'all').trim().toLowerCase();
-  if (fulfillment !== 'all' && FULFILLMENT_STATUSES.includes(fulfillment)) where.fulfillmentStatus = fulfillment;
+  const fulfillment = String(query.fulfillment || 'all')
+    .trim()
+    .toLowerCase();
+  if (fulfillment !== 'all' && FULFILLMENT_STATUSES.includes(fulfillment))
+    where.fulfillmentStatus = fulfillment;
   normalizedFilters.fulfillment = fulfillment;
 
   // Country filter (via shippingAddress join — handled at query level below)
-  const country = String(query.country || '').trim().toLowerCase();
+  const country = String(query.country || '')
+    .trim()
+    .toLowerCase();
   normalizedFilters.country = country;
 
   // Search filter — will be applied post-fetch if needed
@@ -261,10 +300,26 @@ function buildAdminOrderFilter(query = {}) {
 }
 
 function buildAdminOrderSort(sortValue = 'newest') {
-  const sort = String(sortValue || 'newest').trim().toLowerCase();
+  const sort = String(sortValue || 'newest')
+    .trim()
+    .toLowerCase();
   if (sort === 'oldest') return { sort, order: [['createdAt', 'ASC']] };
-  if (sort === 'total_high') return { sort, order: [['totalPrice', 'DESC'], ['createdAt', 'DESC']] };
-  if (sort === 'total_low') return { sort, order: [['totalPrice', 'ASC'], ['createdAt', 'DESC']] };
+  if (sort === 'total_high')
+    return {
+      sort,
+      order: [
+        ['totalPrice', 'DESC'],
+        ['createdAt', 'DESC'],
+      ],
+    };
+  if (sort === 'total_low')
+    return {
+      sort,
+      order: [
+        ['totalPrice', 'ASC'],
+        ['createdAt', 'DESC'],
+      ],
+    };
   return { sort, order: [['createdAt', 'DESC']] };
 }
 
@@ -272,7 +327,8 @@ function mapAdminOrderRow(order = {}) {
   const statusMeta = getStatusMeta(order);
   const addr = order.shippingAddress || {};
   const itemCount = Array.isArray(order.orderItems)
-    ? order.orderItems.reduce((sum, item) => sum + Number(item.qty || 0), 0) : 0;
+    ? order.orderItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
+    : 0;
 
   return {
     id: order.id,
@@ -298,8 +354,18 @@ function mapAdminOrderRow(order = {}) {
 
 async function fetchAdminOrders(query = {}) {
   const { where, normalizedFilters } = buildAdminOrderFilter(query);
-  const page = parsePositiveInteger(query.page, { defaultValue: 1, min: 1, max: 1000, label: 'Page' });
-  const limit = parsePositiveInteger(query.limit, { defaultValue: 12, min: 1, max: 50, label: 'Limit' });
+  const page = parsePositiveInteger(query.page, {
+    defaultValue: 1,
+    min: 1,
+    max: 1000,
+    label: 'Page',
+  });
+  const limit = parsePositiveInteger(query.limit, {
+    defaultValue: 12,
+    min: 1,
+    max: 50,
+    label: 'Limit',
+  });
   const { sort, order } = buildAdminOrderSort(query.sort);
   const skip = (page - 1) * limit;
 
@@ -316,7 +382,12 @@ async function fetchAdminOrders(query = {}) {
 
   return {
     orders: orders.map(mapAdminOrderRow),
-    pagination: { page, limit, totalCount, totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 0 },
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 0,
+    },
     filters: { ...normalizedFilters, sort },
   };
 }
@@ -324,7 +395,8 @@ async function fetchAdminOrders(query = {}) {
 // ======================== PRODUCT HELPERS ========================
 
 function ensureValidProductId(productId) {
-  if (!UUID_REGEX.test(String(productId || ''))) throw createAdminError('Invalid product ID format');
+  if (!UUID_REGEX.test(String(productId || '')))
+    throw createAdminError('Invalid product ID format');
 }
 
 function normalizeNumberInput(value, fallbackValue = 0) {
@@ -335,7 +407,11 @@ function normalizeNumberInput(value, fallbackValue = 0) {
 
 function normalizeStringArray(value = []) {
   if (Array.isArray(value)) return value.map((entry) => String(entry).trim()).filter(Boolean);
-  if (typeof value === 'string') return value.split(',').map((entry) => entry.trim()).filter(Boolean);
+  if (typeof value === 'string')
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
   return [];
 }
 
@@ -350,7 +426,12 @@ function normalizeProductPayload(payload = {}, { isCreate = false } = {}) {
     ingredients: String(payload.ingredients || '').trim(),
     howToUse: String(payload.howToUse || '').trim(),
     price: normalizeNumberInput(payload.price, 0),
-    originalPrice: payload.originalPrice === undefined || payload.originalPrice === null || payload.originalPrice === '' ? null : normalizeNumberInput(payload.originalPrice, null),
+    originalPrice:
+      payload.originalPrice === undefined ||
+      payload.originalPrice === null ||
+      payload.originalPrice === ''
+        ? null
+        : normalizeNumberInput(payload.originalPrice, null),
     stockQuantity: normalizeNumberInput(payload.stockQuantity, 0),
     lowStockThreshold: normalizeNumberInput(payload.lowStockThreshold, 5),
     skinType: normalizeStringArray(payload.skinType),
@@ -364,12 +445,15 @@ function normalizeProductPayload(payload = {}, { isCreate = false } = {}) {
   if (isCreate) {
     const requiredFields = ['name', 'brand', 'category', 'image'];
     const missing = requiredFields.filter((field) => !normalized[field]);
-    if (missing.length > 0) throw createAdminError(`Missing required product field(s): ${missing.join(', ')}`);
+    if (missing.length > 0)
+      throw createAdminError(`Missing required product field(s): ${missing.join(', ')}`);
   }
   if (normalized.stockQuantity < 0) throw createAdminError('Stock quantity cannot be negative');
-  if (normalized.lowStockThreshold < 0) throw createAdminError('Low stock threshold cannot be negative');
+  if (normalized.lowStockThreshold < 0)
+    throw createAdminError('Low stock threshold cannot be negative');
   if (normalized.price < 0) throw createAdminError('Price cannot be negative');
-  if (normalized.originalPrice !== null && normalized.originalPrice < 0) throw createAdminError('Original price cannot be negative');
+  if (normalized.originalPrice !== null && normalized.originalPrice < 0)
+    throw createAdminError('Original price cannot be negative');
 
   normalized.inStock = normalized.stockQuantity > 0;
   return normalized;
@@ -398,7 +482,9 @@ function buildAdminProductFilter(query = {}) {
     // Products where stockQuantity <= lowStockThreshold
     // Use a raw where expression via sequelize.literal
     const { sequelize } = require('../config/db');
-    where[Op.and] = [sequelize.literal('"Product"."stockQuantity" <= "Product"."lowStockThreshold"')];
+    where[Op.and] = [
+      sequelize.literal('"Product"."stockQuantity" <= "Product"."lowStockThreshold"'),
+    ];
   }
 
   return where;
@@ -425,7 +511,12 @@ async function fetchAdminProducts(query = {}) {
 
   return {
     products: products.map((p) => ({ ...p.toJSON(), _id: p.id })),
-    pagination: { page, limit, totalCount, totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 0 },
+    pagination: {
+      page,
+      limit,
+      totalCount,
+      totalPages: totalCount > 0 ? Math.ceil(totalCount / limit) : 0,
+    },
   };
 }
 

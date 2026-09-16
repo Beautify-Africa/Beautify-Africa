@@ -4,15 +4,23 @@ const { sequelize } = require('../config/db');
 
 // ===== CartItem =====
 class CartItem extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
   // Virtual 'product' getter returns productId for backward compat
-  get product() { return this.productId; }
+  get product() {
+    return this.productId;
+  }
 }
 CartItem.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     cartId: { type: DataTypes.UUID, allowNull: false, references: { model: 'carts', key: 'id' } },
-    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'products', key: 'id' },
+    },
     name: { type: DataTypes.STRING, allowNull: false },
     price: {
       type: DataTypes.DECIMAL(10, 2),
@@ -31,32 +39,36 @@ CartItem.init(
     modelName: 'CartItem',
     tableName: 'cart_items',
     timestamps: false,
-    indexes: [
-      { fields: ['cartId'] },
-      { fields: ['productId'] },
-    ],
+    indexes: [{ fields: ['cartId'] }, { fields: ['productId'] }],
   }
 );
 
 // ===== Cart =====
 class Cart extends Model {
-  get _id() { return this.id; }
-  get user() { return this.userId; }
+  get _id() {
+    return this.id;
+  }
+  get user() {
+    return this.userId;
+  }
 }
 
 Cart.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    userId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'users', key: 'id' } },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      unique: true,
+      references: { model: 'users', key: 'id' },
+    },
   },
   {
     sequelize,
     modelName: 'Cart',
     tableName: 'carts',
     timestamps: true,
-    indexes: [
-      { fields: ['userId'] },
-    ],
+    indexes: [{ fields: ['userId'] }],
   }
 );
 

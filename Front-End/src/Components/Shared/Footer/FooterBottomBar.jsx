@@ -8,9 +8,16 @@ import AppLink from '../AppLink';
 
 function LegalLinks() {
   return (
-    <nav className="order-2 flex flex-wrap justify-center gap-4 sm:gap-8" aria-label="Legal information">
+    <nav
+      className="order-2 flex flex-wrap justify-center gap-4 sm:gap-8"
+      aria-label="Legal information"
+    >
       {LEGAL_LINKS.map((link) => (
-        <AppLink key={link.name} href={link.href} className="transition-colors hover:text-stone-200">
+        <AppLink
+          key={link.name}
+          href={link.href}
+          className="transition-colors hover:text-stone-200"
+        >
           {link.name}
         </AppLink>
       ))}

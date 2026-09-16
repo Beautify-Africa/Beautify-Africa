@@ -3,7 +3,9 @@ const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require('../config/db');
 
 class Newsletter extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 
 Newsletter.init(

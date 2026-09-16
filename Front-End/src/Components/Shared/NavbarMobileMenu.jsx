@@ -37,7 +37,9 @@ export default function NavbarMobileMenu({
       </button>
 
       <div className="flex h-full flex-col items-center justify-center px-12 text-center">
-        <span className="mb-12 text-[10px] uppercase tracking-[0.5em] text-stone-400">{tagline}</span>
+        <span className="mb-12 text-[10px] uppercase tracking-[0.5em] text-stone-400">
+          {tagline}
+        </span>
 
         {!isShopPage && (
           <nav aria-label="Mobile navigation">

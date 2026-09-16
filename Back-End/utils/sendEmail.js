@@ -16,18 +16,22 @@ const sendEmail = async (options) => {
   const { emailQueue: queue, emailQueueEvents: queueEvents } = getEmailQueue();
 
   // Push the email payload onto the BullMQ background queue
-  const job = await queue.add('sendEmailJob', {
-    email: options.email,
-    subject: options.subject,
-    text: options.text,
-    html: options.html,
-  }, {
-    attempts: 3, // Automatically retry 3 times if it encounters network errors
-    backoff: {
-      type: 'exponential',
-      delay: 5000, // Wait 5s, 10s, 20s if it fails
+  const job = await queue.add(
+    'sendEmailJob',
+    {
+      email: options.email,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+    },
+    {
+      attempts: 3, // Automatically retry 3 times if it encounters network errors
+      backoff: {
+        type: 'exponential',
+        delay: 5000, // Wait 5s, 10s, 20s if it fails
+      },
     }
-  });
+  );
 
   await job.waitUntilFinished(queueEvents, 30000);
 

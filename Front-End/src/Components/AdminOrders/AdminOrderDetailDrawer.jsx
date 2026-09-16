@@ -18,7 +18,9 @@ function DrawerLoading() {
     <div className="flex h-full items-center justify-center px-8 py-16 text-center">
       <div>
         <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-        <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">Loading order detail...</p>
+        <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
+          Loading order detail...
+        </p>
       </div>
     </div>
   );
@@ -147,15 +149,29 @@ export default function AdminOrderDetailDrawer({
                 <DetailSection eyebrow="Workflow" title="Next steps and activity">
                   <div className="grid gap-3 md:grid-cols-2">
                     <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Next milestone</p>
-                      <p className="mt-2 text-sm leading-relaxed text-stone-700">{activeOrder.eta}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Next milestone
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-stone-700">
+                        {activeOrder.eta}
+                      </p>
                     </div>
                     <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Timestamps</p>
-                      <p className="mt-2 text-sm text-stone-700">Placed: {activeOrder.placedAtLabel}</p>
-                      <p className="mt-1 text-sm text-stone-700">Updated: {activeOrder.updatedAtLabel || 'Not yet available'}</p>
-                      <p className="mt-1 text-sm text-stone-700">Paid: {activeOrder.paidAtLabel || 'Not yet paid'}</p>
-                      <p className="mt-1 text-sm text-stone-700">Delivered: {activeOrder.deliveredAtLabel || 'Not delivered'}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Timestamps
+                      </p>
+                      <p className="mt-2 text-sm text-stone-700">
+                        Placed: {activeOrder.placedAtLabel}
+                      </p>
+                      <p className="mt-1 text-sm text-stone-700">
+                        Updated: {activeOrder.updatedAtLabel || 'Not yet available'}
+                      </p>
+                      <p className="mt-1 text-sm text-stone-700">
+                        Paid: {activeOrder.paidAtLabel || 'Not yet paid'}
+                      </p>
+                      <p className="mt-1 text-sm text-stone-700">
+                        Delivered: {activeOrder.deliveredAtLabel || 'Not delivered'}
+                      </p>
                     </div>
                   </div>
 
@@ -170,7 +186,9 @@ export default function AdminOrderDetailDrawer({
                         />
                       ))
                     ) : (
-                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">No manual actions available</p>
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">
+                        No manual actions available
+                      </p>
                     )}
                   </div>
                 </DetailSection>
@@ -178,20 +196,33 @@ export default function AdminOrderDetailDrawer({
                 <DetailSection eyebrow="Customer" title="Customer and shipping context">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Customer</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Customer
+                      </p>
                       <p className="mt-2 font-medium text-stone-900">{activeOrder.customer.name}</p>
-                      <p className="mt-1">{activeOrder.customer.shippingEmail || 'No shipping email'}</p>
-                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Account</p>
-                      <p className="mt-2">{activeOrder.customer.accountEmail || 'Guest checkout'}</p>
+                      <p className="mt-1">
+                        {activeOrder.customer.shippingEmail || 'No shipping email'}
+                      </p>
+                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Account
+                      </p>
+                      <p className="mt-2">
+                        {activeOrder.customer.accountEmail || 'Guest checkout'}
+                      </p>
                       {activeOrder.customer.accountCreatedAtLabel ? (
-                        <p className="mt-1 text-stone-500">Customer since {activeOrder.customer.accountCreatedAtLabel}</p>
+                        <p className="mt-1 text-stone-500">
+                          Customer since {activeOrder.customer.accountCreatedAtLabel}
+                        </p>
                       ) : null}
                     </div>
 
                     <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Shipping address</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Shipping address
+                      </p>
                       <p className="mt-2 font-medium text-stone-900">
-                        {activeOrder.shippingAddress.firstName} {activeOrder.shippingAddress.lastName}
+                        {activeOrder.shippingAddress.firstName}{' '}
+                        {activeOrder.shippingAddress.lastName}
                       </p>
                       <p className="mt-1">{activeOrder.shippingAddress.address}</p>
                       <p className="mt-1">
@@ -206,13 +237,25 @@ export default function AdminOrderDetailDrawer({
                 <DetailSection eyebrow="Payment" title="Payment and totals snapshot">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Payment method</p>
-                      <p className="mt-2 font-medium text-stone-900">{activeOrder.payment.method}</p>
-                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Gateway status</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Payment method
+                      </p>
+                      <p className="mt-2 font-medium text-stone-900">
+                        {activeOrder.payment.method}
+                      </p>
+                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Gateway status
+                      </p>
                       <p className="mt-2">{activeOrder.payment.resultStatus || 'Pending'}</p>
-                      <p className="mt-1 text-stone-500">{activeOrder.payment.emailAddress || 'No gateway email'}</p>
-                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">Stripe intent</p>
-                      <p className="mt-2 break-all text-xs text-stone-500">{activeOrder.payment.stripePaymentIntentId || 'Not available'}</p>
+                      <p className="mt-1 text-stone-500">
+                        {activeOrder.payment.emailAddress || 'No gateway email'}
+                      </p>
+                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                        Stripe intent
+                      </p>
+                      <p className="mt-2 break-all text-xs text-stone-500">
+                        {activeOrder.payment.stripePaymentIntentId || 'Not available'}
+                      </p>
                     </div>
 
                     <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
@@ -259,7 +302,8 @@ export default function AdminOrderDetailDrawer({
                         <div className="min-w-0 flex-1">
                           <p className="font-medium text-stone-900">{item.name}</p>
                           <p className="mt-1 text-sm text-stone-500">
-                            {item.productBrand || 'Unknown brand'} / {item.productCategory || 'Uncategorized'}
+                            {item.productBrand || 'Unknown brand'} /{' '}
+                            {item.productCategory || 'Uncategorized'}
                           </p>
                           <p className="mt-2 text-sm text-stone-600">
                             Qty {item.qty} / Unit {item.unitPrice} / Line {item.lineTotal}
@@ -303,7 +347,11 @@ export default function AdminOrderDetailDrawer({
                               ? 'Internal note'
                               : String(entry.action || 'action').replace(/_/g, ' ')}
                           </p>
-                          {entry.note ? <p className="mt-2 text-sm leading-relaxed text-stone-700">{entry.note}</p> : null}
+                          {entry.note ? (
+                            <p className="mt-2 text-sm leading-relaxed text-stone-700">
+                              {entry.note}
+                            </p>
+                          ) : null}
                           <p className="mt-2 text-xs text-stone-500">
                             {entry.adminName || 'Admin'} / {entry.createdAtLabel || entry.createdAt}
                           </p>
@@ -318,7 +366,9 @@ export default function AdminOrderDetailDrawer({
             </div>
           </>
         ) : (
-          <div className="px-6 py-8 text-sm text-stone-500">No order detail is currently available.</div>
+          <div className="px-6 py-8 text-sm text-stone-500">
+            No order detail is currently available.
+          </div>
         )}
       </aside>
     </div>

@@ -30,7 +30,9 @@ export default function NewsletterUnsubscribeRequestPage() {
 
     try {
       const response = await requestNewsletterUnsubscribe(email);
-      setSuccessMessage(response.message || 'If that email is subscribed, we have sent an unsubscribe link.');
+      setSuccessMessage(
+        response.message || 'If that email is subscribed, we have sent an unsubscribe link.'
+      );
       setEmail('');
     } catch (requestError) {
       setError(requestError.message || 'Unable to request an unsubscribe link right now.');
@@ -47,13 +49,18 @@ export default function NewsletterUnsubscribeRequestPage() {
         path="/newsletter/unsubscribe-request"
         imageAlt="Beautify Africa newsletter preferences"
       />
-      <main id="main-content" className="min-h-screen bg-[#faf9f6] px-6 py-16 text-stone-900 sm:py-24">
+      <main
+        id="main-content"
+        className="min-h-screen bg-[#faf9f6] px-6 py-16 text-stone-900 sm:py-24"
+      >
         <section className="mx-auto max-w-xl rounded-sm border border-stone-200 bg-white p-8 shadow-sm sm:p-10">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">Newsletter Preferences</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">
+            Newsletter Preferences
+          </p>
           <h1 className="mt-3 font-serif text-4xl text-stone-900">Request unsubscribe link</h1>
           <p className="mt-4 text-sm leading-relaxed text-stone-600">
-            Enter the email address you used to subscribe. If it exists on our active newsletter list, we will send
-            a secure confirmation link.
+            Enter the email address you used to subscribe. If it exists on our active newsletter
+            list, we will send a secure confirmation link.
           </p>
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -63,7 +70,11 @@ export default function NewsletterUnsubscribeRequestPage() {
               onChange={(event) => setEmail(event.target.value)}
             />
 
-            {error ? <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
+            {error ? (
+              <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </p>
+            ) : null}
             {successMessage ? (
               <p className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                 {successMessage}
@@ -80,7 +91,10 @@ export default function NewsletterUnsubscribeRequestPage() {
           </form>
 
           <div className="mt-8 text-center">
-            <Link to="/" className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700">
+            <Link
+              to="/"
+              className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700"
+            >
               Return to Home
             </Link>
           </div>

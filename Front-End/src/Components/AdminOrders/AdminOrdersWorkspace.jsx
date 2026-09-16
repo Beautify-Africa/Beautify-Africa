@@ -43,7 +43,9 @@ function WorkspaceLoading({ label = 'Loading dashboard...' }) {
   return (
     <section className="rounded-[2rem] border border-stone-200/80 bg-white px-8 py-16 text-center shadow-[0_24px_60px_rgba(28,25,23,0.08)]">
       <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">{label}</p>
+      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
+        {label}
+      </p>
     </section>
   );
 }
@@ -169,26 +171,35 @@ export default function AdminOrdersWorkspace() {
     return () => window.clearTimeout(timeoutId);
   }, [successMessage]);
 
-  useEffect(() => () => {
-    detailRequestControllerRef.current?.abort();
-  }, []);
+  useEffect(
+    () => () => {
+      detailRequestControllerRef.current?.abort();
+    },
+    []
+  );
 
-  const handleFilterChange = useCallback((field, value) => {
-    setOrderFilters((previous) => ({
-      ...DEFAULT_ORDER_FILTERS,
-      ...(previous || {}),
-      [field]: value,
-      page: 1,
-    }));
-  }, [setOrderFilters]);
+  const handleFilterChange = useCallback(
+    (field, value) => {
+      setOrderFilters((previous) => ({
+        ...DEFAULT_ORDER_FILTERS,
+        ...(previous || {}),
+        [field]: value,
+        page: 1,
+      }));
+    },
+    [setOrderFilters]
+  );
 
-  const handlePageChange = useCallback((nextPage) => {
-    setOrderFilters((previous) => ({
-      ...DEFAULT_ORDER_FILTERS,
-      ...(previous || {}),
-      page: Math.max(1, nextPage),
-    }));
-  }, [setOrderFilters]);
+  const handlePageChange = useCallback(
+    (nextPage) => {
+      setOrderFilters((previous) => ({
+        ...DEFAULT_ORDER_FILTERS,
+        ...(previous || {}),
+        page: Math.max(1, nextPage),
+      }));
+    },
+    [setOrderFilters]
+  );
 
   const handleLedgerRefresh = useCallback(async () => {
     await loadOrderLedger({ showLoader: true });
@@ -239,9 +250,12 @@ export default function AdminOrdersWorkspace() {
     [token]
   );
 
-  const handleOpenOrderDetail = useCallback((orderId) => {
-    void loadOrderDetail(orderId, { showLoader: true, openDrawer: true });
-  }, [loadOrderDetail]);
+  const handleOpenOrderDetail = useCallback(
+    (orderId) => {
+      void loadOrderDetail(orderId, { showLoader: true, openDrawer: true });
+    },
+    [loadOrderDetail]
+  );
 
   const handleCloseOrderDetail = useCallback(() => {
     detailRequestControllerRef.current?.abort();
@@ -262,10 +276,7 @@ export default function AdminOrdersWorkspace() {
   }, [loadOrderDetail, selectedOrderId]);
 
   const handleRefreshWorkspace = useCallback(async () => {
-    const requests = [
-      reloadDashboard({ showLoader: true }),
-      loadOrderLedger({ showLoader: true }),
-    ];
+    const requests = [reloadDashboard({ showLoader: true }), loadOrderLedger({ showLoader: true })];
 
     if (selectedOrderId) {
       requests.push(loadOrderDetail(selectedOrderId, { showLoader: false, openDrawer: false }));
@@ -349,7 +360,9 @@ export default function AdminOrdersWorkspace() {
         path="/admin/orders"
         imageAlt="Beautify Africa admin orders workspace"
       />
-      <Helmet><meta name="robots" content="noindex,nofollow" /></Helmet>
+      <Helmet>
+        <meta name="robots" content="noindex,nofollow" />
+      </Helmet>
 
       <AdminShell
         sectionLabel="Orders"
@@ -357,9 +370,12 @@ export default function AdminOrdersWorkspace() {
         description="Command view for dispatch, payment clearance, note handoffs, and the wider order ledger."
         headerContent={
           <div className="rounded-[1.4rem] border border-stone-200 bg-[#fffdf9] px-4 py-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Phase 1.5 gain</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+              Phase 1.5 gain
+            </p>
             <p className="mt-2 text-sm leading-relaxed text-stone-600">
-              The live priority queue now has its own focus controls, and Phase 2 starts by giving each order a full drawer for shipping, payment, item, and timeline review.
+              The live priority queue now has its own focus controls, and Phase 2 starts by giving
+              each order a full drawer for shipping, payment, item, and timeline review.
             </p>
           </div>
         }
@@ -371,11 +387,18 @@ export default function AdminOrdersWorkspace() {
         ) : (
           <>
             <div className="space-y-4">
-              <AdminFlashNotice tone="success" message={successMessage} onDismiss={() => setSuccessMessage('')} />
+              <AdminFlashNotice
+                tone="success"
+                message={successMessage}
+                onDismiss={() => setSuccessMessage('')}
+              />
               <AdminFlashNotice tone="error" message={error} />
             </div>
 
-            <AdminHeroSection heroBadges={dashboard.heroBadges} ritualChecklist={dashboard.ritualChecklist} />
+            <AdminHeroSection
+              heroBadges={dashboard.heroBadges}
+              ritualChecklist={dashboard.ritualChecklist}
+            />
 
             {isLoading ? (
               <WorkspaceLoading />

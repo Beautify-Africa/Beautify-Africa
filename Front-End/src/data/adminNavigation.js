@@ -26,4 +26,3 @@ export const ADMIN_NAV_ITEMS = [
     description: 'Revenue reporting, velocity trends, and forecasting.',
   },
 ];
-

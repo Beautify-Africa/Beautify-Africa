@@ -1,6 +1,13 @@
 // src/context/AuthContext.jsx
 import React, { useCallback, useEffect, useState } from 'react';
-import { registerUser, loginUser, loginAdminUser, fetchMe, updateUser, logoutUser } from '../services/authApi';
+import {
+  registerUser,
+  loginUser,
+  loginAdminUser,
+  fetchMe,
+  updateUser,
+  logoutUser,
+} from '../services/authApi';
 import { AuthContext } from './auth-context';
 
 export function AuthProvider({ children }) {
@@ -131,6 +138,7 @@ export function AuthProvider({ children }) {
   };
 
   const isAuthenticated = Boolean(user && token);
+  const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin');
 
   return (
     <AuthContext.Provider
@@ -140,6 +148,7 @@ export function AuthProvider({ children }) {
         loading,
         error,
         isAuthenticated,
+        isAdmin,
         isRestoringSession,
         register,
         login,

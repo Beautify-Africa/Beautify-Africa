@@ -7,8 +7,21 @@ const DEFAULT_PRODUCT_LIMIT = 12;
 const MAX_PRODUCT_LIMIT = 48;
 const DEFAULT_PRICE_RANGE_MAX = 200;
 const PRODUCT_LIST_SELECT_FIELDS = [
-  'id', 'name', 'slug', 'brand', 'category', 'price', 'originalPrice',
-  'rating', 'numReviews', 'inStock', 'image', 'skinType', 'isNewProduct', 'isBestSeller', 'createdAt',
+  'id',
+  'name',
+  'slug',
+  'brand',
+  'category',
+  'price',
+  'originalPrice',
+  'rating',
+  'numReviews',
+  'inStock',
+  'image',
+  'skinType',
+  'isNewProduct',
+  'isBestSeller',
+  'createdAt',
 ];
 
 function escapeRegex(str) {
@@ -32,13 +45,20 @@ function readStringList(value) {
       .filter(Boolean);
   }
   if (typeof value === 'string') {
-    return value.split(',').map((entry) => entry.trim()).filter(Boolean);
+    return value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
   }
   return [];
 }
 
 function toSlugId(value = '') {
-  return String(value).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 function sortWithAllFirst(values = []) {
@@ -99,9 +119,9 @@ function buildProductFilter(query = {}) {
     const priceWhere = {};
     if (minPrice !== '' && !Number.isNaN(Number(minPrice))) priceWhere[Op.gte] = Number(minPrice);
     if (maxPrice !== '' && !Number.isNaN(Number(maxPrice))) priceWhere[Op.lte] = Number(maxPrice);
-    if (priceWhere[Op.gte] !== undefined || priceWhere[Op.lte] !== undefined) where.price = priceWhere;
+    if (priceWhere[Op.gte] !== undefined || priceWhere[Op.lte] !== undefined)
+      where.price = priceWhere;
   }
-
 
   if (q) {
     const searchPattern = `%${q}%`;
@@ -116,11 +136,32 @@ function buildProductFilter(query = {}) {
 }
 
 function buildProductSortOption(sort) {
-  if (sort === 'price-low') return [['price', 'ASC'], ['id', 'ASC']];
-  if (sort === 'price-high') return [['price', 'DESC'], ['id', 'ASC']];
-  if (sort === 'rating') return [['rating', 'DESC'], ['numReviews', 'DESC'], ['id', 'ASC']];
-  if (sort === 'best-selling') return [['isBestSeller', 'DESC'], ['numReviews', 'DESC'], ['id', 'ASC']];
-  return [['createdAt', 'DESC'], ['id', 'ASC']];
+  if (sort === 'price-low')
+    return [
+      ['price', 'ASC'],
+      ['id', 'ASC'],
+    ];
+  if (sort === 'price-high')
+    return [
+      ['price', 'DESC'],
+      ['id', 'ASC'],
+    ];
+  if (sort === 'rating')
+    return [
+      ['rating', 'DESC'],
+      ['numReviews', 'DESC'],
+      ['id', 'ASC'],
+    ];
+  if (sort === 'best-selling')
+    return [
+      ['isBestSeller', 'DESC'],
+      ['numReviews', 'DESC'],
+      ['id', 'ASC'],
+    ];
+  return [
+    ['createdAt', 'DESC'],
+    ['id', 'ASC'],
+  ];
 }
 
 function buildProductPagination(query = {}) {
@@ -155,13 +196,19 @@ function buildCatalogCategories(categoryRows = []) {
 
   return [
     { id: 'all', label: 'All', subcategories: [] },
-    ...deduplicated.map((row) => ({ id: toSlugId(row.label), label: row.label, subcategories: [] })),
+    ...deduplicated.map((row) => ({
+      id: toSlugId(row.label),
+      label: row.label,
+      subcategories: [],
+    })),
   ];
 }
 
 function buildCatalogPayload({ categoryRows = [], brands = [], skinTypes = [], maxPrice = 0 }) {
   const roundedMaxPrice =
-    maxPrice > 0 ? Math.max(DEFAULT_PRICE_RANGE_MAX, Math.ceil(maxPrice / 10) * 10) : DEFAULT_PRICE_RANGE_MAX;
+    maxPrice > 0
+      ? Math.max(DEFAULT_PRICE_RANGE_MAX, Math.ceil(maxPrice / 10) * 10)
+      : DEFAULT_PRICE_RANGE_MAX;
 
   return {
     categories: buildCatalogCategories(categoryRows),

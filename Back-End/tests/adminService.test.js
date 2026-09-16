@@ -329,19 +329,24 @@ describe('buildAdminDashboardFromOrders', () => {
       fulfillmentStatus: index % 4 === 0 ? 'packed' : index % 4 === 1 ? 'processing' : 'shipped',
       isDelivered: false,
       createdAt: new Date(`2026-04-${String(index + 1).padStart(2, '0')}T10:00:00.000Z`),
-      adminTimeline: index % 2 === 0
-        ? [
-            {
-              type: 'note',
-              note: `Note ${index}`,
-              adminName: 'Admin',
-              createdAt: new Date(`2026-04-${String(index + 1).padStart(2, '0')}T11:00:00.000Z`),
-            },
-          ]
-        : [],
+      adminTimeline:
+        index % 2 === 0
+          ? [
+              {
+                type: 'note',
+                note: `Note ${index}`,
+                adminName: 'Admin',
+                createdAt: new Date(`2026-04-${String(index + 1).padStart(2, '0')}T11:00:00.000Z`),
+              },
+            ]
+          : [],
     }));
 
-    const dashboard = buildAdminDashboardFromOrders(orders, 2, new Date('2026-04-23T12:00:00.000Z'));
+    const dashboard = buildAdminDashboardFromOrders(
+      orders,
+      2,
+      new Date('2026-04-23T12:00:00.000Z')
+    );
 
     expect(dashboard.priorityQueue).toBeDefined();
     expect(dashboard.metrics).toEqual(
@@ -364,7 +369,12 @@ describe('fetchAdminAnalytics', () => {
       {
         id: 'c744f43c-628e-48a0-975d-852654ecbfa1',
         orderItems: [
-          { qty: 2, name: 'Glow Serum', price: 45, productId: 'c744f43c-628e-48a0-975d-852654ecbfb1' },
+          {
+            qty: 2,
+            name: 'Glow Serum',
+            price: 45,
+            productId: 'c744f43c-628e-48a0-975d-852654ecbfb1',
+          },
         ],
         totalPrice: 90,
         isPaid: true,
@@ -375,7 +385,12 @@ describe('fetchAdminAnalytics', () => {
       {
         id: 'c744f43c-628e-48a0-975d-852654ecbfa2',
         orderItems: [
-          { qty: 1, name: 'Radiance Mist', price: 30, productId: 'c744f43c-628e-48a0-975d-852654ecbfb2' },
+          {
+            qty: 1,
+            name: 'Radiance Mist',
+            price: 30,
+            productId: 'c744f43c-628e-48a0-975d-852654ecbfb2',
+          },
         ],
         totalPrice: 30,
         isPaid: false,
@@ -437,7 +452,12 @@ describe('fetchReorderPlan', () => {
       {
         id: 'c744f43c-628e-48a0-975d-852654ecbfa1',
         orderItems: [
-          { qty: 6, name: 'Glow Serum', price: 45, productId: 'c744f43c-628e-48a0-975d-852654ecbfb1' },
+          {
+            qty: 6,
+            name: 'Glow Serum',
+            price: 45,
+            productId: 'c744f43c-628e-48a0-975d-852654ecbfb1',
+          },
         ],
         totalPrice: 270,
         isPaid: true,

@@ -33,11 +33,19 @@ function GuestConversion({ shipping }) {
     return (
       <div className="mt-8 rounded-sm border border-amber-200 bg-amber-50 p-6 text-center animate-fade-in">
         <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300 bg-amber-100">
-          <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg
+            className="h-5 w-5 text-amber-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h4 className="mb-1 font-serif text-lg text-stone-900">{GUEST_CONVERSION.successHeading}</h4>
+        <h4 className="mb-1 font-serif text-lg text-stone-900">
+          {GUEST_CONVERSION.successHeading}
+        </h4>
         <p className="text-xs text-stone-500">{GUEST_CONVERSION.successMessage}</p>
       </div>
     );
@@ -45,7 +53,9 @@ function GuestConversion({ shipping }) {
 
   return (
     <div className="mt-8 rounded-sm border border-stone-200 bg-stone-50 p-6 animate-fade-in">
-      <h4 className="mb-1 text-center font-serif text-lg text-stone-900">{GUEST_CONVERSION.heading}</h4>
+      <h4 className="mb-1 text-center font-serif text-lg text-stone-900">
+        {GUEST_CONVERSION.heading}
+      </h4>
       <p className="mb-5 text-center text-xs text-stone-500">{GUEST_CONVERSION.description}</p>
 
       <form onSubmit={handleCreate} className="space-y-4">
@@ -101,23 +111,39 @@ export default function ConfirmationStep({ order, isGuest, onClose }) {
   return (
     <div className="text-center">
       <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-amber-500 bg-amber-50">
-        <svg className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+        <svg
+          className="h-8 w-8 text-amber-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          aria-hidden="true"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
       </div>
 
       <h3 className="mb-1 font-serif text-2xl text-stone-900">{C.title}</h3>
       <p className="mb-6 text-sm text-stone-500">
-        {C.emailNote} <strong className="text-stone-900">{shipping.email || 'guest@email.com'}</strong>
+        {C.emailNote}{' '}
+        <strong className="text-stone-900">{shipping.email || 'guest@email.com'}</strong>
       </p>
 
-      <div className="mb-6 rounded-sm border border-stone-100 bg-stone-50 px-6 py-4 text-left" aria-label="Order summary">
+      <div
+        className="mb-6 rounded-sm border border-stone-100 bg-stone-50 px-6 py-4 text-left"
+        aria-label="Order summary"
+      >
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-stone-400">{C.orderLabel}</span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-stone-400">
+            {C.orderLabel}
+          </span>
           <span className="font-mono text-sm font-bold text-stone-900">{orderNumber}</span>
         </div>
         {orderItems.map((item) => (
-          <div key={item._id || item.product || item.name} className="flex justify-between border-t border-stone-100 py-1.5 text-sm text-stone-700 first:border-0">
+          <div
+            key={item._id || item.product || item.name}
+            className="flex justify-between border-t border-stone-100 py-1.5 text-sm text-stone-700 first:border-0"
+          >
             <span>
               {item.name} <span className="text-stone-400">x{item.qty}</span>
             </span>
@@ -131,8 +157,19 @@ export default function ConfirmationStep({ order, isGuest, onClose }) {
       </div>
 
       <div className="mb-4 flex items-center justify-center gap-2 text-sm text-stone-600">
-        <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8" />
+        <svg
+          className="h-4 w-4 text-amber-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"
+          />
         </svg>
         {C.deliveryLabel}: <strong className="text-stone-900">{deliveryStr}</strong>
       </div>

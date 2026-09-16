@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import AdminFlashNotice from '../AdminShared/AdminFlashNotice';
 
-export default function StockAdjustmentModal({
-  isOpen,
-  onClose,
-  variant,
-  onAdjust,
-  isSaving,
-}) {
+export default function StockAdjustmentModal({ isOpen, onClose, variant, onAdjust, isSaving }) {
   const [quantity, setQuantity] = useState(0);
   const [reason, setReason] = useState('restock');
   const [notes, setNotes] = useState('');
@@ -62,23 +56,21 @@ export default function StockAdjustmentModal({
           </div>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-sm text-stone-600">New Stock:</span>
-            <span
-              className={`text-lg font-bold ${isNegative ? 'text-red-600' : 'text-green-600'}`}
-            >
+            <span className={`text-lg font-bold ${isNegative ? 'text-red-600' : 'text-green-600'}`}>
               {newStock}
             </span>
           </div>
           {isNegative && (
-            <p className="mt-2 text-xs text-red-600 font-semibold">⚠️ This would create negative stock!</p>
+            <p className="mt-2 text-xs text-red-600 font-semibold">
+              ⚠️ This would create negative stock!
+            </p>
           )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Quantity */}
           <div>
-            <label className="block text-sm font-semibold text-stone-900">
-              Quantity Change *
-            </label>
+            <label className="block text-sm font-semibold text-stone-900">Quantity Change *</label>
             <input
               type="number"
               value={quantity}

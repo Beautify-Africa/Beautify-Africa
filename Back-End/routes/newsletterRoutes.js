@@ -7,9 +7,20 @@ const {
   unsubscribeNewsletter,
 } = require('../controllers/newsletterController');
 const { newsletterLimiter } = require('../middlewares/rateLimiters');
+const { validateBody } = require('../middlewares/validate');
+const {
+  subscribeSchema,
+  unsubscribeRequestSchema,
+  unsubscribeConfirmSchema,
+} = require('../validations/newsletterValidation');
 
-router.post('/subscribe', newsletterLimiter, subscribeNewsletter);
-router.post('/unsubscribe/request', newsletterLimiter, requestNewsletterUnsubscribe);
-router.post('/unsubscribe/confirm', unsubscribeNewsletter);
+router.post('/subscribe', newsletterLimiter, validateBody(subscribeSchema), subscribeNewsletter);
+router.post(
+  '/unsubscribe/request',
+  newsletterLimiter,
+  validateBody(unsubscribeRequestSchema),
+  requestNewsletterUnsubscribe
+);
+router.post('/unsubscribe/confirm', validateBody(unsubscribeConfirmSchema), unsubscribeNewsletter);
 
 module.exports = router;

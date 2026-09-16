@@ -4,17 +4,28 @@ const { sequelize } = require('../config/db');
 
 // ===== ProductVariant =====
 class ProductVariant extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 ProductVariant.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'products', key: 'id' },
+    },
     sku: { type: DataTypes.STRING, allowNull: false },
     size: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     color: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     type: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
-    stockQuantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0, validate: { min: 0 } },
+    stockQuantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      validate: { min: 0 },
+    },
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
@@ -31,21 +42,25 @@ ProductVariant.init(
     modelName: 'ProductVariant',
     tableName: 'product_variants',
     timestamps: true,
-    indexes: [
-      { fields: ['productId'] },
-      { fields: ['sku'] },
-    ],
+    paranoid: true,
+    indexes: [{ fields: ['productId'] }, { fields: ['sku'] }],
   }
 );
 
 // ===== ProductReview =====
 class ProductReview extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 ProductReview.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'products', key: 'id' },
+    },
     userId: { type: DataTypes.UUID, allowNull: false, references: { model: 'users', key: 'id' } },
     name: { type: DataTypes.STRING, allowNull: false },
     rating: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } },
@@ -56,25 +71,36 @@ ProductReview.init(
     modelName: 'ProductReview',
     tableName: 'product_reviews',
     timestamps: true,
-    indexes: [
-      { fields: ['productId'] },
-      { fields: ['userId'] },
-    ],
+    indexes: [{ fields: ['productId'] }, { fields: ['userId'] }],
   }
 );
 
 // ===== Product =====
 class Product extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 
 Product.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    name: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'Product name is required' } } },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { notEmpty: { msg: 'Product name is required' } },
+    },
     slug: { type: DataTypes.STRING, unique: true },
-    brand: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'Brand is required' } } },
-    category: { type: DataTypes.STRING, allowNull: false, validate: { notEmpty: { msg: 'Category is required' } } },
+    brand: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { notEmpty: { msg: 'Brand is required' } },
+    },
+    category: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { notEmpty: { msg: 'Category is required' } },
+    },
     subcategory: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     status: {
       type: DataTypes.ENUM('draft', 'published', 'archived'),
@@ -99,7 +125,11 @@ Product.init(
         return val === null || val === undefined ? null : parseFloat(val);
       },
     },
-    image: { type: DataTypes.TEXT, allowNull: false, validate: { notEmpty: { msg: 'Product image is required' } } },
+    image: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+      validate: { notEmpty: { msg: 'Product image is required' } },
+    },
     images: { type: DataTypes.ARRAY(DataTypes.TEXT), defaultValue: [] },
     stockQuantity: { type: DataTypes.INTEGER, defaultValue: 25, validate: { min: 0 } },
     lowStockThreshold: { type: DataTypes.INTEGER, defaultValue: 5, validate: { min: 0 } },
@@ -119,11 +149,14 @@ Product.init(
     modelName: 'Product',
     tableName: 'products',
     timestamps: true,
+    paranoid: true,
     indexes: [
       { fields: ['category'] },
       { fields: ['brand'] },
       { fields: ['isArchived'] },
       { fields: ['status'] },
+      { fields: ['price'] },
+      { fields: ['createdAt'] },
     ],
     hooks: {
       beforeSave: (product) => {

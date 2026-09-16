@@ -1,0 +1,41 @@
+{
+  "name": "beautify-africa-monorepo",
+  "version": "1.0.0",
+  "description": "Beautify Africa - Enterprise E-Commerce Platform",
+  "private": true,
+  "workspaces": [
+    "Back-End",
+    "Front-End"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm --prefix Back-End run dev",
+    "dev:frontend": "npm --prefix Front-End run dev",
+    "build": "npm --prefix Front-End run build",
+    "migrate": "npm --prefix Back-End run migrate",
+    "migrate:rollback": "npm --prefix Back-End run migrate:rollback",
+    "test": "npm --prefix Back-End test",
+    "test:backend": "npm --prefix Back-End test",
+    "test:frontend": "npm --prefix Front-End test",
+    "test:e2e": "npm --prefix Front-End run test:e2e",
+    "test:all": "npm run test:backend && npm run test:frontend",
+    "test:watch": "npm --prefix Back-End run test:watch",
+    "lint": "npm --prefix Front-End run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.3"
+  },
+  "keywords": [
+    "ecommerce",
+    "react",
+    "express",
+    "nodejs",
+    "postgresql",
+    "redis"
+  ],
+  "author": "Beautify Africa",
+  "license": "UNLICENSED"
+}

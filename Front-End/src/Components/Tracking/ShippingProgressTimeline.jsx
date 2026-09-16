@@ -20,10 +20,14 @@ export default function ShippingProgressTimeline({ order }) {
     <section className="rounded-sm border border-stone-200 bg-[#fbfaf7] p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">Shipping Progress</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+            Shipping Progress
+          </p>
           <p className="mt-1 font-serif text-xl text-stone-900">{currentStage.label}</p>
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">{Math.round(completion)}% Complete</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">
+          {Math.round(completion)}% Complete
+        </p>
       </div>
 
       <div className="h-2 overflow-hidden rounded-full bg-stone-200">
@@ -73,7 +77,9 @@ export default function ShippingProgressTimeline({ order }) {
                 {index + 1}
               </MotionSpan>
 
-              <p className={`text-sm font-bold uppercase tracking-[0.12em] ${current || completed ? 'text-stone-900' : 'text-stone-500'}`}>
+              <p
+                className={`text-sm font-bold uppercase tracking-[0.12em] ${current || completed ? 'text-stone-900' : 'text-stone-500'}`}
+              >
                 {stage.label}
               </p>
               <p className="mt-1 text-sm text-stone-500">{stage.detail}</p>

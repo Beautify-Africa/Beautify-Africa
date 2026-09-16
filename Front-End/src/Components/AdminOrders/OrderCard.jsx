@@ -46,9 +46,13 @@ export default function OrderCard({
     <article className="rounded-[1.6rem] border border-stone-200/80 bg-[#fffdf9] p-5 shadow-[0_14px_32px_rgba(28,25,23,0.06)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">{order.reference || order.id}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
+            {order.reference || order.id}
+          </p>
           <h3 className="mt-2 font-serif text-2xl text-stone-900">{order.customer}</h3>
-          <p className="mt-1 text-sm text-stone-500">{order.city} / {order.lane}</p>
+          <p className="mt-1 text-sm text-stone-500">
+            {order.city} / {order.lane}
+          </p>
         </div>
         <div className="flex flex-col items-end gap-2">
           <StatusBadge tone={order.statusTone}>{order.status}</StatusBadge>
@@ -64,18 +68,24 @@ export default function OrderCard({
 
       <div className="mt-5 grid gap-3 text-sm text-stone-600 sm:grid-cols-2">
         <div className="rounded-2xl border border-stone-100 bg-white px-4 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Order Total</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            Order Total
+          </p>
           <p className="mt-2 font-serif text-xl text-stone-900">{order.total}</p>
         </div>
         <div className="rounded-2xl border border-stone-100 bg-white px-4 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Next Milestone</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            Next Milestone
+          </p>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">{order.eta}</p>
         </div>
       </div>
 
       {order.lastActivity ? (
         <div className="mt-4 rounded-2xl border border-stone-100 bg-white px-4 py-3 text-sm text-stone-600">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Last Activity</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+            Last Activity
+          </p>
           <p className="mt-2">{order.lastActivity.label}</p>
           <p className="text-xs text-stone-500">{order.lastActivity.at}</p>
         </div>
@@ -83,14 +93,20 @@ export default function OrderCard({
 
       {order.latestNote ? (
         <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/70 px-4 py-3 text-sm text-amber-900">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">Latest Internal Note</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">
+            Latest Internal Note
+          </p>
           <p className="mt-2">{order.latestNote.text}</p>
-          <p className="text-xs text-amber-700/80">{order.latestNote.by} / {order.latestNote.at}</p>
+          <p className="text-xs text-amber-700/80">
+            {order.latestNote.by} / {order.latestNote.at}
+          </p>
         </div>
       ) : null}
 
       <div className="mt-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Packed Items</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+          Packed Items
+        </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {items.map((item, idx) => (
             <span
@@ -119,12 +135,16 @@ export default function OrderCard({
             })}
           </div>
         ) : (
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">No manual actions available</p>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">
+            No manual actions available
+          </p>
         )}
       </div>
 
       <div className="mt-4 space-y-3 border-t border-stone-100 pt-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Internal Note</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+          Internal Note
+        </p>
         <textarea
           value={noteText}
           onChange={(event) => setNoteText(event.target.value)}
@@ -136,7 +156,9 @@ export default function OrderCard({
           <button
             type="button"
             disabled={noteBusy || !noteText.trim()}
-            onClick={() => { void handleAddNote(); }}
+            onClick={() => {
+              void handleAddNote();
+            }}
             className="rounded-full bg-stone-900 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-colors hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {noteBusy ? 'Saving...' : 'Save Note'}
@@ -154,12 +176,19 @@ export default function OrderCard({
           <div className="space-y-2 rounded-2xl border border-stone-200 bg-white px-3 py-3 text-sm text-stone-700">
             {timeline.length > 0 ? (
               timeline.map((entry, index) => (
-                <div key={`${order.id}-timeline-${index}`} className="rounded-xl border border-stone-100 bg-stone-50/70 px-3 py-2">
+                <div
+                  key={`${order.id}-timeline-${index}`}
+                  className="rounded-xl border border-stone-100 bg-stone-50/70 px-3 py-2"
+                >
                   <p className="font-medium text-stone-800">
-                    {entry.type === 'note' ? 'Note' : String(entry.action || 'action').replace(/_/g, ' ')}
+                    {entry.type === 'note'
+                      ? 'Note'
+                      : String(entry.action || 'action').replace(/_/g, ' ')}
                   </p>
                   {entry.note ? <p className="mt-1 text-stone-700">{entry.note}</p> : null}
-                  <p className="mt-1 text-xs text-stone-500">{entry.adminName || 'Admin'} / {entry.createdAtLabel || entry.createdAt}</p>
+                  <p className="mt-1 text-xs text-stone-500">
+                    {entry.adminName || 'Admin'} / {entry.createdAtLabel || entry.createdAt}
+                  </p>
                 </div>
               ))
             ) : (

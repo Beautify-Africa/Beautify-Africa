@@ -11,7 +11,6 @@ function StatCard({ label, value, unit = '', color = 'stone' }) {
     red: 'bg-red-50 border-red-200',
   }[color];
 
-
   const valueColor = {
     stone: 'text-stone-600',
     green: 'text-green-600',
@@ -65,13 +64,7 @@ export default function InventoryDashboard() {
   }
 
   if (error) {
-    return (
-      <AdminFlashNotice
-        type="error"
-        message={error}
-        onDismiss={() => setError('')}
-      />
-    );
+    return <AdminFlashNotice type="error" message={error} onDismiss={() => setError('')} />;
   }
 
   if (!dashboardData) {
@@ -90,24 +83,10 @@ export default function InventoryDashboard() {
       <div>
         <h2 className="text-lg font-bold text-stone-900 mb-4">Inventory Overview</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <StatCard
-            label="Total Products"
-            value={data.totalProducts || 0}
-          />
-          <StatCard
-            label="Total Variants"
-            value={data.totalVariants || 0}
-          />
-          <StatCard
-            label="Total Stock"
-            value={data.totalStock || 0}
-            unit="units"
-            color="green"
-          />
-          <StatCard
-            label="Main Stock"
-            value={data.mainStock || 0}
-          />
+          <StatCard label="Total Products" value={data.totalProducts || 0} />
+          <StatCard label="Total Variants" value={data.totalVariants || 0} />
+          <StatCard label="Total Stock" value={data.totalStock || 0} unit="units" color="green" />
+          <StatCard label="Main Stock" value={data.mainStock || 0} />
           <StatCard
             label="Low Stock Items"
             value={data.lowStockItemsCount || 0}
@@ -122,15 +101,11 @@ export default function InventoryDashboard() {
         <div className="space-y-3">
           <div className="flex items-center justify-between pb-3 border-b border-stone-200">
             <span className="text-sm text-stone-600">Variant Stock</span>
-            <span className="text-lg font-bold text-stone-900">
-              {data.variantStock || 0} units
-            </span>
+            <span className="text-lg font-bold text-stone-900">{data.variantStock || 0} units</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-stone-600">Main Stock</span>
-            <span className="text-lg font-bold text-stone-900">
-              {data.mainStock || 0} units
-            </span>
+            <span className="text-lg font-bold text-stone-900">{data.mainStock || 0} units</span>
           </div>
         </div>
         {data.totalStock > 0 && (
@@ -139,16 +114,13 @@ export default function InventoryDashboard() {
               <div
                 className="bg-stone-900 h-full"
                 style={{
-                  width: `${
-                    ((data.variantStock || 0) / (data.totalStock || 1)) * 100
-                  }%`,
+                  width: `${((data.variantStock || 0) / (data.totalStock || 1)) * 100}%`,
                 }}
               />
             </div>
             <p className="mt-2 text-xs text-stone-500">
-              {(((data.variantStock || 0) / (data.totalStock || 1)) * 100).toFixed(1)}%
-              {' '}
-              variant stock
+              {(((data.variantStock || 0) / (data.totalStock || 1)) * 100).toFixed(1)}% variant
+              stock
             </p>
           </div>
         )}
