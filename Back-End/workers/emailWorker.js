@@ -7,9 +7,7 @@ const bullmqRedisConnection = createBullmqRedisConnection();
 
 function buildFromAddress() {
   const resendFrom = String(process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || '').trim();
-  return (
-    resendFrom || 'Beautify Africa <onboarding@resend.dev>'
-  );
+  return resendFrom || 'Beautify Africa <onboarding@resend.dev>';
 }
 
 function hasSmtpCredentials() {
@@ -43,7 +41,9 @@ async function sendViaResend({ to, subject, text, html }) {
 
 async function sendViaNodemailer({ to, subject, text, html }) {
   if (!hasSmtpCredentials()) {
-    throw new Error('SMTP credentials missing. Set EMAIL_USER and EMAIL_PASS in environment variables.');
+    throw new Error(
+      'SMTP credentials missing. Set EMAIL_USER and EMAIL_PASS in environment variables.'
+    );
   }
 
   const transporter = nodemailer.createTransport({
@@ -88,7 +88,9 @@ const emailWorker = new Worker(
         return resendResult;
       } catch (err) {
         lastError = err;
-        console.warn(`[Worker] Resend dispatch failed (${err.message}). Attempting SMTP fallback...`);
+        console.warn(
+          `[Worker] Resend dispatch failed (${err.message}). Attempting SMTP fallback...`
+        );
       }
     }
 

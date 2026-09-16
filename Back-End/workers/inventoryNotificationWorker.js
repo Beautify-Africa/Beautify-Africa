@@ -11,9 +11,7 @@ const inventoryNotificationWorker = new Worker(
   async (job) => {
     const { type, threshold = 10, productId, variantId, newStock } = job.data;
 
-    console.log(
-      `[Inventory Worker] Processing job type: ${type} (Job ID: ${job.id})`
-    );
+    console.log(`[Inventory Worker] Processing job type: ${type} (Job ID: ${job.id})`);
 
     let result;
 
@@ -47,15 +45,11 @@ const inventoryNotificationWorker = new Worker(
 );
 
 inventoryNotificationWorker.on('completed', (job, result) => {
-  console.log(
-    `[Inventory Worker] Job ${job.id} (${job.data.type}) completed successfully`
-  );
+  console.log(`[Inventory Worker] Job ${job.id} (${job.data.type}) completed successfully`);
 });
 
 inventoryNotificationWorker.on('failed', (job, err) => {
-  console.error(
-    `[Inventory Worker] Job ${job.id} (${job.data.type}) failed: ${err.message}`
-  );
+  console.error(`[Inventory Worker] Job ${job.id} (${job.data.type}) failed: ${err.message}`);
 });
 
 module.exports = inventoryNotificationWorker;

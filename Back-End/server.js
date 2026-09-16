@@ -13,6 +13,9 @@ const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const { connectDB, sequelize } = require('./config/db');
+const redisClient = require('./config/redis');
+const logger = require('./utils/logger');
+const requestIdMiddleware = require('./middlewares/requestId');
 const { apiLimiter, authLimiter, cartLimiter } = require('./middlewares/rateLimiters');
 
 if (process.env.NODE_ENV !== 'test') {
@@ -44,11 +47,14 @@ const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
-  console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  logger.fatal(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
   process.exit(1);
 }
 
 const app = express();
+
+// Assign correlation IDs and initialize request logger immediately
+app.use(requestIdMiddleware);
 
 // 1. HTTP Security Headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(
@@ -78,7 +84,9 @@ app.use(
 
       const normalizedOrigin = normalizeOrigin(origin);
       const envOrigins = process.env.CLIENT_URL
-        ? process.env.CLIENT_URL.split(',').map((u) => normalizeOrigin(u)).filter(Boolean)
+        ? process.env.CLIENT_URL.split(',')
+            .map((u) => normalizeOrigin(u))
+            .filter(Boolean)
         : [];
       const localOrigins = [
         'http://localhost:5173',
@@ -90,11 +98,14 @@ app.use(
         'http://127.0.0.1:4174',
         'https://www.beautifyafrica.app',
         'https://beautifyafrica.app',
-        'https://beautify-africa.vercel.app'
+        'https://beautify-africa.vercel.app',
       ].map((u) => normalizeOrigin(u));
 
       // Match exact configured origins or project-specific Vercel preview domains
-      const isProjectVercelOrigin = /^https:\/\/(beautify-africa|beautifyafrica)[a-z0-9-]*\.vercel\.app$/.test(normalizedOrigin);
+      const isProjectVercelOrigin =
+        /^https:\/\/(beautify-africa|beautifyafrica)[a-z0-9-]*\.vercel\.app$/.test(
+          normalizedOrigin
+        );
 
       if (
         envOrigins.includes(normalizedOrigin) ||
@@ -134,6 +145,61 @@ app.get('/', setPrivateNoStore, (req, res) => {
   res.send('E-commerce API is running...');
 });
 
+// --- Health Check Endpoints ---
+
+// 1. Liveness probe (cheap process responsiveness check)
+app.get('/health/live', setPrivateNoStore, (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// 2. Readiness probe (dependency connectivity check: DB & Redis)
+app.get('/health/ready', setPrivateNoStore, async (req, res) => {
+  const checks = {
+    database: 'down',
+    redis: 'down',
+  };
+
+  let isReady = true;
+
+  try {
+    await sequelize.authenticate();
+    checks.database = 'up';
+  } catch (err) {
+    checks.database = 'down';
+    isReady = false;
+    (req.log || logger).warn({ err: err.message }, 'Readiness check: database unreachable');
+  }
+
+  try {
+    if (redisClient && redisClient.status === 'ready') {
+      checks.redis = 'up';
+    } else if (redisClient) {
+      const pong = await redisClient.ping();
+      checks.redis = pong === 'PONG' ? 'up' : 'down';
+      if (checks.redis !== 'up') isReady = false;
+    } else {
+      checks.redis = 'not_configured';
+    }
+  } catch (err) {
+    checks.redis = 'down';
+    isReady = false;
+    (req.log || logger).warn({ err: err.message }, 'Readiness check: redis unreachable');
+  }
+
+  const statusCode = isReady ? 200 : 503;
+  res.status(statusCode).json({
+    status: isReady ? 'ready' : 'degraded',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    checks,
+  });
+});
+
+// 3. Legacy /health endpoint preserved for backward compatibility
 app.get('/health', setPrivateNoStore, async (req, res) => {
   let isDbConnected = false;
   try {
@@ -188,13 +254,19 @@ app.use((req, res) => {
 
 // Centralized Global Error Handler
 app.use((err, req, res, next) => {
-  console.error('Unhandled Application Error:', err);
+  const reqLogger = req.log || logger;
+  reqLogger.error(err, 'Unhandled Application Error');
   const statusCode = Number(err.statusCode || err.status || 500);
   const message =
     process.env.NODE_ENV === 'production' && statusCode === 500
       ? 'An internal server error occurred.'
       : err.message || 'An unexpected error occurred.';
-  res.status(statusCode).json({ status: 'error', message });
+  res.status(statusCode).json({
+    status: 'error',
+    code: err.code || (statusCode >= 500 ? 'INTERNAL_SERVER_ERROR' : 'BAD_REQUEST'),
+    message,
+    ...(process.env.NODE_ENV !== 'production' && err.stack ? { stack: err.stack } : {}),
+  });
 });
 
 // --- Server Startup ---
@@ -203,7 +275,7 @@ const PORT = process.env.PORT || 5000;
 let server;
 
 const shutdown = async (signal) => {
-  console.log(`${signal} received. Shutting down gracefully...`);
+  logger.info(`${signal} received. Shutting down gracefully...`);
 
   if (server) {
     await new Promise((resolve) => server.close(resolve));
@@ -212,7 +284,7 @@ const shutdown = async (signal) => {
   try {
     await sequelize.close();
   } catch (err) {
-    console.warn('Error closing database connection:', err.message);
+    logger.warn(`Error closing database connection: ${err.message}`);
   }
   process.exit(0);
 };
@@ -222,10 +294,10 @@ const startServer = async () => {
     await connectDB();
 
     server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      logger.info(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error(error.message);
+    logger.fatal(`Failed to start server: ${error.message}`);
     process.exit(1);
   }
 };
@@ -234,7 +306,7 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 process.on('unhandledRejection', (reason) => {
-  console.error(`Unhandled promise rejection: ${reason}`);
+  logger.fatal(`Unhandled promise rejection: ${reason}`);
   process.exit(1);
 });
 
