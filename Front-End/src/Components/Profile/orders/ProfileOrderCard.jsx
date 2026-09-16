@@ -46,7 +46,7 @@ export default function ProfileOrderCard({ order }) {
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
             Order #
           </p>
-          <p className="text-xs text-stone-500">{order._id}</p>
+          <p className="text-xs text-stone-500">{order.id || order._id}</p>
         </div>
       </div>
 
@@ -70,8 +70,11 @@ export default function ProfileOrderCard({ order }) {
           Packaged Items
         </h4>
         <ul className="divide-y divide-stone-100">
-          {order.orderItems.map((item, idx) => (
-            <li key={`${order._id}-${idx}`} className="flex items-center gap-4 py-4">
+          {(order.orderItems || []).map((item, idx) => (
+            <li
+              key={`${order.id || order._id || 'order'}-${item.id || item._id || idx}`}
+              className="flex items-center gap-4 py-4"
+            >
               <div className="h-16 w-16 flex-shrink-0 overflow-hidden border border-stone-200 bg-stone-100">
                 {item.image ? (
                   <img
@@ -87,7 +90,7 @@ export default function ProfileOrderCard({ order }) {
               </div>
               <div className="flex-grow">
                 <Link
-                  to={`/shop/${item.product?._id || item.product}`}
+                  to={`/shop/${item.product?.id || item.product?._id || item.productId || item.product}`}
                   className="font-serif text-lg text-stone-900 transition-colors hover:text-amber-800"
                 >
                   {item.name}

@@ -18,6 +18,7 @@ const {
   signToken,
   getAuthErrorResponse,
 } = require('../services/authService');
+const { clearPaymentRateLimit } = require('../middlewares/rateLimiters');
 
 const PASSWORD_RESET_SUCCESS_MESSAGE =
   'If an account with that email exists, we have sent password reset instructions.';
@@ -111,6 +112,7 @@ async function login(req, res) {
 
     const token = signToken(user.id);
     setAuthCookie(res, token);
+    await clearPaymentRateLimit(user.id, req.ip);
     return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
@@ -260,6 +262,7 @@ async function logout(req, res) {
       (req.headers.authorization || '').split(' ')[1] ||
       req.headers.cookie?.match(/(?:^|;\s*)token=([^;]+)/)?.[1];
 
+    let userId = null;
     if (token) {
       const decoded = jwt.decode(token);
       if (decoded && decoded.exp) {
@@ -268,11 +271,14 @@ async function logout(req, res) {
           await redisClient.set(buildJwtBlacklistKey(token), '1', 'EX', secondsRemaining);
         }
       }
+      userId = decoded?.id || decoded?.userId || null;
     }
+    await clearPaymentRateLimit(userId, req.ip);
     clearAuthCookie(res);
     return res.status(200).json({ status: 'success', message: 'Logged out successfully' });
   } catch (error) {
     console.error('logout error:', error);
+    await clearPaymentRateLimit(null, req.ip).catch(() => {});
     clearAuthCookie(res);
     return res.status(200).json({ status: 'success', message: 'Logged out successfully' });
   }

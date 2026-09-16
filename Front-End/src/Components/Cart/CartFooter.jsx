@@ -1,15 +1,15 @@
 import { CART_CONTENT } from '../../data/cartContent';
+import { useCurrency } from '../../hooks/useCurrency';
 
 export default function CartFooter({ subtotal, onCheckout }) {
+  const { formatPrice } = useCurrency();
   return (
     <div className="p-6 md:p-8 bg-white border-t border-stone-100">
       <div className="flex justify-between items-center mb-6">
         <span className="text-xs uppercase tracking-widest text-stone-500">
           {CART_CONTENT.subtotalLabel}
         </span>
-        <span className="font-serif text-xl text-stone-900">
-          ${Number(subtotal || 0).toFixed(2)}
-        </span>
+        <span className="font-serif text-xl text-stone-900">{formatPrice(subtotal)}</span>
       </div>
       <p className="text-[10px] text-stone-400 mb-6 text-center">{CART_CONTENT.shippingNote}</p>
       <button

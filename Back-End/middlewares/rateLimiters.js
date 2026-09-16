@@ -63,16 +63,43 @@ const cartLimiter = rateLimit({
   message: { status: 'error', message: 'Too many cart requests, please slow down.' },
 });
 
-// Payment intent limiter: 25 payment attempts per IP per 15 minutes — protects payment gateway
+function getClientIdentifier(req) {
+  if (req.user?.id) {
+    return `user_${req.user.id}`;
+  }
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return String(forwarded).split(',')[0].trim();
+  }
+  return req.ip || req.socket?.remoteAddress || '127.0.0.1';
+}
+
+// Payment intent limiter: protects payment gateway from abuse during intent creation
 const paymentLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 25,
+  max: process.env.NODE_ENV === 'production' ? 50 : 200,
   standardHeaders: true,
   legacyHeaders: false,
   store: makeRedisStore('rl:payment:'),
+  keyGenerator: getClientIdentifier,
   passOnStoreError: true,
   skip: () => isTestEnv,
+  validate: { keyGeneratorIpFallback: false },
   message: { status: 'error', message: 'Too many payment requests, please try again later.' },
+});
+
+// Verification / Polling limiter: high-frequency status polling during checkout
+const paymentVerificationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 300 : 1200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeRedisStore('rl:pay_poll:'),
+  keyGenerator: getClientIdentifier,
+  passOnStoreError: true,
+  skip: () => isTestEnv,
+  validate: { keyGeneratorIpFallback: false },
+  message: { status: 'error', message: 'Too many verification requests, please slow down.' },
 });
 
 // Newsletter limiter: 15 requests per IP per 15 minutes — prevents email bombing
@@ -87,11 +114,43 @@ const newsletterLimiter = rateLimit({
   message: { status: 'error', message: 'Too many newsletter requests, please slow down.' },
 });
 
+/**
+ * Resets rate limit locks for a user or IP across Redis stores
+ */
+async function clearPaymentRateLimit(userId, ip) {
+  if (isTestEnv) return;
+  try {
+    const pipeline = rateLimitRedis.pipeline();
+    if (userId) {
+      pipeline.del(`rl:payment:user_${userId}`);
+      pipeline.del(`rl:pay_poll:user_${userId}`);
+    }
+    if (ip) {
+      pipeline.del(`rl:payment:${ip}`);
+      pipeline.del(`rl:pay_poll:${ip}`);
+    }
+    await pipeline.exec();
+
+    // In local development, also wipe any residual rl:payment and rl:pay_poll keys
+    if (process.env.NODE_ENV !== 'production') {
+      const keys = await rateLimitRedis.keys('rl:payment:*');
+      if (keys.length > 0) await rateLimitRedis.del(...keys);
+      const pollKeys = await rateLimitRedis.keys('rl:pay_poll:*');
+      if (pollKeys.length > 0) await rateLimitRedis.del(...pollKeys);
+    }
+  } catch {
+    // Non-fatal if Redis cleanup fails
+  }
+}
+
 module.exports = {
   rateLimitRedis,
   apiLimiter,
   authLimiter,
   cartLimiter,
   paymentLimiter,
+  paymentVerificationLimiter,
   newsletterLimiter,
+  clearPaymentRateLimit,
+  getClientIdentifier,
 };

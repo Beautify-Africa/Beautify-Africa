@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CHECKOUT_COPY } from '../../data/checkoutContent';
 import { GUEST_CONVERSION } from '../../data/checkoutGateContent';
 import { useAuth } from '../../hooks/useAuth';
+import { useCurrency } from '../../hooks/useCurrency';
 
 const { confirmation: C } = CHECKOUT_COPY;
 
@@ -97,6 +98,7 @@ function GuestConversion({ shipping }) {
 export default function ConfirmationStep({ order, isGuest, onClose }) {
   const orderItems = Array.isArray(order?.orderItems) ? order.orderItems : [];
   const shipping = order?.shippingAddress || {};
+  const { formatPrice } = useCurrency();
   const orderNumber = order?._id || 'Pending';
   const total = Number(order?.totalPrice || 0);
 
@@ -147,12 +149,12 @@ export default function ConfirmationStep({ order, isGuest, onClose }) {
             <span>
               {item.name} <span className="text-stone-400">x{item.qty}</span>
             </span>
-            <span>${(Number(item.price || 0) * (item.qty || 1)).toFixed(2)}</span>
+            <span>{formatPrice(Number(item.price || 0) * (item.qty || 1))}</span>
           </div>
         ))}
         <div className="mt-2 flex justify-between border-t border-stone-200 pt-3 text-sm font-bold text-stone-900">
           <span>{C.totalLabel}</span>
-          <span>${Number(total || 0).toFixed(2)}</span>
+          <span>{formatPrice(total)}</span>
         </div>
       </div>
 

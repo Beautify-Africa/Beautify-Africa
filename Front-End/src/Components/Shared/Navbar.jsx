@@ -11,6 +11,7 @@ import AccountAuthDialog from '../Auth/AccountAuthDialog';
 import NavbarBrandLogo from './NavbarBrandLogo';
 import NavbarDesktopLinks from './NavbarDesktopLinks';
 import NavbarMobileMenu from './NavbarMobileMenu';
+import CurrencySelector from './CurrencySelector';
 
 const Navbar = ({ onOpenCart }) => {
   const location = useLocation();
@@ -72,7 +73,9 @@ const Navbar = ({ onOpenCart }) => {
           {!isShopPage && <NavbarDesktopLinks links={NAV_LINKS} onLinkClick={scrollToSection} />}
 
           {/* Action Icons */}
-          <div className="flex-1 flex justify-end items-center gap-6 md:gap-8">
+          <div className="flex-1 flex justify-end items-center gap-4 md:gap-6">
+            <CurrencySelector />
+
             <Link
               to="/track-orders"
               className={`group inline-flex items-center gap-2 rounded-full border px-3 py-2 transition-colors ${

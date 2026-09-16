@@ -25,27 +25,32 @@ function RecentOrdersBlock({ isLoadingOrders, ordersError, orders }) {
 
   return (
     <ul className="max-h-48 space-y-3 overflow-y-auto pr-2">
-      {orders.map((order) => (
-        <li
-          key={order._id}
-          className="flex items-center justify-between rounded-sm border border-stone-100 bg-stone-50 p-3 text-xs"
-        >
-          <div>
-            <p className="mb-0.5 font-bold text-stone-900">
-              #{order._id.substring(18).toUpperCase()}
-            </p>
-            <p className="text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</p>
-          </div>
-          <div className="text-right">
-            <p className="mb-0.5 font-bold text-stone-900">
-              ${Number(order.totalPrice || 0).toFixed(2)}
-            </p>
-            <p className="text-[9px] uppercase tracking-wider text-amber-600">
-              {order.isDelivered ? 'Delivered' : 'Processing'}
-            </p>
-          </div>
-        </li>
-      ))}
+      {orders.map((order) => {
+        const orderId = String(order?.id || order?._id || '');
+        const displayCode =
+          orderId.length >= 6 ? orderId.slice(-6).toUpperCase() : orderId || 'ORDER';
+        return (
+          <li
+            key={order?.id || order?._id || displayCode}
+            className="flex items-center justify-between rounded-sm border border-stone-100 bg-stone-50 p-3 text-xs"
+          >
+            <div>
+              <p className="mb-0.5 font-bold text-stone-900">#{displayCode}</p>
+              <p className="text-stone-500">
+                {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'Recent'}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="mb-0.5 font-bold text-stone-900">
+                ${Number(order.totalPrice || 0).toFixed(2)}
+              </p>
+              <p className="text-[9px] uppercase tracking-wider text-amber-600">
+                {order.isDelivered ? 'Delivered' : 'Processing'}
+              </p>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -6,6 +6,7 @@ import ProductReviewList from './ProductReviewList';
 import { useProductReviewState } from './hooks/useProductReviewState';
 import { useProductDetailsModalState } from './hooks/useProductDetailsModalState';
 import { buildResponsiveImageProps } from '../../utils/imageUtils';
+import { useCurrency } from '../../hooks/useCurrency';
 
 /**
  * Product image with badge
@@ -43,13 +44,12 @@ function ProductImage({ product }) {
  * Price display with sale price
  */
 function PriceDisplay({ price, originalPrice }) {
+  const { formatPrice } = useCurrency();
   return (
     <div className="flex items-center gap-4">
-      <span className="text-2xl font-serif text-amber-800">${Number(price || 0).toFixed(2)}</span>
+      <span className="text-2xl font-serif text-amber-800">{formatPrice(price)}</span>
       {originalPrice && (
-        <span className="text-lg text-stone-400 line-through">
-          ${Number(originalPrice).toFixed(2)}
-        </span>
+        <span className="text-lg text-stone-400 line-through">{formatPrice(originalPrice)}</span>
       )}
     </div>
   );

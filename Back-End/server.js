@@ -37,6 +37,8 @@ const cartRoutes = require('./routes/cartRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const newsletterRoutes = require('./routes/newsletterRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const currencyRoutes = require('./routes/currencyRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 
@@ -128,9 +130,10 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-// 6. Mount Stripe routes deeply before global body parsing
+// 6. Mount Stripe and multi-gateway Payment routes before global body parsing
 // Webhooks demand raw stream requests (unparsed JSON)
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 7. Body Parser (explicit, configurable size limits)
 app.use(createJsonBodyParser());
@@ -240,6 +243,7 @@ app.use('/api/wishlist', apiLimiter, wishlistRoutes);
 app.use('/api/newsletter', apiLimiter, newsletterRoutes);
 app.use('/api/admin', apiLimiter, adminRoutes);
 app.use('/api/upload', apiLimiter, uploadRoutes);
+app.use('/api/currency', apiLimiter, currencyRoutes);
 
 // Surface oversized payloads with a stable API error response.
 app.use(handleBodySizeLimitError);

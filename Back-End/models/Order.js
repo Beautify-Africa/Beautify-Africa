@@ -11,6 +11,12 @@ class OrderItem extends Model {
 OrderItem.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    _id: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.getDataValue('id');
+      },
+    },
     orderId: { type: DataTypes.UUID, allowNull: false, references: { model: 'orders', key: 'id' } },
     productId: {
       type: DataTypes.UUID,
@@ -109,9 +115,36 @@ class Order extends Model {
 Order.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    _id: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.getDataValue('id');
+      },
+    },
     userId: { type: DataTypes.UUID, allowNull: true, references: { model: 'users', key: 'id' } },
     stripePaymentIntentId: { type: DataTypes.STRING, allowNull: true },
     paymentMethod: { type: DataTypes.STRING, defaultValue: 'Credit Card' },
+    currency: { type: DataTypes.STRING(3), allowNull: false, defaultValue: 'USD' },
+    exchangeRate: {
+      type: DataTypes.DECIMAL(10, 4),
+      allowNull: false,
+      defaultValue: 1.0,
+      get() {
+        const val = this.getDataValue('exchangeRate');
+        return val === null || val === undefined ? 1.0 : parseFloat(val);
+      },
+    },
+    paymentGateway: { type: DataTypes.STRING(32), allowNull: false, defaultValue: 'stripe' },
+    gatewayReference: { type: DataTypes.STRING(255), allowNull: true, defaultValue: null },
+    gatewayFee: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0,
+      get() {
+        const val = this.getDataValue('gatewayFee');
+        return val === null || val === undefined ? 0 : parseFloat(val);
+      },
+    },
     // Flattened paymentResult fields
     paymentResultId: { type: DataTypes.STRING, allowNull: true },
     paymentResultStatus: { type: DataTypes.STRING, allowNull: true },

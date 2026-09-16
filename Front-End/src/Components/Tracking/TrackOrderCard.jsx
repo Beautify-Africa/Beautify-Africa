@@ -18,7 +18,8 @@ function statusPill(isActive, label) {
 }
 
 function getPublicOrderCode(orderId) {
-  return orderId.slice(-8).toUpperCase();
+  const str = String(orderId || '');
+  return str.length >= 8 ? str.slice(-8).toUpperCase() : str.toUpperCase() || 'TRACKING';
 }
 
 export default function TrackOrderCard({ order }) {
@@ -33,7 +34,7 @@ export default function TrackOrderCard({ order }) {
               Tracking Code
             </p>
             <p className="mt-1 font-serif text-2xl text-stone-900">
-              #{getPublicOrderCode(order._id)}
+              #{getPublicOrderCode(order.id || order._id)}
             </p>
             <p className="mt-1 text-xs text-stone-500">
               Ordered on{' '}
@@ -72,8 +73,11 @@ export default function TrackOrderCard({ order }) {
             Items In Shipment
           </h3>
           <ul className="divide-y divide-stone-100 rounded-sm border border-stone-100">
-            {order.orderItems.map((item, idx) => (
-              <li key={`${order._id}-${idx}`} className="flex items-center gap-4 px-4 py-4">
+            {(order.orderItems || []).map((item, idx) => (
+              <li
+                key={`${order.id || order._id || 'order'}-${item.id || item._id || idx}`}
+                className="flex items-center gap-4 px-4 py-4"
+              >
                 <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-sm border border-stone-200 bg-stone-100">
                   {item.image ? (
                     <img
