@@ -11,11 +11,11 @@ export const FOOTER_BRAND = {
 
 export const SOCIAL_LINKS = [
   { name: 'Instagram', href: 'https://instagram.com', color: '#C13584' },
-  { name: 'TikTok',   href: 'https://tiktok.com',   color: '#69C9D0' },
-  { name: 'Pinterest',href: 'https://pinterest.com', color: '#E60023' },
-  { name: 'YouTube',  href: 'https://youtube.com',   color: '#FF0000' },
-  { name: 'Facebook', href: 'https://facebook.com',  color: '#1877F2' },
-  { name: 'X',        href: 'https://x.com',         color: '#e7e7e7' },
+  { name: 'TikTok', href: 'https://tiktok.com', color: '#69C9D0' },
+  { name: 'Pinterest', href: 'https://pinterest.com', color: '#E60023' },
+  { name: 'YouTube', href: 'https://youtube.com', color: '#FF0000' },
+  { name: 'Facebook', href: 'https://facebook.com', color: '#1877F2' },
+  { name: 'X', href: 'https://x.com', color: '#e7e7e7' },
 ];
 
 export const ROTATING_SOCIAL_SENTENCE = {

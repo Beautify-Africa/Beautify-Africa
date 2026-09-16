@@ -41,8 +41,16 @@ export function mapProductToCartItem(product, quantity = 1) {
 
 export function mapServerCartItems(serverCart = []) {
   return serverCart.map((item) => ({
-    id: item.productId || (typeof item.product === 'object' ? item.product?._id : item.product) || item.id || item._id,
-    productId: item.productId || (typeof item.product === 'object' ? item.product?._id : item.product) || item.id || item._id,
+    id:
+      item.productId ||
+      (typeof item.product === 'object' ? item.product?._id : item.product) ||
+      item.id ||
+      item._id,
+    productId:
+      item.productId ||
+      (typeof item.product === 'object' ? item.product?._id : item.product) ||
+      item.id ||
+      item._id,
     cartItemId: item._id || item.cartItemId || null,
     name: item.name,
     price: item.price,

@@ -79,9 +79,7 @@ export default function VariantManagementModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-        <h2 className="mb-4 text-lg font-bold">
-          {variant ? 'Edit Variant' : 'Add New Variant'}
-        </h2>
+        <h2 className="mb-4 text-lg font-bold">{variant ? 'Edit Variant' : 'Add New Variant'}</h2>
 
         {error && <AdminFlashNotice type="error" message={error} onDismiss={() => setError('')} />}
 

@@ -36,9 +36,19 @@ export default function LowStockDashboard() {
 
   return (
     <div className="space-y-6">
-      {error ? <AdminFlashNotice type="error" message={error} onDismiss={() => setError('')} /> : null}
-      {successMessage ? <AdminFlashNotice type="success" message={successMessage} onDismiss={() => setSuccessMessage('')} /> : null}
-      {planError ? <AdminFlashNotice type="error" message={planError} onDismiss={() => setPlanError('')} /> : null}
+      {error ? (
+        <AdminFlashNotice type="error" message={error} onDismiss={() => setError('')} />
+      ) : null}
+      {successMessage ? (
+        <AdminFlashNotice
+          type="success"
+          message={successMessage}
+          onDismiss={() => setSuccessMessage('')}
+        />
+      ) : null}
+      {planError ? (
+        <AdminFlashNotice type="error" message={planError} onDismiss={() => setPlanError('')} />
+      ) : null}
 
       <LowStockReorderPlanCard
         reorderPlan={reorderPlan}

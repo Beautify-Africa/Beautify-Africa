@@ -5,7 +5,9 @@ export default function ShopEmptyState({ mode, hasSavedItems, onClearFilters, on
     return (
       <div className="py-20 text-center">
         <p className="font-serif text-xl text-stone-500">
-          {hasSavedItems ? 'No saved items match your current filters.' : 'You have no saved items yet.'}
+          {hasSavedItems
+            ? 'No saved items match your current filters.'
+            : 'You have no saved items yet.'}
         </p>
         <button
           type="button"

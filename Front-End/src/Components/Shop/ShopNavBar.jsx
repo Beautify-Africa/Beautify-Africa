@@ -20,7 +20,10 @@ function NavTab({ category, isActive, isOpen, hasDropdown, onClick }) {
       {hasDropdown && (
         <svg
           className={`w-2.5 h-2.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
           aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -33,7 +36,13 @@ function NavTab({ category, isActive, isOpen, hasDropdown, onClick }) {
 /**
  * Subcategory dropdown — absolutely positioned relative to the nav
  */
-function SubcategoryDropdown({ category, isOpen, activeSubcategory, onSelectSubcategory, leftOffset }) {
+function SubcategoryDropdown({
+  category,
+  isOpen,
+  activeSubcategory,
+  onSelectSubcategory,
+  leftOffset,
+}) {
   return (
     <div
       role="menu"
@@ -79,11 +88,14 @@ export default function ShopNavBar({
   const [dropdownLeft, setDropdownLeft] = useState(0);
   const navRef = useRef(null);
   const tabRefs = useRef([]);
-  const safeCategories = categories.length > 0
-    ? categories
-    : [{ id: 'all', label: ALL_FILTER_OPTION, subcategories: [] }];
+  const safeCategories =
+    categories.length > 0
+      ? categories
+      : [{ id: 'all', label: ALL_FILTER_OPTION, subcategories: [] }];
 
-  const setTabRef = useCallback((el, i) => { tabRefs.current[i] = el; }, []);
+  const setTabRef = useCallback((el, i) => {
+    tabRefs.current[i] = el;
+  }, []);
 
   // Compute left offset relative to the nav whenever the open tab changes
   useEffect(() => {
@@ -114,12 +126,11 @@ export default function ShopNavBar({
       className="relative bg-white border-b border-stone-200 sticky top-16 z-30 -mx-6 md:-mx-12"
       aria-label="Shop categories"
     >
-      <div className="px-6 md:px-12 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        <ul
-          className="flex items-stretch"
-          role="menubar"
-          aria-label="Product categories"
-        >
+      <div
+        className="px-6 md:px-12 overflow-x-auto"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <ul className="flex items-stretch" role="menubar" aria-label="Product categories">
           {safeCategories.map((cat, i) => {
             const hasDropdown = cat.subcategories.length > 0;
             return (

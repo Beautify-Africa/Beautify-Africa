@@ -11,11 +11,7 @@ import { useWishlistState } from './hooks/useWishlistState';
 import { useShopCatalog } from './hooks/useShopCatalog';
 import { useShopProducts } from './hooks/useShopProducts';
 import { useShopFilters } from './hooks/useShopFilters';
-import {
-  FILTER_LABELS,
-  SHOP_CONTENT,
-  SORT_OPTIONS,
-} from './shopConfig';
+import { FILTER_LABELS, SHOP_CONTENT, SORT_OPTIONS } from './shopConfig';
 
 export default function ShopPage() {
   const { addItem } = useCart();
@@ -52,9 +48,15 @@ export default function ShopPage() {
   } = useShopFilters({ shopCatalog, wishlistSet });
 
   const requestSignature = useMemo(() => JSON.stringify(requestParams), [requestParams]);
-  const currentPage =
-    paginationState.signature === requestSignature ? paginationState.page : 1;
-  const { products, isLoading, error: productError, totalCount, totalPages, retryProducts } = useShopProducts({
+  const currentPage = paginationState.signature === requestSignature ? paginationState.page : 1;
+  const {
+    products,
+    isLoading,
+    error: productError,
+    totalCount,
+    totalPages,
+    retryProducts,
+  } = useShopProducts({
     currentPage,
     requestParams,
     isSavedCollection,
@@ -69,16 +71,19 @@ export default function ShopPage() {
     };
   }, []);
 
-  const addToCart = useCallback((product) => {
-    addItem(product);
+  const addToCart = useCallback(
+    (product) => {
+      addItem(product);
 
-    if (toastTimeoutRef.current) {
-      window.clearTimeout(toastTimeoutRef.current);
-    }
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
 
-    setToastMessage(`${product.name} added to cart`);
-    toastTimeoutRef.current = window.setTimeout(() => setToastMessage(''), 2500);
-  }, [addItem]);
+      setToastMessage(`${product.name} added to cart`);
+      toastTimeoutRef.current = window.setTimeout(() => setToastMessage(''), 2500);
+    },
+    [addItem]
+  );
 
   const handlePageChange = useCallback(
     (nextPage) => {
@@ -99,7 +104,9 @@ export default function ShopPage() {
           <h1 id="shop-heading" className="mb-4 font-serif text-4xl text-stone-900 md:text-5xl">
             {SHOP_CONTENT.heading}
           </h1>
-          <p className="max-w-xl font-light leading-relaxed text-stone-700">{SHOP_CONTENT.description}</p>
+          <p className="max-w-xl font-light leading-relaxed text-stone-700">
+            {SHOP_CONTENT.description}
+          </p>
           <ShopCollectionToggle
             isSavedCollection={isSavedCollection}
             savedProductCount={savedProductCount}

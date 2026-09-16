@@ -42,18 +42,25 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen pt-32 pb-20 flex items-center justify-center bg-[#faf9f6]">
-        <p className="text-xs font-bold uppercase tracking-widest text-stone-700">Please log in to view your profile.</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-stone-700">
+          Please log in to view your profile.
+        </p>
       </div>
     );
   }
 
-  const memberSince = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(user.createdAt || Date.now()));
+  const memberSince = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(
+    new Date(user.createdAt || Date.now())
+  );
 
   return (
     <>
       <Helmet>
         <title>My Account | Beautify Africa</title>
-        <meta name="description" content="Manage your personal profile settings with Beautify Africa." />
+        <meta
+          name="description"
+          content="Manage your personal profile settings with Beautify Africa."
+        />
       </Helmet>
 
       <div className="min-h-screen bg-[#faf9f6] pb-24 pt-32 text-stone-900">

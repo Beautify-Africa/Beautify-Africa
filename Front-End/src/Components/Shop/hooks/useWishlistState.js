@@ -31,7 +31,9 @@ export function useWishlistState({ isAuthenticated, token }) {
           let serverWishlist = [];
 
           if (localItems.length > 0 && !initialWishlistSyncDone.current) {
-            serverWishlist = await syncWishlistApi(token, localItems, { signal: controller.signal });
+            serverWishlist = await syncWishlistApi(token, localItems, {
+              signal: controller.signal,
+            });
           } else {
             serverWishlist = await fetchWishlist(token, { signal: controller.signal });
           }

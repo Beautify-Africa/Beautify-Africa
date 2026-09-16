@@ -21,7 +21,9 @@ export default function NewsletterUnsubscribePage() {
 
     try {
       const response = await confirmNewsletterUnsubscribe(token);
-      setSuccessMessage(response.message || 'You have been unsubscribed from the Beautify Africa newsletter.');
+      setSuccessMessage(
+        response.message || 'You have been unsubscribed from the Beautify Africa newsletter.'
+      );
     } catch (unsubscribeError) {
       setError(unsubscribeError.message || 'Unable to unsubscribe right now.');
     } finally {
@@ -37,9 +39,14 @@ export default function NewsletterUnsubscribePage() {
         path="/newsletter/unsubscribe"
         imageAlt="Beautify Africa unsubscribe confirmation"
       />
-      <main id="main-content" className="min-h-screen bg-[#faf9f6] px-6 py-16 text-stone-900 sm:py-24">
+      <main
+        id="main-content"
+        className="min-h-screen bg-[#faf9f6] px-6 py-16 text-stone-900 sm:py-24"
+      >
         <section className="mx-auto max-w-xl rounded-sm border border-stone-200 bg-white p-8 shadow-sm sm:p-10">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">Newsletter Preferences</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">
+            Newsletter Preferences
+          </p>
           <h1 className="mt-3 font-serif text-4xl text-stone-900">Confirm unsubscribe</h1>
 
           {!hasToken ? (
@@ -52,7 +59,11 @@ export default function NewsletterUnsubscribePage() {
                 Click confirm to stop receiving Beautify Africa newsletter emails for this address.
               </p>
 
-              {error ? <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
+              {error ? (
+                <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {error}
+                </p>
+              ) : null}
               {successMessage ? (
                 <p className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                   {successMessage}
@@ -70,10 +81,16 @@ export default function NewsletterUnsubscribePage() {
           )}
 
           <div className="mt-8 text-center space-x-4">
-            <Link to="/newsletter/unsubscribe-request" className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700">
+            <Link
+              to="/newsletter/unsubscribe-request"
+              className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700"
+            >
               Request New Link
             </Link>
-            <Link to="/" className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700">
+            <Link
+              to="/"
+              className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700"
+            >
               Home
             </Link>
           </div>

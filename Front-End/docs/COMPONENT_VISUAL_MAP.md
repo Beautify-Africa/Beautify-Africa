@@ -60,18 +60,18 @@ flowchart TD
 
 ## New Files: Can You See Them?
 
-| File | Type | Visible? | Where You See It | Affects |
-|---|---|---:|---|---|
-| `src/Components/Shared/AppLink.jsx` | Logic Helper | No | Not directly visible | Used by `Footer`, `App`, and `TermsConsentCheckbox` so internal links use React Router |
-| `src/Components/Shared/FloatingLabelInput.jsx` | Visible UI | Yes | Checkout auth form | Makes auth inputs look and behave consistently |
-| `src/Components/Shared/Seo.jsx` | Logic Helper | No | Not directly visible | Used by `HomePage` and `ShopPageLayout` to inject meta tags |
-| `src/Components/Shared/TermsConsentCheckbox.jsx` | Visible UI | Yes | Register form in checkout auth | Standardizes the consent checkbox and links |
-| `src/hooks/usePrefersReducedMotion.js` | Logic Helper | No | Not directly visible | Used by `Footer` to reduce animation for users who prefer less motion |
-| `src/Components/Auth/AuthGateStep.jsx` | Visible UI | Yes | First auth step inside checkout modal | Chooses between sign in, create account, or guest checkout |
-| `src/Components/Auth/CheckoutAuthOptionCard.jsx` | Visible UI | Yes | First step of checkout modal | Renders the sign-in, create-account, and guest option cards |
-| `src/Components/Auth/CheckoutInlineAuthForm.jsx` | Visible UI | Yes | Checkout modal after choosing sign in or register | Handles inline auth during checkout |
-| `src/context/auth-context.js` | Logic Helper | No | Not directly visible | Stores the raw React auth context object |
-| `src/hooks/useAuth.js` | Logic Helper | No | Not directly visible | Lets visible components consume auth state safely |
+| File                                             | Type         | Visible? | Where You See It                                  | Affects                                                                                |
+| ------------------------------------------------ | ------------ | -------: | ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `src/Components/Shared/AppLink.jsx`              | Logic Helper |       No | Not directly visible                              | Used by `Footer`, `App`, and `TermsConsentCheckbox` so internal links use React Router |
+| `src/Components/Shared/FloatingLabelInput.jsx`   | Visible UI   |      Yes | Checkout auth form                                | Makes auth inputs look and behave consistently                                         |
+| `src/Components/Shared/Seo.jsx`                  | Logic Helper |       No | Not directly visible                              | Used by `HomePage` and `ShopPageLayout` to inject meta tags                            |
+| `src/Components/Shared/TermsConsentCheckbox.jsx` | Visible UI   |      Yes | Register form in checkout auth                    | Standardizes the consent checkbox and links                                            |
+| `src/hooks/usePrefersReducedMotion.js`           | Logic Helper |       No | Not directly visible                              | Used by `Footer` to reduce animation for users who prefer less motion                  |
+| `src/Components/Auth/AuthGateStep.jsx`           | Visible UI   |      Yes | First auth step inside checkout modal             | Chooses between sign in, create account, or guest checkout                             |
+| `src/Components/Auth/CheckoutAuthOptionCard.jsx` | Visible UI   |      Yes | First step of checkout modal                      | Renders the sign-in, create-account, and guest option cards                            |
+| `src/Components/Auth/CheckoutInlineAuthForm.jsx` | Visible UI   |      Yes | Checkout modal after choosing sign in or register | Handles inline auth during checkout                                                    |
+| `src/context/auth-context.js`                    | Logic Helper |       No | Not directly visible                              | Stores the raw React auth context object                                               |
+| `src/hooks/useAuth.js`                           | Logic Helper |       No | Not directly visible                              | Lets visible components consume auth state safely                                      |
 
 ## Where These Files Plug In
 

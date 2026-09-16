@@ -83,7 +83,9 @@ const Navbar = ({ onOpenCart }) => {
               aria-label="Track your order"
             >
               <TrackingIcon className="h-4 w-4" />
-              <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-[0.2em]">Track Order</span>
+              <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-[0.2em]">
+                Track Order
+              </span>
             </Link>
 
             {isShopPage && (
@@ -172,4 +174,3 @@ const Navbar = ({ onOpenCart }) => {
 };
 
 export default Navbar;
-

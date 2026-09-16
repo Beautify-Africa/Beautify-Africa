@@ -21,10 +21,15 @@ export default function AdminOrdersLedgerPanel({
     <section className="rounded-[2rem] border border-stone-200/80 bg-white p-6 shadow-[0_20px_55px_rgba(28,25,23,0.08)] md:p-7">
       <div className="flex flex-col gap-4 border-b border-stone-100 pb-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">Order ledger</p>
-          <h2 className="mt-3 font-serif text-4xl text-stone-900">All admin orders in one operational view</h2>
+          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">
+            Order ledger
+          </p>
+          <h2 className="mt-3 font-serif text-4xl text-stone-900">
+            All admin orders in one operational view
+          </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-500">
-            Search the queue, narrow by state, and keep action buttons close to the data that matters.
+            Search the queue, narrow by state, and keep action buttons close to the data that
+            matters.
           </p>
         </div>
 
@@ -106,20 +111,30 @@ export default function AdminOrdersLedgerPanel({
           <tbody className="divide-y divide-stone-100 bg-white">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-stone-500">Loading orders...</td>
+                <td colSpan={7} className="px-4 py-10 text-center text-stone-500">
+                  Loading orders...
+                </td>
               </tr>
             ) : orders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-stone-500">No orders matched the current filters.</td>
+                <td colSpan={7} className="px-4 py-10 text-center text-stone-500">
+                  No orders matched the current filters.
+                </td>
               </tr>
             ) : (
               orders.map((order) => (
                 <tr key={order.id} className="align-top">
                   <td className="px-4 py-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400">{order.reference}</p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400">
+                      {order.reference}
+                    </p>
                     <p className="mt-2 font-semibold text-stone-900">{order.customer}</p>
-                    <p className="mt-1 text-xs text-stone-500">{order.email || 'No customer email available'}</p>
-                    <p className="mt-1 text-xs text-stone-500">{order.itemCount} item(s) / {order.lane}</p>
+                    <p className="mt-1 text-xs text-stone-500">
+                      {order.email || 'No customer email available'}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-500">
+                      {order.itemCount} item(s) / {order.lane}
+                    </p>
                   </td>
                   <td className="px-4 py-4 text-stone-600">
                     <p>{order.city}</p>
@@ -129,17 +144,21 @@ export default function AdminOrdersLedgerPanel({
                     <p className="font-semibold text-stone-900">{order.total}</p>
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`rounded-full border px-3 py-1 text-xs ${
-                      order.isPaid
-                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                        : 'border-amber-300 bg-amber-50 text-amber-700'
-                    }`}>
+                    <span
+                      className={`rounded-full border px-3 py-1 text-xs ${
+                        order.isPaid
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                          : 'border-amber-300 bg-amber-50 text-amber-700'
+                      }`}
+                    >
                       {order.paymentLabel}
                     </span>
                   </td>
                   <td className="px-4 py-4">
                     <StatusBadge tone={order.statusTone}>{order.status}</StatusBadge>
-                    <p className="mt-2 text-xs uppercase tracking-[0.14em] text-stone-400">{order.fulfillmentLabel}</p>
+                    <p className="mt-2 text-xs uppercase tracking-[0.14em] text-stone-400">
+                      {order.fulfillmentLabel}
+                    </p>
                   </td>
                   <td className="px-4 py-4 text-stone-600">{order.placedAtLabel}</td>
                   <td className="px-4 py-4">
@@ -161,7 +180,9 @@ export default function AdminOrdersLedgerPanel({
                           />
                         ))
                       ) : (
-                        <span className="self-center text-xs font-medium uppercase tracking-[0.14em] text-stone-400">No actions</span>
+                        <span className="self-center text-xs font-medium uppercase tracking-[0.14em] text-stone-400">
+                          No actions
+                        </span>
                       )}
                     </div>
                   </td>
@@ -174,7 +195,8 @@ export default function AdminOrdersLedgerPanel({
 
       <div className="mt-4 flex flex-col gap-3 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {pagination.totalCount || 0} order(s) / page {pagination.page || 1} of {Math.max(1, pagination.totalPages || 1)}
+          {pagination.totalCount || 0} order(s) / page {pagination.page || 1} of{' '}
+          {Math.max(1, pagination.totalPages || 1)}
         </p>
         <div className="flex items-center gap-2">
           <button
@@ -198,4 +220,3 @@ export default function AdminOrdersLedgerPanel({
     </section>
   );
 }
-

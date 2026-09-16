@@ -1,9 +1,5 @@
 import { useCallback, useDeferredValue, useMemo, useState } from 'react';
-import {
-  ALL_FILTER_OPTION,
-  DEFAULT_PRICE_RANGE,
-  SORT_OPTIONS,
-} from '../shopConfig';
+import { ALL_FILTER_OPTION, DEFAULT_PRICE_RANGE, SORT_OPTIONS } from '../shopConfig';
 
 export function useShopFilters({ shopCatalog, wishlistSet }) {
   const [activeCollection, setActiveCollection] = useState('all');
@@ -42,9 +38,7 @@ export function useShopFilters({ shopCatalog, wishlistSet }) {
   }, [shopCatalog.brands, selectedBrand]);
 
   const effectiveSelectedSkinType = useMemo(() => {
-    return shopCatalog.skinTypes.includes(selectedSkinType)
-      ? selectedSkinType
-      : ALL_FILTER_OPTION;
+    return shopCatalog.skinTypes.includes(selectedSkinType) ? selectedSkinType : ALL_FILTER_OPTION;
   }, [shopCatalog.skinTypes, selectedSkinType]);
 
   const effectiveMaxPrice = useMemo(() => {

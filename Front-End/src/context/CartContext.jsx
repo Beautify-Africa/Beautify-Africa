@@ -105,9 +105,8 @@ export function CartProvider({ children }) {
   const updateQuantity = useCallback(
     (id, quantity) => {
       if (isAuthenticated && token) {
-        const request = quantity < 1
-          ? removeCartItemApi(token, id)
-          : updateCartQtyApi(token, id, quantity);
+        const request =
+          quantity < 1 ? removeCartItemApi(token, id) : updateCartQtyApi(token, id, quantity);
 
         request
           .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
@@ -152,9 +151,10 @@ export function CartProvider({ children }) {
     clearStoredCartItems();
   }, [isAuthenticated, token]);
 
-  const cartCount = useMemo(() => cartItems.reduce((total, item) => total + item.quantity, 0), [
-    cartItems,
-  ]);
+  const cartCount = useMemo(
+    () => cartItems.reduce((total, item) => total + item.quantity, 0),
+    [cartItems]
+  );
 
   const subtotal = useMemo(
     () => cartItems.reduce((total, item) => total + item.price * item.quantity, 0),

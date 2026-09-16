@@ -89,7 +89,9 @@ const SecondaryArticle = ({ article }) => {
 
       {/* Article Content */}
       <div className="absolute bottom-0 left-0 w-full p-6 md:p-10">
-        <span className={`${article.categoryColor} text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block`}>
+        <span
+          className={`${article.categoryColor} text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block`}
+        >
           {article.category}
         </span>
 
@@ -103,7 +105,9 @@ const SecondaryArticle = ({ article }) => {
             {article.excerpt}
           </p>
 
-          <button className={`text-white text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 ${article.hoverColor} transition-colors`}>
+          <button
+            className={`text-white text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 ${article.hoverColor} transition-colors`}
+          >
             {article.cta}
             <ArrowRightIcon className="w-3 h-3" />
           </button>
@@ -127,7 +131,8 @@ const TheJournal = () => {
         className="absolute inset-0 pointer-events-none"
         aria-hidden="true"
         style={{
-          backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, rgba(168,162,158,0.30) 39px, rgba(168,162,158,0.30) 40px)',
+          backgroundImage:
+            'repeating-linear-gradient(to bottom, transparent, transparent 39px, rgba(168,162,158,0.30) 39px, rgba(168,162,158,0.30) 40px)',
           backgroundSize: '100% 40px',
         }}
       />
@@ -141,7 +146,10 @@ const TheJournal = () => {
 
       <div className="max-w-[1400px] mx-auto">
         {/* Section Header */}
-        <FadeIn as="header" className="flex flex-col items-center text-center mb-12 md:mb-20 space-y-4 md:space-y-6">
+        <FadeIn
+          as="header"
+          className="flex flex-col items-center text-center mb-12 md:mb-20 space-y-4 md:space-y-6"
+        >
           {/* Decorative Line & Tagline */}
           <div className="flex flex-col items-center gap-2 md:gap-4">
             <span className="w-[1px] h-8 md:h-12 bg-stone-400" aria-hidden="true" />
@@ -184,4 +192,3 @@ const TheJournal = () => {
 };
 
 export default TheJournal;
-

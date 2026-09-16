@@ -44,7 +44,9 @@ function MobileNavItem({ item }) {
       }
     >
       <p className="text-xs font-bold uppercase tracking-[0.18em]">{item.label}</p>
-      <p className="mt-1 text-xs leading-relaxed opacity-80">{item.isSoon ? 'Planned workspace' : item.description}</p>
+      <p className="mt-1 text-xs leading-relaxed opacity-80">
+        {item.isSoon ? 'Planned workspace' : item.description}
+      </p>
     </NavLink>
   );
 }
@@ -72,10 +74,13 @@ export default function AdminShell({
           <aside className="hidden xl:block">
             <div className="sticky top-5 overflow-hidden rounded-[2rem] border border-stone-200/80 bg-[linear-gradient(180deg,#fffdf9,#f6efe6)] p-6 shadow-[0_18px_48px_rgba(28,25,23,0.08)]">
               <div className="rounded-[1.6rem] border border-stone-200 bg-white/85 p-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">Beautify Africa</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">
+                  Beautify Africa
+                </p>
                 <h1 className="mt-3 font-serif text-3xl text-stone-900">Admin Studio</h1>
                 <p className="mt-3 text-sm leading-relaxed text-stone-600">
-                  Shared command center for order operations, catalog control, and the next admin phases.
+                  Shared command center for order operations, catalog control, and the next admin
+                  phases.
                 </p>
               </div>
 
@@ -86,13 +91,17 @@ export default function AdminShell({
               </nav>
 
               <div className="mt-5 rounded-[1.6rem] border border-stone-200 bg-stone-950 p-5 text-stone-100">
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-500">Session</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-500">
+                  Session
+                </p>
                 <div className="mt-4 flex items-center gap-3">
                   <span className="flex h-12 w-12 items-center justify-center rounded-full border border-amber-300/40 bg-amber-50 text-xs font-bold uppercase tracking-[0.18em] text-amber-800">
                     {initials || 'BA'}
                   </span>
                   <div>
-                    <p className="font-serif text-xl text-white">{isAuthenticated ? firstName : 'Guest'}</p>
+                    <p className="font-serif text-xl text-white">
+                      {isAuthenticated ? firstName : 'Guest'}
+                    </p>
                     <p className="text-xs text-stone-400">{todayLabel}</p>
                   </div>
                 </div>
@@ -131,7 +140,9 @@ export default function AdminShell({
                     </span>
                   </div>
                   <h2 className="mt-4 font-serif text-4xl text-stone-900 sm:text-5xl">{title}</h2>
-                  <p className="mt-3 max-w-3xl text-sm leading-relaxed text-stone-600 sm:text-base">{description}</p>
+                  <p className="mt-3 max-w-3xl text-sm leading-relaxed text-stone-600 sm:text-base">
+                    {description}
+                  </p>
                 </div>
 
                 {headerContent ? <div className="lg:max-w-sm">{headerContent}</div> : null}
@@ -151,4 +162,3 @@ export default function AdminShell({
     </div>
   );
 }
-

@@ -71,9 +71,14 @@ export default function ResetPasswordPage() {
         path="/reset-password"
         imageAlt="Beautify Africa password reset"
       />
-      <main id="main-content" className="min-h-screen bg-[#faf9f6] px-6 py-16 text-stone-900 sm:py-24">
+      <main
+        id="main-content"
+        className="min-h-screen bg-[#faf9f6] px-6 py-16 text-stone-900 sm:py-24"
+      >
         <section className="mx-auto max-w-xl rounded-sm border border-stone-200 bg-white p-8 shadow-sm sm:p-10">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">Secure Reset</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">
+            Secure Reset
+          </p>
           <h1 className="mt-3 font-serif text-4xl text-stone-900">Set a new password</h1>
 
           {!hasToken ? (
@@ -82,11 +87,27 @@ export default function ResetPasswordPage() {
             </div>
           ) : (
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-              <FloatingLabelInput field={passwordField} value={password} onChange={(event) => setPassword(event.target.value)} />
-              <FloatingLabelInput field={confirmField} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+              <FloatingLabelInput
+                field={passwordField}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <FloatingLabelInput
+                field={confirmField}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+              />
 
-              {error ? <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
-              {successMessage ? <p className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{successMessage}</p> : null}
+              {error ? (
+                <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {error}
+                </p>
+              ) : null}
+              {successMessage ? (
+                <p className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                  {successMessage}
+                </p>
+              ) : null}
 
               <button
                 type="submit"
@@ -99,7 +120,10 @@ export default function ResetPasswordPage() {
           )}
 
           <div className="mt-8 text-center">
-            <Link to="/shop?auth=1" className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700">
+            <Link
+              to="/shop?auth=1"
+              className="text-xs font-bold uppercase tracking-[0.18em] text-stone-600 underline hover:text-amber-700"
+            >
               Return to Sign In
             </Link>
           </div>

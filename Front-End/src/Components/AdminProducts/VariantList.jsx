@@ -22,7 +22,11 @@ export default function VariantList({ variants = [], onEdit, onDelete, onAdjustS
               ? 'low-stock'
               : 'in-stock';
         const stockColor =
-          stockStatus === 'out-of-stock' ? 'text-red-600' : stockStatus === 'low-stock' ? 'text-amber-600' : 'text-green-600';
+          stockStatus === 'out-of-stock'
+            ? 'text-red-600'
+            : stockStatus === 'low-stock'
+              ? 'text-amber-600'
+              : 'text-green-600';
 
         return (
           <div
@@ -38,13 +42,19 @@ export default function VariantList({ variants = [], onEdit, onDelete, onAdjustS
                   <p className="font-semibold text-stone-900">{variant.sku}</p>
                   <div className="mt-1 flex gap-2 flex-wrap text-xs text-stone-600">
                     {variant.attributes?.size && (
-                      <span className="bg-stone-100 px-2 py-1 rounded">{variant.attributes.size}</span>
+                      <span className="bg-stone-100 px-2 py-1 rounded">
+                        {variant.attributes.size}
+                      </span>
                     )}
                     {variant.attributes?.color && (
-                      <span className="bg-stone-100 px-2 py-1 rounded">{variant.attributes.color}</span>
+                      <span className="bg-stone-100 px-2 py-1 rounded">
+                        {variant.attributes.color}
+                      </span>
                     )}
                     {variant.attributes?.type && (
-                      <span className="bg-stone-100 px-2 py-1 rounded">{variant.attributes.type}</span>
+                      <span className="bg-stone-100 px-2 py-1 rounded">
+                        {variant.attributes.type}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -57,7 +67,12 @@ export default function VariantList({ variants = [], onEdit, onDelete, onAdjustS
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                  />
                 </svg>
               </div>
             </button>
@@ -74,8 +89,12 @@ export default function VariantList({ variants = [], onEdit, onDelete, onAdjustS
                   </div>
                   {variant.price && (
                     <div>
-                      <p className="text-xs font-semibold text-stone-600 uppercase">Price Override</p>
-                      <p className="mt-1 text-lg font-bold text-stone-900">${variant.price.toFixed(2)}</p>
+                      <p className="text-xs font-semibold text-stone-600 uppercase">
+                        Price Override
+                      </p>
+                      <p className="mt-1 text-lg font-bold text-stone-900">
+                        ${variant.price.toFixed(2)}
+                      </p>
                     </div>
                   )}
                 </div>

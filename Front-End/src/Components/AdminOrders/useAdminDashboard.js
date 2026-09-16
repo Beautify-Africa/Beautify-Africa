@@ -46,9 +46,12 @@ export function useAdminDashboard(token, enabled) {
     [enabled, token]
   );
 
-  useEffect(() => () => {
-    requestControllerRef.current?.abort();
-  }, []);
+  useEffect(
+    () => () => {
+      requestControllerRef.current?.abort();
+    },
+    []
+  );
 
   useEffect(() => {
     loadDashboard({ showLoader: true });

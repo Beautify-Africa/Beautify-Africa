@@ -45,13 +45,9 @@ function ProductImage({ product }) {
 function PriceDisplay({ price, originalPrice }) {
   return (
     <div className="flex items-center gap-4">
-      <span className="text-2xl font-serif text-amber-800">
-        ${price.toFixed(2)}
-      </span>
+      <span className="text-2xl font-serif text-amber-800">${price.toFixed(2)}</span>
       {originalPrice && (
-        <span className="text-lg text-stone-400 line-through">
-          ${originalPrice.toFixed(2)}
-        </span>
+        <span className="text-lg text-stone-400 line-through">${originalPrice.toFixed(2)}</span>
       )}
     </div>
   );
@@ -97,10 +93,7 @@ export default function ProductDetailsModal({ product: initialProduct, onClose, 
       onClick={(event) => handleBackdropClick(event, onClose)}
     >
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-stone-900/60 backdrop-blur-md"
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-stone-900/60 backdrop-blur-md" aria-hidden="true" />
 
       {/* Modal Content */}
       <article className="relative w-full max-w-6xl bg-[#faf9f6] rounded-sm shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[95vh] animate-fade-in-up">
@@ -130,16 +123,11 @@ export default function ProductDetailsModal({ product: initialProduct, onClose, 
             </h2>
 
             <div className="flex items-center gap-4 mb-6">
-              <PriceDisplay
-                price={product.price}
-                originalPrice={product.originalPrice}
-              />
+              <PriceDisplay price={product.price} originalPrice={product.originalPrice} />
               <RatingDisplay rating={product.rating} reviews={product.numReviews} />
             </div>
 
-            <p className="text-stone-600 font-light leading-relaxed mb-8">
-              {product.description}
-            </p>
+            <p className="text-stone-600 font-light leading-relaxed mb-8">{product.description}</p>
 
             <button
               onClick={() => onAddToCart(product)}
@@ -150,9 +138,7 @@ export default function ProductDetailsModal({ product: initialProduct, onClose, 
                   : 'bg-stone-200 text-stone-400 cursor-not-allowed'
               }`}
               aria-label={
-                product.inStock
-                  ? `Add ${product.name} to cart`
-                  : `${product.name} is out of stock`
+                product.inStock ? `Add ${product.name} to cart` : `${product.name} is out of stock`
               }
             >
               {product.inStock ? 'Add to Cart' : 'Out of Stock'}
@@ -160,13 +146,13 @@ export default function ProductDetailsModal({ product: initialProduct, onClose, 
           </header>
 
           <nav className="flex gap-6 mb-6 border-b border-stone-100 pb-2">
-            <button 
+            <button
               className={`text-[10px] uppercase tracking-widest font-bold ${activeTab === 'details' ? 'border-b-2 border-stone-900 text-stone-900 pb-1' : 'text-stone-400 hover:text-stone-600'}`}
               onClick={() => setActiveTab('details')}
             >
               Details
             </button>
-            <button 
+            <button
               className={`text-[10px] uppercase tracking-widest font-bold ${activeTab === 'reviews' ? 'border-b-2 border-stone-900 text-stone-900 pb-1' : 'text-stone-400 hover:text-stone-600'}`}
               onClick={() => setActiveTab('reviews')}
             >

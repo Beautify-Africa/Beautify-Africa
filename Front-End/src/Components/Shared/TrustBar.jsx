@@ -152,7 +152,10 @@ const TrustBar = () => {
       <TrustBackgroundPattern />
 
       {/* Clean amber accent line */}
-      <div className="absolute top-0 left-1/2 z-10 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" aria-hidden="true" />
+      <div
+        className="absolute top-0 left-1/2 z-10 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent"
+        aria-hidden="true"
+      />
 
       <div className="relative z-10 max-w-[1400px] mx-auto">
         {/* Section Header */}
@@ -177,11 +180,7 @@ const TrustBar = () => {
           role="list"
         >
           {TRUST_ITEMS.map((item, index) => (
-            <FadeIn
-              key={item.id}
-              delay={index * 0.1}
-              className={`h-full ${item.className || ''}`}
-            >
+            <FadeIn key={item.id} delay={index * 0.1} className={`h-full ${item.className || ''}`}>
               <TrustCard item={item} />
             </FadeIn>
           ))}
@@ -192,4 +191,3 @@ const TrustBar = () => {
 };
 
 export default TrustBar;
-

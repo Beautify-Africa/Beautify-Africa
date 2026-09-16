@@ -43,4 +43,3 @@ const FeaturedCollections = () => {
 };
 
 export default FeaturedCollections;
-

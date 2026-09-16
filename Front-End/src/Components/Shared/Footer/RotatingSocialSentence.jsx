@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  ROTATING_SOCIAL_SENTENCE,
-  SOCIAL_ROTATION_CONFIG,
-} from '../../../data/footerContent';
+import { ROTATING_SOCIAL_SENTENCE, SOCIAL_ROTATION_CONFIG } from '../../../data/footerContent';
 import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
 import { FOOTER_SOCIAL_ICONS } from './footerSocialIcons';
 

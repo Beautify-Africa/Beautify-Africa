@@ -1,7 +1,10 @@
 import { useState, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'sonner';
 import AppLink from './Components/Shared/AppLink';
+import ProtectedRoute from './Components/Shared/ProtectedRoute';
+import ErrorBoundary from './Components/Shared/ErrorBoundary';
 
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -9,7 +12,9 @@ const ShopPageLayout = lazy(() => import('./pages/ShopPageLayout'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const TrackOrdersPage = lazy(() => import('./pages/TrackOrdersPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const NewsletterUnsubscribeRequestPage = lazy(() => import('./pages/NewsletterUnsubscribeRequestPage'));
+const NewsletterUnsubscribeRequestPage = lazy(
+  () => import('./pages/NewsletterUnsubscribeRequestPage')
+);
 const NewsletterUnsubscribePage = lazy(() => import('./pages/NewsletterUnsubscribePage'));
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
 const AdminProductsPage = lazy(() => import('./pages/AdminProductsPage'));
@@ -37,55 +42,104 @@ function App() {
 
   return (
     <HelmetProvider>
-      <BrowserRouter>
-        {/* Skip-to-content link — visible only on keyboard focus */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:px-6 focus:py-3 focus:bg-stone-900 focus:text-white focus:text-xs focus:font-bold focus:uppercase focus:tracking-widest focus:rounded-sm focus:shadow-xl"
-        >
-          Skip to main content
-        </a>
+      <ErrorBoundary>
+        <BrowserRouter>
+          {/* Skip-to-content link — visible only on keyboard focus */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:px-6 focus:py-3 focus:bg-stone-900 focus:text-white focus:text-xs focus:font-bold focus:uppercase focus:tracking-widest focus:rounded-sm focus:shadow-xl"
+          >
+            Skip to main content
+          </a>
 
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<HomePage onOpenCart={openCart} />} />
-            <Route path="/shop" element={<ShopPageLayout onOpenCart={openCart} />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/track-orders" element={<TrackOrdersPage onOpenCart={openCart} />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/newsletter/unsubscribe-request" element={<NewsletterUnsubscribeRequestPage />} />
-            <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
-            <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
-            <Route path="/admin/orders" element={<AdminOrdersPage />} />
-            <Route path="/admin/products" element={<AdminProductsPage />} />
-            <Route path="/admin/inventory" element={<AdminInventoryPage />} />
-            <Route path="/admin/customers" element={<AdminCustomersPage />} />
-            <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-            {/* 404 catch-all */}
-            <Route
-              path="*"
-              element={
-                <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf9f6] px-6 text-center">
-                  <h1 className="font-serif text-6xl text-stone-900 mb-4">404</h1>
-                  <p className="text-stone-600 mb-8">The page you're looking for doesn't exist.</p>
-                  <AppLink
-                    href="/"
-                    className="px-8 py-3 bg-stone-900 text-white text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors rounded-sm"
-                  >
-                    Back to Home
-                  </AppLink>
-                </div>
-              }
-            />
-          </Routes>
-        </Suspense>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage onOpenCart={openCart} />} />
+              <Route path="/shop" element={<ShopPageLayout onOpenCart={openCart} />} />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/track-orders" element={<TrackOrdersPage onOpenCart={openCart} />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route
+                path="/newsletter/unsubscribe-request"
+                element={<NewsletterUnsubscribeRequestPage />}
+              />
+              <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
+              <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminProductsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/inventory"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminInventoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/customers"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminCustomersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AdminAnalyticsPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* 404 catch-all */}
+              <Route
+                path="*"
+                element={
+                  <div className="min-h-screen flex flex-col items-center justify-center bg-[#faf9f6] px-6 text-center">
+                    <h1 className="font-serif text-6xl text-stone-900 mb-4">404</h1>
+                    <p className="text-stone-600 mb-8">
+                      The page you're looking for doesn't exist.
+                    </p>
+                    <AppLink
+                      href="/"
+                      className="px-8 py-3 bg-stone-900 text-white text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-amber-900 transition-colors rounded-sm"
+                    >
+                      Back to Home
+                    </AppLink>
+                  </div>
+                }
+              />
+            </Routes>
+          </Suspense>
 
-        {/* Global modals */}
-        <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
-      </BrowserRouter>
+          {/* Global modals & notifications */}
+          <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
+          <Toaster position="top-right" richColors closeButton />
+        </BrowserRouter>
+      </ErrorBoundary>
     </HelmetProvider>
   );
 }
 
 export default App;
-

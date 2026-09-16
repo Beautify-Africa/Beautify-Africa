@@ -9,10 +9,18 @@ export default function OrderStatusBadge({ label, tone = 'stone' }) {
           : 'border-stone-200 bg-stone-50 text-stone-700';
 
   const dotClass =
-    tone === 'emerald' ? 'bg-emerald-500' : tone === 'amber' ? 'bg-amber-500' : tone === 'rose' ? 'bg-rose-500' : 'bg-stone-400';
+    tone === 'emerald'
+      ? 'bg-emerald-500'
+      : tone === 'amber'
+        ? 'bg-amber-500'
+        : tone === 'rose'
+          ? 'bg-rose-500'
+          : 'bg-stone-400';
 
   return (
-    <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${classes}`}>
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${classes}`}
+    >
       <span className={`h-2 w-2 rounded-full ${dotClass}`} aria-hidden="true" />
       {label}
     </div>

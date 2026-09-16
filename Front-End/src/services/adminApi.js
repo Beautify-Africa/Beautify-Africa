@@ -36,12 +36,15 @@ export async function fetchReorderPlan(query = {}, token, requestOptions = {}) {
   });
 
   const search = params.toString();
-  const json = await requestJson(`${API_URL}/admin/inventory/reorder-plan${search ? `?${search}` : ''}`, {
-    ...requestOptions,
-    token,
-    cache: 'no-store',
-    fallbackMessage: 'Failed to fetch reorder plan.',
-  });
+  const json = await requestJson(
+    `${API_URL}/admin/inventory/reorder-plan${search ? `?${search}` : ''}`,
+    {
+      ...requestOptions,
+      token,
+      cache: 'no-store',
+      fallbackMessage: 'Failed to fetch reorder plan.',
+    }
+  );
 
   return json.data;
 }
@@ -381,17 +384,14 @@ export async function adjustVariantStock(
 ) {
   if (!token) throw new Error('Authentication token required.');
 
-  const json = await requestJson(
-    `${API_URL}/products/${productId}/variants/${variantId}/stock`,
-    {
-      ...requestOptions,
-      method: 'POST',
-      token,
-      body: { quantity, reason, notes },
-      cache: 'no-store',
-      fallbackMessage: 'Failed to adjust stock.',
-    }
-  );
+  const json = await requestJson(`${API_URL}/products/${productId}/variants/${variantId}/stock`, {
+    ...requestOptions,
+    method: 'POST',
+    token,
+    body: { quantity, reason, notes },
+    cache: 'no-store',
+    fallbackMessage: 'Failed to adjust stock.',
+  });
 
   return json.data;
 }
@@ -422,17 +422,14 @@ export async function fetchStockHistory(productId, query = {}, token, requestOpt
 export async function triggerLowStockNotification(threshold = 10, token, requestOptions = {}) {
   if (!token) throw new Error('Authentication token required.');
 
-  const json = await requestJson(
-    `${API_URL}/admin/inventory/notifications/trigger-low-stock`,
-    {
-      ...requestOptions,
-      method: 'POST',
-      token,
-      body: { threshold },
-      cache: 'no-store',
-      fallbackMessage: 'Failed to trigger notification.',
-    }
-  );
+  const json = await requestJson(`${API_URL}/admin/inventory/notifications/trigger-low-stock`, {
+    ...requestOptions,
+    method: 'POST',
+    token,
+    body: { threshold },
+    cache: 'no-store',
+    fallbackMessage: 'Failed to trigger notification.',
+  });
 
   return json.data;
 }
