@@ -47,9 +47,13 @@ router.post(
     upload.single('image')(req, res, (err) => {
       if (err) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ status: 'error', message: 'Image size exceeds maximum 5MB limit.' });
+          return res
+            .status(400)
+            .json({ status: 'error', message: 'Image size exceeds maximum 5MB limit.' });
         }
-        return res.status(400).json({ status: 'error', message: err.message || 'File upload error' });
+        return res
+          .status(400)
+          .json({ status: 'error', message: err.message || 'File upload error' });
       }
       next();
     });

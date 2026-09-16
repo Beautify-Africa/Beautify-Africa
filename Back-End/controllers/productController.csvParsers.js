@@ -13,7 +13,10 @@ function csvEscape(value) {
 
 function pipeJoinList(value) {
   if (!Array.isArray(value)) return '';
-  return value.map((entry) => String(entry).trim()).filter(Boolean).join('|');
+  return value
+    .map((entry) => String(entry).trim())
+    .filter(Boolean)
+    .join('|');
 }
 
 function parseDelimitedList(value, fallback = []) {
@@ -101,9 +104,10 @@ function parseCsvVariants(value) {
           sku: String(variant?.sku || '').trim(),
           attributes: variant?.attributes || {},
           stockQuantity: Number(variant?.stockQuantity || 0),
-          price: variant?.price === null || variant?.price === undefined || variant?.price === ''
-            ? null
-            : Number(variant.price),
+          price:
+            variant?.price === null || variant?.price === undefined || variant?.price === ''
+              ? null
+              : Number(variant.price),
           inStock: Boolean(variant?.inStock),
         }))
       : [];

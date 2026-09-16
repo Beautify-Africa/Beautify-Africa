@@ -66,7 +66,9 @@ function buildProductCsv(products) {
       product.image,
       pipeJoinList(product.images),
       product.price,
-      product.originalPrice === null || product.originalPrice === undefined ? '' : product.originalPrice,
+      product.originalPrice === null || product.originalPrice === undefined
+        ? ''
+        : product.originalPrice,
       product.stockQuantity,
       product.lowStockThreshold,
       pipeJoinList(product.skinType),
@@ -94,7 +96,9 @@ function normalizeBulkProductPayload(rawProduct = {}) {
     images: parseDelimitedList(rawProduct.images),
     price: parseCsvNumber(rawProduct.price, NaN),
     originalPrice:
-      rawProduct.originalPrice === '' || rawProduct.originalPrice === null || rawProduct.originalPrice === undefined
+      rawProduct.originalPrice === '' ||
+      rawProduct.originalPrice === null ||
+      rawProduct.originalPrice === undefined
         ? null
         : parseCsvNumber(rawProduct.originalPrice, NaN),
     stockQuantity: parseCsvNumber(rawProduct.stockQuantity, 0),
@@ -176,7 +180,13 @@ async function importProducts(req, res) {
       try {
         const normalizedProduct = normalizeBulkProductPayload(rawProduct);
 
-        if (!normalizedProduct.name || !normalizedProduct.brand || !normalizedProduct.category || !normalizedProduct.image || !Number.isFinite(normalizedProduct.price)) {
+        if (
+          !normalizedProduct.name ||
+          !normalizedProduct.brand ||
+          !normalizedProduct.category ||
+          !normalizedProduct.image ||
+          !Number.isFinite(normalizedProduct.price)
+        ) {
           throw new Error('name, brand, category, image, and price are required');
         }
 

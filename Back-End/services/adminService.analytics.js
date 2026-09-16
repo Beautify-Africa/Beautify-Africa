@@ -85,7 +85,14 @@ function buildTopSellingProducts(orders = [], limit = 5) {
     (order.orderItems || []).forEach((item) => {
       const quantity = Number(item.qty || 0);
       const unitPrice = Number(item.price || 0);
-      const key = String(item.productId || item.product?.id || item.product?._id || item.product || item.name || 'unknown');
+      const key = String(
+        item.productId ||
+          item.product?.id ||
+          item.product?._id ||
+          item.product ||
+          item.name ||
+          'unknown'
+      );
       const current = productMap.get(key) || {
         id: key,
         name: item.name || 'Unknown product',
@@ -156,7 +163,9 @@ function buildProductDemandProfile(orders = [], now = new Date(), windowDays = 3
     }
 
     (order.orderItems || []).forEach((item) => {
-      const key = String(item.productId || item.product?.id || item.product?._id || item.product || item.name || '').trim();
+      const key = String(
+        item.productId || item.product?.id || item.product?._id || item.product || item.name || ''
+      ).trim();
       if (!key) {
         return;
       }
@@ -273,20 +282,33 @@ function buildAdminAnalyticsFromOrders(orders = [], lowStockCount = 0, now = new
   const paidOrders = orders.filter((order) => order.isPaid);
   const totalRevenue = paidOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0);
 
-  const recentPaidOrders = paidOrders.filter((order) => now - new Date(getOrderValueDate(order)) <= 7 * DAY_IN_MS);
+  const recentPaidOrders = paidOrders.filter(
+    (order) => now - new Date(getOrderValueDate(order)) <= 7 * DAY_IN_MS
+  );
   const previousPaidOrders = paidOrders.filter((order) => {
     const orderDate = new Date(getOrderValueDate(order));
     return now - orderDate > 7 * DAY_IN_MS && now - orderDate <= 14 * DAY_IN_MS;
   });
 
-  const recentRevenue7d = recentPaidOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0);
-  const previousRevenue7d = previousPaidOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0);
+  const recentRevenue7d = recentPaidOrders.reduce(
+    (sum, order) => sum + Number(order.totalPrice || 0),
+    0
+  );
+  const previousRevenue7d = previousPaidOrders.reduce(
+    (sum, order) => sum + Number(order.totalPrice || 0),
+    0
+  );
   const recentOrders7d = recentPaidOrders.length;
   const previousOrders7d = previousPaidOrders.length;
   const averageOrderValue = paidOrders.length ? totalRevenue / paidOrders.length : 0;
   const revenueTrend = formatTrendLabel(recentRevenue7d, previousRevenue7d);
   const orderTrend = formatTrendLabel(recentOrders7d, previousOrders7d);
-  const growthFactor = 1 + Math.max(-0.35, Math.min(0.35, ((recentRevenue7d - previousRevenue7d) / (previousRevenue7d || 1)) / 2));
+  const growthFactor =
+    1 +
+    Math.max(
+      -0.35,
+      Math.min(0.35, (recentRevenue7d - previousRevenue7d) / (previousRevenue7d || 1) / 2)
+    );
 
   return {
     summary: {
@@ -317,7 +339,7 @@ function buildAdminAnalyticsFromOrders(orders = [], lowStockCount = 0, now = new
       next7dOrders: Math.round(recentOrders7d * growthFactor),
       inventoryPressure: Math.max(lowStockCount, Math.round(recentOrders7d / 2)),
       trendLabel: growthFactor >= 1.05 ? 'Rising' : growthFactor <= 0.95 ? 'Cooling' : 'Stable',
-      trendValue: `${((growthFactor - 1) * 100 >= 0 ? '+' : '')}${((growthFactor - 1) * 100).toFixed(1)}%`,
+      trendValue: `${(growthFactor - 1) * 100 >= 0 ? '+' : ''}${((growthFactor - 1) * 100).toFixed(1)}%`,
     },
   };
 }

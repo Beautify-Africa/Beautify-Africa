@@ -62,11 +62,11 @@ async function addOrMergeCartItem(cart, { productId, dbProduct, variant, quantit
   );
 
   if (existingItem) {
-    const mergedQuantity = Math.min(existingItem.quantity + requestedQuantity, MAX_CART_ITEM_QUANTITY);
-    await CartItem.update(
-      { quantity: mergedQuantity },
-      { where: { id: existingItem.id } }
+    const mergedQuantity = Math.min(
+      existingItem.quantity + requestedQuantity,
+      MAX_CART_ITEM_QUANTITY
     );
+    await CartItem.update({ quantity: mergedQuantity }, { where: { id: existingItem.id } });
     existingItem.quantity = mergedQuantity;
   } else {
     const newItem = await CartItem.create({
@@ -115,7 +115,10 @@ async function syncLocalCartItems(cart, localItems) {
     const productId = resolveIncomingProductId(localItem);
     if (!productId) continue;
 
-    const { product: dbProduct } = await findInStockProduct(productId, 'Product is currently out of stock');
+    const { product: dbProduct } = await findInStockProduct(
+      productId,
+      'Product is currently out of stock'
+    );
     if (!dbProduct) continue;
 
     await addOrMergeCartItem(cart, {

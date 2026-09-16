@@ -56,17 +56,15 @@ describe('buildVerifiedOrderItems', () => {
   });
 
   test('accepts an authenticated cart item id and resolves it to the product id', async () => {
-    Product.findAll
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        {
-          id: 'e625a589-98a9-4676-a059-e932906b3bc4',
-          name: 'Baobab Butter',
-          image: '/baobab-butter.jpg',
-          price: 18,
-          inStock: true,
-        },
-      ]);
+    Product.findAll.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        id: 'e625a589-98a9-4676-a059-e932906b3bc4',
+        name: 'Baobab Butter',
+        image: '/baobab-butter.jpg',
+        price: 18,
+        inStock: true,
+      },
+    ]);
 
     Cart.findOne.mockResolvedValue({
       cartItems: [

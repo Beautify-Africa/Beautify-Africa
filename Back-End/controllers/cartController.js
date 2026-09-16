@@ -80,7 +80,9 @@ const getCart = async (req, res) => {
     res.status(200).json({ status: 'success', data: cart.cartItems });
   } catch (error) {
     console.error('getCart error:', error);
-    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while fetching your cart.' });
+    res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred while fetching your cart.' });
   }
 };
 
@@ -115,7 +117,9 @@ const addToCart = async (req, res) => {
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
   } catch (error) {
     console.error('addToCart error:', error);
-    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while adding to cart.' });
+    res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred while adding to cart.' });
   }
 };
 
@@ -152,7 +156,9 @@ const updateCartItemQty = async (req, res) => {
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
   } catch (error) {
     console.error('updateCartItemQty error:', error);
-    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while updating the cart.' });
+    res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred while updating the cart.' });
   }
 };
 
@@ -177,7 +183,10 @@ const removeFromCart = async (req, res) => {
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
   } catch (error) {
     console.error('removeFromCart error:', error);
-    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while removing the cart item.' });
+    res.status(500).json({
+      status: 'error',
+      message: 'An unexpected error occurred while removing the cart item.',
+    });
   }
 };
 
@@ -203,7 +212,9 @@ const clearCart = async (req, res) => {
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
   } catch (error) {
     console.error('clearCart error:', error);
-    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while clearing the cart.' });
+    res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred while clearing the cart.' });
   }
 };
 
@@ -231,7 +242,9 @@ const syncCart = async (req, res) => {
     res.status(200).json({ status: 'success', data: updatedCart.cartItems });
   } catch (error) {
     console.error('syncCart error:', error);
-    res.status(500).json({ status: 'error', message: 'An unexpected error occurred while syncing the cart.' });
+    res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred while syncing the cart.' });
   }
 };
 

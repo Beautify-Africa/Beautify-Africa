@@ -13,8 +13,20 @@ const {
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const PRODUCT_SELECT_FIELDS = [
-  'id', 'name', 'slug', 'brand', 'category', 'price', 'originalPrice',
-  'rating', 'numReviews', 'inStock', 'image', 'images', 'isNewProduct', 'isBestSeller',
+  'id',
+  'name',
+  'slug',
+  'brand',
+  'category',
+  'price',
+  'originalPrice',
+  'rating',
+  'numReviews',
+  'inStock',
+  'image',
+  'images',
+  'isNewProduct',
+  'isBestSeller',
 ];
 
 async function ensureProductExists(productId) {
@@ -118,9 +130,7 @@ async function syncWishlistProducts(userId, localItems) {
   }
 
   const normalizedIds = [
-    ...new Set(
-      normalizeIncomingProductIds(localItems).filter((id) => UUID_REGEX.test(id))
-    ),
+    ...new Set(normalizeIncomingProductIds(localItems).filter((id) => UUID_REGEX.test(id))),
   ];
 
   const wishlist = await findOrCreateWishlist(userId);

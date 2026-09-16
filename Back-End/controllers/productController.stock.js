@@ -20,7 +20,8 @@ async function adjustVariantStock(req, res) {
     if (!Number.isInteger(quantity) || quantity === 0) {
       return res.status(400).json({
         status: 'error',
-        message: 'Quantity must be a non-zero integer (positive for restock, negative for adjustment)',
+        message:
+          'Quantity must be a non-zero integer (positive for restock, negative for adjustment)',
       });
     }
 

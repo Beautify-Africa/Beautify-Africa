@@ -42,7 +42,7 @@ describe('request sanitizer', () => {
       },
       params: {
         id: '507f1f77bcf86cd799439011',
-        '$where': 'sleep(5000)',
+        $where: 'sleep(5000)',
       },
     };
 
@@ -98,4 +98,3 @@ describe('buildProductFilter', () => {
     ]);
   });
 });
-

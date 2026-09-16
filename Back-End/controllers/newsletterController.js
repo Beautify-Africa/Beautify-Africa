@@ -19,7 +19,8 @@ function hashUnsubscribeToken(rawToken = '') {
 function createUnsubscribeTokenPayload() {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const configuredMinutes = Number(process.env.NEWSLETTER_UNSUBSCRIBE_TOKEN_TTL_MINUTES || 60);
-  const ttlMinutes = Number.isFinite(configuredMinutes) && configuredMinutes > 0 ? configuredMinutes : 60;
+  const ttlMinutes =
+    Number.isFinite(configuredMinutes) && configuredMinutes > 0 ? configuredMinutes : 60;
 
   return {
     rawToken,
@@ -57,7 +58,9 @@ const subscribeNewsletter = async (req, res) => {
   const normalizedEmail = normalizeEmail(req.body?.email || '');
 
   if (!normalizedEmail || !validator.isEmail(normalizedEmail)) {
-    return res.status(400).json({ status: 'error', message: 'Please provide a valid email address.' });
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'Please provide a valid email address.' });
   }
 
   try {
@@ -72,7 +75,9 @@ const subscribeNewsletter = async (req, res) => {
         await existingSubscription.save();
       }
 
-      return res.status(200).json({ status: 'success', message: 'Already subscribed to the newsletter.' });
+      return res
+        .status(200)
+        .json({ status: 'success', message: 'Already subscribed to the newsletter.' });
     }
 
     const newSubscriber = await Newsletter.create({ email: normalizedEmail });
@@ -131,10 +136,14 @@ const subscribeNewsletter = async (req, res) => {
       });
     }
 
-    return res.status(201).json({ status: 'success', message: 'Successfully subscribed. Welcome email sent!' });
+    return res
+      .status(201)
+      .json({ status: 'success', message: 'Successfully subscribed. Welcome email sent!' });
   } catch (error) {
     console.error('subscribeNewsletter error:', error);
-    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
+    return res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
   }
 };
 
@@ -145,11 +154,15 @@ const requestNewsletterUnsubscribe = async (req, res) => {
   const normalizedEmail = normalizeEmail(req.body?.email || '');
 
   if (!normalizedEmail || !validator.isEmail(normalizedEmail)) {
-    return res.status(400).json({ status: 'error', message: 'Please provide a valid email address.' });
+    return res
+      .status(400)
+      .json({ status: 'error', message: 'Please provide a valid email address.' });
   }
 
   try {
-    const subscriber = await Newsletter.findOne({ where: { email: normalizedEmail, isActive: true } });
+    const subscriber = await Newsletter.findOne({
+      where: { email: normalizedEmail, isActive: true },
+    });
 
     if (!subscriber) {
       return res.status(200).json({
@@ -211,7 +224,9 @@ const requestNewsletterUnsubscribe = async (req, res) => {
     });
   } catch (error) {
     console.error('requestNewsletterUnsubscribe error:', error);
-    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
+    return res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
   }
 };
 
@@ -253,7 +268,9 @@ const unsubscribeNewsletter = async (req, res) => {
     });
   } catch (error) {
     console.error('unsubscribeNewsletter error:', error);
-    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
+    return res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred. Please try again.' });
   }
 };
 

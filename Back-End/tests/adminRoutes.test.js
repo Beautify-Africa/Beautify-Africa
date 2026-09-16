@@ -3,6 +3,21 @@ const jwt = require('jsonwebtoken');
 const request = require('supertest');
 
 jest.mock('../models/User');
+jest.mock('../queues/inventoryNotificationQueue', () => ({
+  inventoryNotificationQueue: {
+    add: jest.fn(),
+    getJobs: jest.fn().mockResolvedValue([]),
+    close: jest.fn().mockResolvedValue(undefined),
+  },
+  inventoryNotificationQueueEvents: null,
+}));
+jest.mock('../queues/emailQueue', () => ({
+  emailQueue: {
+    add: jest.fn(),
+    close: jest.fn().mockResolvedValue(undefined),
+  },
+  emailQueueEvents: null,
+}));
 jest.mock('../services/adminService', () => ({
   fetchAdminDashboard: jest.fn(),
   fetchAdminAnalytics: jest.fn(),
@@ -171,7 +186,11 @@ describe('Admin routes', () => {
       email: 'admin@test.com',
       isAdmin: true,
     });
-    updateAdminOrder.mockResolvedValue({ id: ORDER_ID, _id: ORDER_ID, fulfillmentStatus: 'packed' });
+    updateAdminOrder.mockResolvedValue({
+      id: ORDER_ID,
+      _id: ORDER_ID,
+      fulfillmentStatus: 'packed',
+    });
 
     const response = await request(app)
       .patch(`/api/admin/orders/${ORDER_ID}`)

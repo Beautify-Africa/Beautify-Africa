@@ -124,9 +124,7 @@ describe('Newsletter unsubscribe routes', () => {
   });
 
   test('rejects unsubscribe confirmation without token', async () => {
-    const response = await request(app)
-      .post('/api/newsletter/unsubscribe/confirm')
-      .send({});
+    const response = await request(app).post('/api/newsletter/unsubscribe/confirm').send({});
 
     expect(response.status).toBe(400);
     expect(response.body.status).toBe('error');

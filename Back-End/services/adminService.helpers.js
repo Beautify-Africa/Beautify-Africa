@@ -34,8 +34,15 @@ function parsePositiveInteger(value, { defaultValue, min = 1, max = 100, label =
   return parsed;
 }
 
-function normalizeAdminQueryEnum(value, supportedValues = [], label = 'value', fallbackValue = 'all') {
-  const normalized = String(value || fallbackValue).trim().toLowerCase();
+function normalizeAdminQueryEnum(
+  value,
+  supportedValues = [],
+  label = 'value',
+  fallbackValue = 'all'
+) {
+  const normalized = String(value || fallbackValue)
+    .trim()
+    .toLowerCase();
   if (!supportedValues.includes(normalized)) {
     throw createAdminError(`Unsupported ${label}: ${value}`);
   }
@@ -273,7 +280,9 @@ function mapAdminTimelineEntries(timeline = []) {
 
 function mapAdminOrderDetail(order = {}) {
   const statusMeta = getStatusMeta(order);
-  const timeline = mapAdminTimelineEntries(Array.isArray(order.adminTimeline) ? order.adminTimeline : []);
+  const timeline = mapAdminTimelineEntries(
+    Array.isArray(order.adminTimeline) ? order.adminTimeline : []
+  );
   const addr = order.shippingAddress || {};
   const shippingEmail = addr.email || '';
   const accountCreatedAt = order.user?.createdAt || null;

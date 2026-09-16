@@ -19,7 +19,12 @@ const {
   writeCache,
   bumpProductCacheVersion,
 } = require('./productController.cache');
-const { getVariants, addVariant, updateVariant, removeVariant } = require('./productController.variants');
+const {
+  getVariants,
+  addVariant,
+  updateVariant,
+  removeVariant,
+} = require('./productController.variants');
 const { exportProducts, importProducts } = require('./productController.csv');
 const { setProductStatus, duplicateProduct } = require('./productController.admin');
 const { adjustVariantStock, getStockHistory } = require('./productController.stock');
@@ -66,7 +71,9 @@ async function getProducts(req, res) {
     return res.status(200).json(payload);
   } catch (error) {
     console.error('getProducts error:', error);
-    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while fetching products.' });
+    return res
+      .status(500)
+      .json({ status: 'error', message: 'An unexpected error occurred while fetching products.' });
   }
 }
 
@@ -174,7 +181,9 @@ async function createProductReview(req, res) {
     }
 
     if (!Number.isFinite(normalizedRating) || normalizedRating < 1 || normalizedRating > 5) {
-      return res.status(400).json({ status: 'error', message: 'Rating must be a number between 1 and 5' });
+      return res
+        .status(400)
+        .json({ status: 'error', message: 'Rating must be a number between 1 and 5' });
     }
 
     if (!normalizedComment) {
@@ -229,7 +238,10 @@ async function createProductReview(req, res) {
     });
   } catch (error) {
     console.error('createProductReview error:', error);
-    return res.status(500).json({ status: 'error', message: 'An unexpected error occurred while submitting the review.' });
+    return res.status(500).json({
+      status: 'error',
+      message: 'An unexpected error occurred while submitting the review.',
+    });
   }
 }
 

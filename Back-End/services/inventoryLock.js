@@ -68,7 +68,6 @@ async function releaseLock(productId, lockToken) {
   }
 }
 
-
 /**
  * Acquire the lock, run fn(), then always release the lock.
  * Returns { result } on success or { conflict: true } if the lock is held.

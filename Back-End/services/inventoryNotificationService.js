@@ -207,10 +207,7 @@ async function notifyLowStockToAdmins(threshold = 10) {
           adminEmail: admin.email,
         });
       } catch (queueError) {
-        console.error(
-          `Failed to queue email for admin ${admin.email}:`,
-          queueError
-        );
+        console.error(`Failed to queue email for admin ${admin.email}:`, queueError);
       }
     }
 
@@ -318,10 +315,7 @@ Beautify Africa Operations Team
 
         queuedJobs.push({ jobId: job.id, adminEmail: admin.email });
       } catch (queueError) {
-        console.error(
-          `Failed to queue restock notification for ${admin.email}:`,
-          queueError
-        );
+        console.error(`Failed to queue restock notification for ${admin.email}:`, queueError);
       }
     }
 

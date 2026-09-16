@@ -16,15 +16,10 @@ const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
 router.use(setPrivateNoStore);
 router.use(protect);
 
-router.route('/')
-  .get(getCart)
-  .post(addToCart)
-  .delete(clearCart);
+router.route('/').get(getCart).post(addToCart).delete(clearCart);
 
 router.post('/sync', syncCart);
 
-router.route('/:productId')
-  .put(updateCartItemQty)
-  .delete(removeFromCart);
+router.route('/:productId').put(updateCartItemQty).delete(removeFromCart);
 
 module.exports = router;

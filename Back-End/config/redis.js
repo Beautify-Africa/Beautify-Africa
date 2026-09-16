@@ -33,10 +33,6 @@ if (!isTestEnv) {
 } else {
   // Avoid noisy logs in tests while still surfacing command-level failures.
   redisClient.on('error', () => {});
-
-  process.on('beforeExit', () => {
-    redisClient.disconnect();
-  });
 }
 
 module.exports = redisClient;

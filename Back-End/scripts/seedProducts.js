@@ -18,17 +18,14 @@ async function seed() {
     console.log('Found ' + seedProducts.length + ' products in Back-End/data/seedProducts.js');
 
     // Clear existing products and associated child records
-    await sequelize.query('TRUNCATE TABLE products, product_variants, product_reviews, cart_items, wishlist_products CASCADE;');
+    await sequelize.query(
+      'TRUNCATE TABLE products, product_variants, product_reviews, cart_items, wishlist_products CASCADE;'
+    );
     console.log('Cleared existing products from database');
 
     const inserted = [];
     for (const productData of seedProducts) {
-      const {
-        id,
-        reviews,
-        isNew,
-        ...rest
-      } = productData;
+      const { id, reviews, isNew, ...rest } = productData;
 
       const normalizedProduct = {
         ...rest,

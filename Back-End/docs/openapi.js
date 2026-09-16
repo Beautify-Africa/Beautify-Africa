@@ -1,5 +1,7 @@
 function normalizeBaseUrl(value) {
-  return String(value || '').trim().replace(/\/+$/, '');
+  return String(value || '')
+    .trim()
+    .replace(/\/+$/, '');
 }
 
 function getServerUrl(req) {
@@ -47,7 +49,7 @@ function buildOpenApiSpec(req) {
           tags: ['System'],
           summary: 'API welcome endpoint',
           responses: {
-            '200': {
+            200: {
               description: 'Plain-text API health greeting',
               content: {
                 'text/plain': {
@@ -63,7 +65,7 @@ function buildOpenApiSpec(req) {
           tags: ['System'],
           summary: 'Read service and database health',
           responses: {
-            '200': {
+            200: {
               description: 'Service is healthy',
               content: {
                 'application/json': {
@@ -77,7 +79,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '503': {
+            503: {
               description: 'Service degraded',
               content: {
                 'application/json': {
@@ -108,7 +110,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '201': {
+            201: {
               description: 'Registration successful',
               content: {
                 'application/json': {
@@ -116,8 +118,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '409': { $ref: '#/components/responses/Conflict' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            409: { $ref: '#/components/responses/Conflict' },
           },
         },
       },
@@ -134,7 +136,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Login successful',
               content: {
                 'application/json': {
@@ -142,8 +144,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -160,7 +162,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Admin login successful',
               content: {
                 'application/json': {
@@ -168,9 +170,9 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '503': { $ref: '#/components/responses/ServiceUnavailable' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            503: { $ref: '#/components/responses/ServiceUnavailable' },
           },
         },
       },
@@ -193,7 +195,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Request accepted (generic response)',
               content: {
                 'application/json': {
@@ -201,8 +203,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '500': { $ref: '#/components/responses/InternalServerError' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            500: { $ref: '#/components/responses/InternalServerError' },
           },
         },
       },
@@ -226,7 +228,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Password reset completed',
               content: {
                 'application/json': {
@@ -234,7 +236,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
+            400: { $ref: '#/components/responses/BadRequest' },
           },
         },
       },
@@ -244,7 +246,7 @@ function buildOpenApiSpec(req) {
           summary: 'Get current authenticated user',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Authenticated user profile',
               content: {
                 'application/json': {
@@ -258,7 +260,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -268,7 +270,7 @@ function buildOpenApiSpec(req) {
           summary: 'Logout current user and invalidate active JWT',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Logout completed',
               content: {
                 'application/json': {
@@ -276,8 +278,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '500': { $ref: '#/components/responses/InternalServerError' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            500: { $ref: '#/components/responses/InternalServerError' },
           },
         },
       },
@@ -302,7 +304,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Profile updated',
               content: {
                 'application/json': {
@@ -316,8 +318,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '409': { $ref: '#/components/responses/Conflict' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            409: { $ref: '#/components/responses/Conflict' },
           },
         },
       },
@@ -344,7 +346,7 @@ function buildOpenApiSpec(req) {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'Product list',
               content: {
                 'application/json': {
@@ -378,7 +380,7 @@ function buildOpenApiSpec(req) {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'Product found',
               content: {
                 'application/json': {
@@ -392,8 +394,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '404': { $ref: '#/components/responses/NotFound' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            404: { $ref: '#/components/responses/NotFound' },
           },
         },
       },
@@ -426,7 +428,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '201': {
+            201: {
               description: 'Review created',
               content: {
                 'application/json': {
@@ -440,9 +442,9 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '404': { $ref: '#/components/responses/NotFound' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            404: { $ref: '#/components/responses/NotFound' },
           },
         },
       },
@@ -460,7 +462,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '201': {
+            201: {
               description: 'Order created',
               content: {
                 'application/json': {
@@ -474,7 +476,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
+            400: { $ref: '#/components/responses/BadRequest' },
           },
         },
       },
@@ -484,7 +486,7 @@ function buildOpenApiSpec(req) {
           summary: 'Get current user order history',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'User orders',
               content: {
                 'application/json': {
@@ -501,7 +503,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -512,7 +514,7 @@ function buildOpenApiSpec(req) {
           summary: 'Get authenticated user cart',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Cart items',
               content: {
                 'application/json': {
@@ -520,7 +522,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
         post: {
@@ -544,7 +546,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Cart updated',
               content: {
                 'application/json': {
@@ -552,7 +554,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
         delete: {
@@ -560,7 +562,7 @@ function buildOpenApiSpec(req) {
           summary: 'Clear all cart items',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Cart cleared',
               content: {
                 'application/json': {
@@ -568,7 +570,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -603,7 +605,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Cart synced',
               content: {
                 'application/json': {
@@ -611,8 +613,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -644,7 +646,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Cart item updated',
               content: {
                 'application/json': {
@@ -652,8 +654,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '404': { $ref: '#/components/responses/NotFound' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            404: { $ref: '#/components/responses/NotFound' },
           },
         },
         delete: {
@@ -669,7 +671,7 @@ function buildOpenApiSpec(req) {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'Cart item removed',
               content: {
                 'application/json': {
@@ -677,7 +679,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -688,7 +690,7 @@ function buildOpenApiSpec(req) {
           summary: 'Get wishlist products',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Wishlist fetched',
               content: {
                 'application/json': {
@@ -706,7 +708,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
         post: {
@@ -729,7 +731,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Wishlist updated',
               content: {
                 'application/json': {
@@ -747,8 +749,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
         delete: {
@@ -756,7 +758,7 @@ function buildOpenApiSpec(req) {
           summary: 'Clear wishlist',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Wishlist cleared',
               content: {
                 'application/json': {
@@ -770,7 +772,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -795,7 +797,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Wishlist toggled',
               content: {
                 'application/json': {
@@ -810,8 +812,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -850,7 +852,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Wishlist synced',
               content: {
                 'application/json': {
@@ -868,8 +870,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -887,7 +889,7 @@ function buildOpenApiSpec(req) {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'Wishlist item removed',
               content: {
                 'application/json': {
@@ -905,8 +907,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
           },
         },
       },
@@ -930,7 +932,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Already subscribed',
               content: {
                 'application/json': {
@@ -938,7 +940,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '201': {
+            201: {
               description: 'New subscription created',
               content: {
                 'application/json': {
@@ -946,7 +948,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
+            400: { $ref: '#/components/responses/BadRequest' },
           },
         },
       },
@@ -969,7 +971,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Request processed',
               content: {
                 'application/json': {
@@ -977,7 +979,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
+            400: { $ref: '#/components/responses/BadRequest' },
           },
         },
       },
@@ -1000,7 +1002,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Unsubscribe completed',
               content: {
                 'application/json': {
@@ -1008,7 +1010,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
+            400: { $ref: '#/components/responses/BadRequest' },
           },
         },
       },
@@ -1036,7 +1038,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Stripe client secret ready',
               content: {
                 'application/json': {
@@ -1051,7 +1053,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
+            400: { $ref: '#/components/responses/BadRequest' },
           },
         },
       },
@@ -1073,7 +1075,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Webhook processed',
               content: {
                 'application/json': {
@@ -1086,7 +1088,7 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': {
+            400: {
               description: 'Invalid webhook signature',
               content: {
                 'text/plain': {
@@ -1104,7 +1106,7 @@ function buildOpenApiSpec(req) {
           summary: 'Get admin dashboard data',
           security: [{ bearerAuth: [] }],
           responses: {
-            '200': {
+            200: {
               description: 'Dashboard payload',
               content: {
                 'application/json': {
@@ -1121,8 +1123,8 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '403': { $ref: '#/components/responses/Forbidden' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            403: { $ref: '#/components/responses/Forbidden' },
           },
         },
       },
@@ -1162,7 +1164,7 @@ function buildOpenApiSpec(req) {
             { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 50 } },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'Paginated admin order list',
               content: {
                 'application/json': {
@@ -1200,9 +1202,9 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '403': { $ref: '#/components/responses/Forbidden' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            403: { $ref: '#/components/responses/Forbidden' },
           },
         },
       },
@@ -1220,7 +1222,7 @@ function buildOpenApiSpec(req) {
             },
           ],
           responses: {
-            '200': {
+            200: {
               description: 'Admin order detail payload',
               content: {
                 'application/json': {
@@ -1319,10 +1321,10 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '403': { $ref: '#/components/responses/Forbidden' },
-            '404': { $ref: '#/components/responses/NotFound' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            403: { $ref: '#/components/responses/Forbidden' },
+            404: { $ref: '#/components/responses/NotFound' },
           },
         },
         patch: {
@@ -1355,7 +1357,7 @@ function buildOpenApiSpec(req) {
             },
           },
           responses: {
-            '200': {
+            200: {
               description: 'Order updated',
               content: {
                 'application/json': {
@@ -1369,10 +1371,10 @@ function buildOpenApiSpec(req) {
                 },
               },
             },
-            '400': { $ref: '#/components/responses/BadRequest' },
-            '401': { $ref: '#/components/responses/Unauthorized' },
-            '403': { $ref: '#/components/responses/Forbidden' },
-            '404': { $ref: '#/components/responses/NotFound' },
+            400: { $ref: '#/components/responses/BadRequest' },
+            401: { $ref: '#/components/responses/Unauthorized' },
+            403: { $ref: '#/components/responses/Forbidden' },
+            404: { $ref: '#/components/responses/NotFound' },
           },
         },
       },
