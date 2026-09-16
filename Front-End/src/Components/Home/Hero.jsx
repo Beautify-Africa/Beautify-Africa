@@ -1,4 +1,4 @@
-﻿import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import InteractiveButton from '../Shared/InteractiveButton';
 import FadeIn from '../Shared/FadeIn';
 import HeroBackground from './HeroBackground';
