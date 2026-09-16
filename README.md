@@ -1,210 +1,214 @@
-# Beautify Africa
+# Beautify Africa — Enterprise E-Commerce Platform
 
-A white-label beauty e-commerce starter built to be resold, rebranded, or deployed as a ready-made storefront for skincare and cosmetics brands.
+[![CI](https://github.com/Beautify-Africa/Beautify-Africa/actions/workflows/ci.yml/badge.svg)](https://github.com/Beautify-Africa/Beautify-Africa/actions/workflows/ci.yml)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
 
-## Buyer-Facing Summary
+An enterprise-grade, high-performance e-commerce platform dedicated to African-inspired luxury beauty and wellness products. Engineered with modern JavaScript standards, transactional integrity, and reactive frontend resilience.
 
-This repo is strongest when pitched as a productized commerce foundation rather than a one-off project. A buyer should immediately understand three things:
+---
 
-- What they are getting: storefront, admin tools, backend API, payments, email, deployment assets
-- What they can launch quickly: a branded beauty shop with catalog, cart, checkout, and admin operations
-- What makes it safe to buy: tests, Docker support, CI/CD, API docs, and a defined operational baseline
+## 🏛 Architecture Overview
 
-## Project Scope
+Beautify Africa is structured as an **npm workspaces monorepo** separating presentation and server concerns while maintaining shared code standards, linting, and formatting.
 
-This repository delivers:
-
-- Customer storefront (catalog, cart, checkout, profile, order history)
-- Admin operations dashboard and fulfillment actions
-- Secure authentication and password reset workflows
-- Newsletter subscribe and tokenized unsubscribe workflows
-- Stripe payment intent flow with webhook confirmation
-- Containerized local/runtime deployment
-- OpenAPI documentation and GitHub CI/CD automation
-
-## What A Buyer Gets
-
-- A customer storefront with browsing, cart, checkout, profiles, and order history
-- An admin dashboard for products, inventory, orders, and fulfillment workflows
-- Stripe payment integration and webhook confirmation flow
-- Email workflows for newsletters, password reset, and order notifications
-- Docker and CI/CD assets that reduce setup risk for a new owner
-- API documentation and deployment notes for faster onboarding
-
-## Selling Angle
-
-The best market fit for this codebase is one of the following:
-
-- Beauty-commerce starter kit
-- White-label skincare storefront
-- Agency-ready e-commerce template
-- Internal launch base for a brand that wants speed over custom engineering
-
-## Architecture
-
-- Front-End: React + Vite + Tailwind
-- Back-End: Node.js + Express + Mongoose
-- Database: MongoDB
-- Payments: Stripe
-- Email: SMTP via Nodemailer
-- Packaging/Runtime: Docker + Docker Compose
-- API Docs: OpenAPI 3.0.3 + Swagger UI
-- CI/CD: GitHub Actions (quality gates + container publishing)
-
-## Packaging Notes
-
-If you want buyers to take it seriously, the listing should emphasize:
-
-- Screenshots or a short demo video
-- A live hosted demo URL
-- Clear install and rebrand steps
-- Sample admin credentials or seeded demo content
-- A concise list of included and excluded features
-- The tech stack only after the business value is clear
-
-## Repository Layout
-
-- Back-End: API server, business services, models, middleware, tests
-- Front-End: web client application
-- docker-compose.yml: local multi-service orchestration
-- .github/workflows/ci.yml: continuous integration checks
-- .github/workflows/cd.yml: container image publishing to GHCR
-
-## API Documentation
-
-After starting the backend service:
-
-- Swagger UI: [http://localhost:5000/api/docs](http://localhost:5000/api/docs)
-- OpenAPI JSON: [http://localhost:5000/api/openapi.json](http://localhost:5000/api/openapi.json)
-
-## Local Run
-
-### Option A: Docker Compose (recommended)
-
-1. Ensure Docker Desktop is running.
-2. From repository root:
-
-```bash
-docker compose up --build
+```
+Beautify-Africa/
+├── Back-End/                       # Express 5 & Sequelize REST API
+│   ├── config/                     # Database, Redis, Migrator, BullMQ
+│   ├── controllers/                # Request handlers & HTTP endpoints
+│   ├── middlewares/                # Auth (RBAC), Rate Limiters, Request ID, Zod Validator
+│   ├── migrations/                 # Umzug reversible database migrations
+│   ├── models/                     # Sequelize models (User, Product, Order, InventoryLedger, etc.)
+│   ├── queues/ & workers/          # BullMQ background workers (email, stock alerts)
+│   ├── routes/                     # Express route declarations
+│   ├── services/                   # Business logic (inventory locks, orders, auth)
+│   ├── tests/                      # Jest unit & integration test suites
+│   ├── utils/                      # Pino logger, email dispatches
+│   └── validations/                # Zod request validation schemas
+│
+├── Front-End/                      # React 18 & Vite SPA
+│   ├── e2e/                        # Playwright end-to-end browser test suites
+│   ├── src/
+│   │   ├── Components/             # Atomic & domain UI components (Shop, Cart, Checkout, Admin)
+│   │   ├── context/                # React Context (Auth, Cart)
+│   │   ├── hooks/                  # Custom hooks & TanStack Query hooks (useProductsQuery, etc.)
+│   │   ├── lib/                    # QueryClient configuration with smart retry & caching
+│   │   ├── pages/                  # Route views (HomePage, ShopPageLayout, Admin, Profile)
+│   │   ├── services/               # Axios/Fetch API client modules
+│   │   ├── utils/                  # Sonner toast wrapper, image formatters
+│   │   └── validations/            # Client-side Zod validation schemas
+│   ├── nginx.conf                  # Production reverse proxy with security headers
+│   └── playwright.config.js        # Playwright E2E configuration
+│
+├── .github/workflows/              # Automated CI/CD pipelines (Lint, Tests, Build, Docker)
+├── docker-compose.yml              # Local orchestration (PostgreSQL 16, Redis 7, Backend, Frontend)
+└── package.json                    # Monorepo root workspace configuration
 ```
 
-1. Access services:
+---
 
-- Frontend: [http://localhost:4173](http://localhost:4173)
-- Backend API: [http://localhost:5000](http://localhost:5000)
+## 🛠 Technology Stack
 
-### Option B: Run services independently
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 18, Vite 7, Tailwind CSS 4, TanStack Query v5, Zod, Sonner, Framer Motion |
+| **Backend** | Node.js 20, Express 5, Sequelize v6, PostgreSQL 16, Redis 7, BullMQ, Pino Logger |
+| **Testing** | Vitest, React Testing Library, Jest, Playwright E2E |
+| **DevOps** | Docker, Docker Compose, Nginx, GitHub Actions CI/CD |
+| **Security** | RBAC, Bcrypt, httpOnly cookies, Helmet, Express Rate Limit, RFC 7807 Errors |
 
-Backend:
+---
 
-```bash
-cd Back-End
-npm ci
-npm run dev
+## 🚀 Quickstart Guide
+
+### Prerequisites
+- **Node.js**: `v20.x` or higher
+- **npm**: `v10.x` or higher
+- **Docker & Docker Compose**: (optional, for containerized execution)
+- **PostgreSQL 16+** & **Redis 7+** (for native execution)
+
+---
+
+### Option A: Running with Docker Compose (Recommended)
+
+The easiest way to boot the full production stack including database and cache:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Beautify-Africa/Beautify-Africa.git
+   cd Beautify-Africa
+   ```
+
+2. **Configure Environment Variables**:
+   ```bash
+   cp .env.example .env
+   cp Back-End/.env.example Back-End/.env
+   cp Front-End/.env.example Front-End/.env
+   ```
+
+3. **Start All Services**:
+   ```bash
+   docker compose up --build -d
+   ```
+
+4. **Verify Health**:
+   - Storefront UI: [http://localhost:4173](http://localhost:4173)
+   - Backend API: [http://localhost:5000/health/ready](http://localhost:5000/health/ready)
+   - API Documentation / Base: [http://localhost:5000/api](http://localhost:5000/api)
+
+---
+
+### Option B: Native Local Development
+
+1. **Install All Workspace Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Configure Environment Variables**:
+   Create `Back-End/.env` and `Front-End/.env` from their respective `.env.example` templates.
+
+3. **Run Database Migrations**:
+   ```bash
+   npm run migrate
+   ```
+
+4. **Seed Initial Products (Optional)**:
+   ```bash
+   npm --prefix Back-End run seed
+   ```
+
+5. **Start Frontend & Backend Concurrently**:
+   ```bash
+   npm run dev
+   ```
+   - Frontend runs at: `http://localhost:5173`
+   - Backend runs at: `http://localhost:5000`
+
+---
+
+## 📜 Monorepo Command Reference
+
+| Command | Action |
+|---|---|
+| `npm run dev` | Starts Backend and Frontend development servers concurrently |
+| `npm run dev:backend` | Starts Express backend with nodemon hot reload |
+| `npm run dev:frontend` | Starts Vite frontend development server |
+| `npm run build` | Compiles production-optimized frontend bundle with Vite |
+| `npm run migrate` | Executes pending Umzug database migrations |
+| `npm run migrate:rollback` | Reverts the most recent database migration |
+| `npm run test:all` | Executes all 114 backend (Jest) and frontend (Vitest) tests |
+| `npm run test:backend` | Runs backend Jest test suites (13 suites, 86 tests) |
+| `npm run test:frontend` | Runs frontend Vitest test suites (5 suites, 28 tests) |
+| `npm run test:e2e` | Runs Playwright browser end-to-end tests (5 scenarios) |
+| `npm run lint` | Checks frontend code quality with ESLint |
+| `npm run format` | Auto-formats all codebase files using Prettier |
+| `npm run format:check` | Verifies code formatting conformance |
+
+---
+
+## 🔒 Security & Enterprise Practices
+
+1. **Role-Based Access Control (RBAC)**:
+   - System user roles: `customer`, `admin`, `manager`, `support`.
+   - Admin and manager endpoints are protected via `requireRole(['admin', 'manager'])` middleware.
+   - Frontend route guarding via `<ProtectedRoute adminOnly>` redirects unauthorized users before executing sensitive components.
+
+2. **Atomic Concurrency & Inventory Ledger**:
+   - Stock adjustments execute within database transactions using row-level locks (`transaction.LOCK.UPDATE`).
+   - Every stock movement records an audit entry in `InventoryLedger` tracking delta, reason, order reference, and actor.
+
+3. **Idempotent Webhooks & Safe Payments**:
+   - Stripe webhooks verify signatures and log event IDs to `WebhookEvent` table to prevent duplicate order fulfillment or double-charging.
+
+4. **Structured Logging & Observability**:
+   - Pino structured JSON logger with correlation IDs (`x-request-id`) forwarded through headers.
+   - Health probes: `/health/live` (process liveness) and `/health/ready` (PostgreSQL and Redis connectivity check).
+
+5. **Client Resilience**:
+   - Global and sectional React `<ErrorBoundary>` fallback components prevent full-application whiteout on render exceptions.
+   - TanStack Query eliminates manual `AbortController` fetch loops and provides intelligent stale-while-revalidate background caching.
+
+---
+
+## 🧪 Testing Architecture
+
+```
+Tests (119 Total)
+├── Backend Jest (86 Tests)
+│   ├── Authentication & Role Access Control
+│   ├── Order Processing & Pricing Calculations
+│   ├── Atomic Inventory Deduction & Restock Ledger
+│   ├── Request Body Parsing & Sanitization
+│   ├── Model Indexes & Unique Constraints
+│   └── Observability & Health Probes
+│
+├── Frontend Vitest (28 Tests)
+│   ├── Zod Shipping Form Validation
+│   ├── Cart State Mutations & Price Calculations
+│   ├── Protected Route Guard Redirection
+│   ├── Error Boundary Recovery & Rendering
+│   └── Toast Notification Dispatching
+│
+└── Playwright E2E (5 Tests)
+    ├── Customer Browsing & Storefront Loading
+    ├── Sliding Cart Drawer Interaction & Keyboard Traps
+    └── Admin Route Guard Redirection
 ```
 
-Frontend:
+---
 
-```bash
-cd Front-End
-npm ci
-npm run dev
-```
+## 🚢 Deployment & Production Readiness
 
-## Environment Configuration
+- **Production Health Checks**:
+  - `GET /health/live`: 200 OK (uptime, timestamp).
+  - `GET /health/ready`: 200 OK when PostgreSQL and Redis connections are verified; 503 if degraded.
+- **Dockerized Multi-Stage Build**:
+  - `Front-End/Dockerfile`: Compiles React SPA into static assets served via an alpine Nginx server with Brotli/Gzip compression, security headers, and caching headers.
+  - `Back-End/Dockerfile`: Runs pruned production dependencies, applies Umzug migrations on boot, and starts Express.
 
-### Back-End required
+---
 
-- MONGO_URI
-- JWT_SECRET
-
-### Back-End required for full payment/email features
-
-- STRIPE_SECRET_KEY
-- STRIPE_WEBHOOK_SECRET
-- EMAIL_USER
-- EMAIL_PASS
-
-### Back-End operational configuration (recommended)
-
-- PORT
-- CLIENT_URL
-- REQUEST_BODY_LIMIT
-- JWT_EXPIRES_IN
-- ADMIN_EMAILS
-- ADMIN_DASHBOARD_PASSWORD
-- PASSWORD_RESET_URL_BASE
-- PASSWORD_RESET_TOKEN_TTL_MINUTES
-- NEWSLETTER_UNSUBSCRIBE_URL_BASE
-- NEWSLETTER_UNSUBSCRIBE_TOKEN_TTL_MINUTES
-- API_BASE_URL
-- EMAIL_HOST
-- EMAIL_PORT
-
-### Front-End build/runtime variables
-
-- VITE_API_URL
-- VITE_STRIPE_PUBLISHABLE_KEY
-
-## Quality Gates
-
-Backend:
-
-```bash
-cd Back-End
-npm test
-```
-
-Frontend:
-
-```bash
-cd Front-End
-npm run lint
-npm run build
-```
-
-## CI/CD
-
-### CI workflow
-
-File: .github/workflows/ci.yml
-
-On push and pull request to main, CI executes:
-
-- Back-End test suite
-- Front-End lint
-- Front-End production build
-
-### CD workflow
-
-File: .github/workflows/cd.yml
-
-After CI succeeds on main, CD builds and publishes Docker images to GitHub Container Registry:
-
-- ghcr.io/{owner}/beautify-africa-backend:latest
-- ghcr.io/{owner}/beautify-africa-backend:{short-sha}
-- ghcr.io/{owner}/beautify-africa-frontend:latest
-- ghcr.io/{owner}/beautify-africa-frontend:{short-sha}
-
-## Security And Operations Baseline
-
-Implemented controls include:
-
-- Helmet security headers
-- Auth and API rate limiting
-- Request sanitization against operator-style payload abuse
-- Configurable body-size limits with explicit 413 handling
-- JWT-protected private/admin routes
-- Tokenized password reset and newsletter unsubscribe flows
-- Health endpoint at /health
-
-## Operational Notes
-
-- Backend startup fails fast if critical variables are missing.
-- API docs are generated from current server contracts and served at runtime.
-- Docker Compose defines the primary local developer runtime topology.
-
-## Existing Technical Debt (Known)
-
-- Production secrets are still environment-file driven in local/dev workflows. Before enterprise deployment, externalize secrets to a managed vault (for example Azure Key Vault, AWS Secrets Manager, or GCP Secret Manager) and inject them at runtime/CI.
-- Secret rotation and access-audit workflows are not yet automated.
+## 📄 License
+This project is licensed under the ISC License.

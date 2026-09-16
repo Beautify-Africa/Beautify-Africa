@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 4. Install production dependencies exclusively (ignoring dev dependencies)
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # 5. Copy the rest of your server code into the image (this ignores things listed in .dockerignore)
 COPY . .
@@ -17,5 +17,5 @@ COPY . .
 # 6. Expose the port your Express app binds to
 EXPOSE 5000
 
-# 7. Start the server exactly as you do locally
-CMD ["npm", "start"]
+# 7. Run database migrations and start the server
+CMD ["sh", "-c", "npm run migrate && npm start"]

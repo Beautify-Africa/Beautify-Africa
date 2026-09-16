@@ -7,36 +7,32 @@ services:
       context: ./Back-End
     container_name: beautify_backend
     ports:
-      - "5000:5000"
-    # Because Docker ignores your .env file for security, we explicitly map the file here
+      - '5000:5000'
     env_file:
       - ./Back-End/.env
-    # Mongo credentials are loaded from ./Back-End/.env via env_file.
     environment:
-      # When deployed natively via Render, REDIS_URL from Env Vars takes over.
-      # When running inside docker-compose, this targets the inner Redis container.
-      REDIS_URL: redis://redis:6379
-    # Tells Docker to restart the backend automatically if it ever crashes
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/beautify_africa}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      NODE_ENV: production
     restart: unless-stopped
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
 
   # ============================
-  # 2. React Vite Frontend
+  # 2. React Vite Frontend (Nginx)
   # ============================
   frontend:
     build:
       context: ./Front-End
-      # During compilation, Vite bakes the API URL in. We point it to the exposed backend.
       args:
-        VITE_API_URL: http://localhost:5000
-        VITE_STRIPE_PUBLISHABLE_KEY: pk_test_51RBFvFFSeF38x7miiv5gZvt0o4IiAcx8VMLJq6j4zKchX8VVwWwqgvaJtps8gZAyiWfs3pAzbNFYw8sfQ3SwaNYb009qB6Hrfq
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:5000}
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-}
     container_name: beautify_frontend
-    # Map it to port 4173 which closely matches your Vite Preview port
     ports:
-      - "4173:80"
-    # Force the frontend to wait until the backend exists before booting
+      - '4173:80'
     depends_on:
       - backend
     restart: unless-stopped
@@ -48,10 +44,34 @@ services:
     image: redis:7-alpine
     container_name: beautify_redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 10
     restart: unless-stopped
+
+  # ============================
+  # 4. PostgreSQL Database
+  # ============================
+  postgres:
+    image: postgres:16-alpine
+    container_name: beautify_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-beautify_africa}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d beautify_africa']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
