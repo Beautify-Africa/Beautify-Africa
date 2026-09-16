@@ -41,9 +41,13 @@ export default function ForgotPasswordForm({ emailTemplate, inputIdPrefix = 'for
       </button>
 
       <header className="mb-8">
-        <span className="mb-3 block text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">Password Recovery</span>
+        <span className="mb-3 block text-[10px] font-bold uppercase tracking-[0.2em] text-amber-700">
+          Password Recovery
+        </span>
         <h3 className="font-serif text-2xl text-stone-900">Forgot your password?</h3>
-        <p className="mt-3 text-sm leading-relaxed text-stone-500">Enter your account email and we will send you a secure password reset link.</p>
+        <p className="mt-3 text-sm leading-relaxed text-stone-500">
+          Enter your account email and we will send you a secure password reset link.
+        </p>
       </header>
 
       <form className="space-y-6" onSubmit={handleSubmit}>
@@ -53,8 +57,16 @@ export default function ForgotPasswordForm({ emailTemplate, inputIdPrefix = 'for
           onChange={(event) => setEmail(event.target.value)}
         />
 
-        {error ? <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
-        {successMessage ? <p className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{successMessage}</p> : null}
+        {error ? (
+          <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
+          </p>
+        ) : null}
+        {successMessage ? (
+          <p className="rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {successMessage}
+          </p>
+        ) : null}
 
         <button
           type="submit"

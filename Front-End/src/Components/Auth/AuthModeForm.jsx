@@ -29,8 +29,14 @@ export default function AuthModeForm({
   const [password, setPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  const nameField = useMemo(() => withIdPrefix(fields.name, inputIdPrefix), [fields.name, inputIdPrefix]);
-  const emailField = useMemo(() => withIdPrefix(fields.email, inputIdPrefix), [fields.email, inputIdPrefix]);
+  const nameField = useMemo(
+    () => withIdPrefix(fields.name, inputIdPrefix),
+    [fields.name, inputIdPrefix]
+  );
+  const emailField = useMemo(
+    () => withIdPrefix(fields.email, inputIdPrefix),
+    [fields.email, inputIdPrefix]
+  );
   const passwordField = useMemo(
     () =>
       withIdPrefix(
@@ -109,7 +115,9 @@ export default function AuthModeForm({
           </span>
         )}
         <h3 className="font-serif text-2xl text-stone-900">{content.title}</h3>
-        {content.description && <p className="mt-3 text-sm leading-relaxed text-stone-600">{content.description}</p>}
+        {content.description && (
+          <p className="mt-3 text-sm leading-relaxed text-stone-600">{content.description}</p>
+        )}
       </header>
 
       <form className="space-y-6" onSubmit={handleSubmit}>

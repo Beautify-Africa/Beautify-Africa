@@ -87,10 +87,7 @@ describe('Password reset auth flow', () => {
     const tokenMatch = sentPayload.html.match(/token=([a-f0-9]+)/i);
     expect(tokenMatch).toBeTruthy();
 
-    const hashedTokenFromEmail = crypto
-      .createHash('sha256')
-      .update(tokenMatch[1])
-      .digest('hex');
+    const hashedTokenFromEmail = crypto.createHash('sha256').update(tokenMatch[1]).digest('hex');
 
     expect(hashedTokenFromEmail).toBe(userDoc.passwordResetToken);
   });

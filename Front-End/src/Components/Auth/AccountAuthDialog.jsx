@@ -9,7 +9,8 @@ const ACCOUNT_AUTH_COPY = {
   login: {
     badge: 'Member Access',
     title: 'Sign in while you shop',
-    description: 'Keep your account active while you browse, then head to checkout whenever it feels right.',
+    description:
+      'Keep your account active while you browse, then head to checkout whenever it feels right.',
     submitLabel: 'Sign In',
     switchText: 'Do not have an account?',
     switchLabel: 'Create one',
@@ -86,7 +87,13 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
       className="fixed inset-0 z-[180] flex items-center justify-center px-4 py-8"
       role="dialog"
       aria-modal="true"
-      aria-label={isForgotMode ? 'Reset your password' : isRegisterMode ? 'Create your account' : 'Sign in to your account'}
+      aria-label={
+        isForgotMode
+          ? 'Reset your password'
+          : isRegisterMode
+            ? 'Create your account'
+            : 'Sign in to your account'
+      }
     >
       <div
         className="absolute inset-0 bg-black/55 backdrop-blur-sm"
@@ -101,16 +108,22 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
         <div className="border-b border-stone-100 bg-[#faf9f6] px-6 py-6 sm:px-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">My Account</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">
+                My Account
+              </p>
               <h2 className="mt-2 font-serif text-3xl text-stone-900">
-                {isForgotMode ? 'Recover your account' : isRegisterMode ? 'Create your account' : 'Stay signed in while you shop'}
+                {isForgotMode
+                  ? 'Recover your account'
+                  : isRegisterMode
+                    ? 'Create your account'
+                    : 'Stay signed in while you shop'}
               </h2>
               <p className="mt-3 max-w-lg text-sm leading-relaxed text-stone-500">
                 {isForgotMode
                   ? 'Request a secure reset link and set a brand new password in a few steps.'
                   : isRegisterMode
-                  ? 'Open your account now and save your details for a faster checkout next time.'
-                  : 'This keeps your account ready without sending you into checkout before you want to go there.'}
+                    ? 'Open your account now and save your details for a faster checkout next time.'
+                    : 'This keeps your account ready without sending you into checkout before you want to go there.'}
               </p>
             </div>
 
@@ -123,7 +136,6 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
               <CloseIcon className="h-4 w-4" />
             </button>
           </div>
-
         </div>
 
         <div className="px-6 py-6 sm:px-8">

@@ -3,14 +3,21 @@ const rateLimit = require('express-rate-limit');
 const { Redis } = require('ioredis');
 const { RedisStore } = require('rate-limit-redis');
 
+const isTestEnv = process.env.NODE_ENV === 'test';
+
 const rateLimitRedis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   connectTimeout: 2000,
   lazyConnect: true,
-  retryStrategy: (times) => Math.min(times * 200, 2000),
+  retryStrategy: (times) => (isTestEnv ? null : Math.min(times * 200, 2000)),
 });
-rateLimitRedis.on('error', (err) => console.warn('Rate-limit Redis error:', err.message));
+rateLimitRedis.on('error', (err) => {
+  if (!isTestEnv) {
+    console.warn('Rate-limit Redis error:', err.message);
+  }
+});
 
 function makeRedisStore(prefix) {
+  if (isTestEnv) return undefined;
   return new RedisStore({
     sendCommand: (...args) => rateLimitRedis.call(...args),
     prefix,
@@ -25,6 +32,7 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
   store: makeRedisStore('rl:api:'),
   passOnStoreError: true,
+  skip: () => isTestEnv,
   message: { status: 'error', message: 'Too many requests, please try again later.' },
 });
 
@@ -36,7 +44,11 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   store: makeRedisStore('rl:auth:'),
   passOnStoreError: true,
-  message: { status: 'error', message: 'Too many authentication attempts, please try again later.' },
+  skip: () => isTestEnv,
+  message: {
+    status: 'error',
+    message: 'Too many authentication attempts, please try again later.',
+  },
 });
 
 // Cart limiter: tight 30 requests per IP per minute — blocks bot cart abuse
@@ -47,6 +59,7 @@ const cartLimiter = rateLimit({
   legacyHeaders: false,
   store: makeRedisStore('rl:cart:'),
   passOnStoreError: true,
+  skip: () => isTestEnv,
   message: { status: 'error', message: 'Too many cart requests, please slow down.' },
 });
 
@@ -58,6 +71,7 @@ const paymentLimiter = rateLimit({
   legacyHeaders: false,
   store: makeRedisStore('rl:payment:'),
   passOnStoreError: true,
+  skip: () => isTestEnv,
   message: { status: 'error', message: 'Too many payment requests, please try again later.' },
 });
 
@@ -69,6 +83,7 @@ const newsletterLimiter = rateLimit({
   legacyHeaders: false,
   store: makeRedisStore('rl:newsletter:'),
   passOnStoreError: true,
+  skip: () => isTestEnv,
   message: { status: 'error', message: 'Too many newsletter requests, please slow down.' },
 });
 

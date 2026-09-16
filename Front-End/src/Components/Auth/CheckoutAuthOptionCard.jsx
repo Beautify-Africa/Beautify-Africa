@@ -55,7 +55,13 @@ function CheckoutAuthIcon({ variant }) {
   );
 }
 
-export default function CheckoutAuthOptionCard({ icon, title, description, onClick, highlighted = false }) {
+export default function CheckoutAuthOptionCard({
+  icon,
+  title,
+  description,
+  onClick,
+  highlighted = false,
+}) {
   return (
     <button
       type="button"

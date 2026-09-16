@@ -45,17 +45,33 @@ function isConfiguredAdminDashboardCredential(email, password) {
 function isAdminUser(userDoc) {
   if (!userDoc) return false;
   const normalizedEmail = normalizeEmail(userDoc.email || '');
-  return Boolean(userDoc.isAdmin) || getConfiguredAdminEmails().includes(normalizedEmail);
+  return (
+    Boolean(userDoc.isAdmin) ||
+    userDoc.role === 'admin' ||
+    getConfiguredAdminEmails().includes(normalizedEmail)
+  );
 }
 
 function sanitizeUser(userDoc) {
+  const role = userDoc.role || (isAdminUser(userDoc) ? 'admin' : 'customer');
   return {
     id: userDoc.id || userDoc._id,
     name: userDoc.name,
     email: userDoc.email,
+    role,
     createdAt: userDoc.createdAt,
-    isAdmin: isAdminUser(userDoc),
+    isAdmin: role === 'admin' || isAdminUser(userDoc),
   };
+}
+
+function validatePasswordStrength(password = '') {
+  if (typeof password !== 'string' || password.length < 8) {
+    return {
+      isValid: false,
+      message: 'Password must be at least 8 characters long.',
+    };
+  }
+  return { isValid: true };
 }
 
 function signToken(userId) {
@@ -79,7 +95,8 @@ function buildJwtBlacklistKey(token = '') {
 function createPasswordResetTokenPayload() {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const configuredMinutes = Number(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES || 30);
-  const ttlMinutes = Number.isFinite(configuredMinutes) && configuredMinutes > 0 ? configuredMinutes : 30;
+  const ttlMinutes =
+    Number.isFinite(configuredMinutes) && configuredMinutes > 0 ? configuredMinutes : 30;
   return {
     rawToken,
     hashedToken: hashPasswordResetToken(rawToken),
@@ -132,6 +149,7 @@ module.exports = {
   getClientApplicationUrl,
   buildPasswordResetLink,
   sanitizeUser,
+  validatePasswordStrength,
   signToken,
   getAuthErrorResponse,
 };
