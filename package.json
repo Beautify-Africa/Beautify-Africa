@@ -8,7 +8,7 @@
     "Front-End"
   ],
   "engines": {
-    "node": ">=20.19.0 <=22.x"
+    "node": "24.x"
   },
   "optionalDependencies": {
     "@esbuild/linux-x64": "0.28.2",

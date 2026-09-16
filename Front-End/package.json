@@ -57,7 +57,7 @@
     "lightningcss-linux-x64-musl": "1.30.2"
   },
   "engines": {
-    "node": ">=20.19.0 <=22.x"
+    "node": "24.x"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",
