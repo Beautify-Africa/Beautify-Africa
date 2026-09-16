@@ -49,7 +49,9 @@ export default function TrackOrderCard({ order }) {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
               Order Total
             </p>
-            <p className="mt-1 text-xl font-bold text-stone-900">${order.totalPrice.toFixed(2)}</p>
+            <p className="mt-1 text-xl font-bold text-stone-900">
+              ${Number(order.totalPrice || 0).toFixed(2)}
+            </p>
             <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-800">
               {stage.label}
             </p>
@@ -93,7 +95,7 @@ export default function TrackOrderCard({ order }) {
                     {item.name}
                   </Link>
                   <p className="mt-1 text-xs text-stone-500">
-                    Qty: {item.qty} x ${item.price.toFixed(2)}
+                    Qty: {item.qty} x ${Number(item.price || 0).toFixed(2)}
                   </p>
                 </div>
               </li>

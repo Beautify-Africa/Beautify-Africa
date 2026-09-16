@@ -7,7 +7,9 @@ export default function CartFooter({ subtotal, onCheckout }) {
         <span className="text-xs uppercase tracking-widest text-stone-500">
           {CART_CONTENT.subtotalLabel}
         </span>
-        <span className="font-serif text-xl text-stone-900">${subtotal.toFixed(2)}</span>
+        <span className="font-serif text-xl text-stone-900">
+          ${Number(subtotal || 0).toFixed(2)}
+        </span>
       </div>
       <p className="text-[10px] text-stone-400 mb-6 text-center">{CART_CONTENT.shippingNote}</p>
       <button

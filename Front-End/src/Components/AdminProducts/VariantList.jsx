@@ -93,7 +93,7 @@ export default function VariantList({ variants = [], onEdit, onDelete, onAdjustS
                         Price Override
                       </p>
                       <p className="mt-1 text-lg font-bold text-stone-900">
-                        ${variant.price.toFixed(2)}
+                        ${Number(variant.price || 0).toFixed(2)}
                       </p>
                     </div>
                   )}

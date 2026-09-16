@@ -45,9 +45,11 @@ function ProductImage({ product }) {
 function PriceDisplay({ price, originalPrice }) {
   return (
     <div className="flex items-center gap-4">
-      <span className="text-2xl font-serif text-amber-800">${price.toFixed(2)}</span>
+      <span className="text-2xl font-serif text-amber-800">${Number(price || 0).toFixed(2)}</span>
       {originalPrice && (
-        <span className="text-lg text-stone-400 line-through">${originalPrice.toFixed(2)}</span>
+        <span className="text-lg text-stone-400 line-through">
+          ${Number(originalPrice).toFixed(2)}
+        </span>
       )}
     </div>
   );
