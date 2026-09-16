@@ -90,20 +90,21 @@ const getCart = async (req, res) => {
 // @route   POST /api/cart
 // @access  Private
 const addToCart = async (req, res) => {
-  const { product, variant, quantity } = req.body;
+  const productId = req.body.product || req.body.productId;
+  const { variant, quantity } = req.body;
   const userId = req.user._id;
 
   try {
     const { product: dbProduct, error: productError } = await findInStockProduct(
-      product,
+      productId,
       'Product is fully out of stock'
     );
     if (productError) return sendServiceError(res, productError);
 
     const cart = await findOrCreateCart(userId);
 
-    addOrMergeCartItem(cart, {
-      productId: product,
+    await addOrMergeCartItem(cart, {
+      productId,
       dbProduct,
       variant,
       quantity,
