@@ -3,21 +3,26 @@ const { DataTypes, Model, Op } = require('sequelize');
 const { sequelize } = require('../config/db');
 
 class InventoryLedger extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 
   // Static method: Record Movement (factory)
-  static async recordMovement({
-    product,
-    variant = null,
-    type,
-    quantity,
-    reason,
-    notes = '',
-    createdBy = null,
-    relatedOrder = null,
-    stockBefore,
-    stockAfter,
-  }) {
+  static async recordMovement(
+    {
+      product,
+      variant = null,
+      type,
+      quantity,
+      reason,
+      notes = '',
+      createdBy = null,
+      relatedOrder = null,
+      stockBefore,
+      stockAfter,
+    },
+    options = {}
+  ) {
     // Validate stock transition
     const calculatedStockAfter = stockBefore + quantity;
     if (calculatedStockAfter !== stockAfter) {
@@ -31,18 +36,21 @@ class InventoryLedger extends Model {
       );
     }
 
-    return InventoryLedger.create({
-      productId: product,
-      variantId: variant || null,
-      type,
-      quantity,
-      reason,
-      notes,
-      createdById: createdBy || null,
-      relatedOrderId: relatedOrder || null,
-      stockBefore,
-      stockAfter,
-    });
+    return InventoryLedger.create(
+      {
+        productId: product,
+        variantId: variant || null,
+        type,
+        quantity,
+        reason,
+        notes,
+        createdById: createdBy || null,
+        relatedOrderId: relatedOrder || null,
+        stockBefore,
+        stockAfter,
+      },
+      options
+    );
   }
 
   // Static method: Get Stock History
@@ -75,7 +83,11 @@ class InventoryLedger extends Model {
 InventoryLedger.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    productId: { type: DataTypes.UUID, allowNull: false, references: { model: 'products', key: 'id' } },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'products', key: 'id' },
+    },
     variantId: { type: DataTypes.UUID, allowNull: true, defaultValue: null },
     type: {
       type: DataTypes.ENUM('purchase', 'adjustment', 'restock', 'return', 'correction'),
@@ -84,8 +96,18 @@ InventoryLedger.init(
     quantity: { type: DataTypes.INTEGER, allowNull: false },
     reason: { type: DataTypes.TEXT, allowNull: false },
     notes: { type: DataTypes.TEXT, defaultValue: '' },
-    createdById: { type: DataTypes.UUID, allowNull: true, defaultValue: null, references: { model: 'users', key: 'id' } },
-    relatedOrderId: { type: DataTypes.UUID, allowNull: true, defaultValue: null, references: { model: 'orders', key: 'id' } },
+    createdById: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      defaultValue: null,
+      references: { model: 'users', key: 'id' },
+    },
+    relatedOrderId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      defaultValue: null,
+      references: { model: 'orders', key: 'id' },
+    },
     stockBefore: { type: DataTypes.INTEGER, allowNull: false },
     stockAfter: { type: DataTypes.INTEGER, allowNull: false },
   },

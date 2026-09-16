@@ -11,12 +11,17 @@ function parsePositiveInt(value, fallback) {
 }
 
 const rawDbUrl = process.env.DATABASE_URL || '';
-const isLocal = rawDbUrl.includes('localhost') || rawDbUrl.includes('127.0.0.1') || rawDbUrl.includes('@postgres:');
+const isLocal =
+  rawDbUrl.includes('localhost') ||
+  rawDbUrl.includes('127.0.0.1') ||
+  rawDbUrl.includes('@postgres:');
 
 function safeSqlLogger(sql) {
   if (process.env.NODE_ENV !== 'development') return;
-  const redacted = sql
-    .replace(/(password|passwordResetToken|token|email)\s*=\s*'[^']+'/gi, '$1 = \'[REDACTED]\'');
+  const redacted = sql.replace(
+    /(password|passwordResetToken|token|email)\s*=\s*'[^']+'/gi,
+    "$1 = '[REDACTED]'"
+  );
   console.log('[SQL]', redacted);
 }
 
@@ -80,10 +85,12 @@ const connectDB = async () => {
 
     console.log('PostgreSQL Connected (Supabase)');
 
-    // Sync all models — creates tables if they don't exist.
-    // In production, use migrations instead of sync({ alter: true }).
-    await sequelize.sync();
-    console.log('Database schema synced');
+    // In production and enterprise environments, migrations should be run via 'npm run migrate'.
+    // Runtime sync is only performed if explicitly opted into via DB_SYNC=true.
+    if (process.env.DB_SYNC === 'true') {
+      await sequelize.sync();
+      console.log('Database schema synced via DB_SYNC');
+    }
 
     return sequelize;
   } catch (error) {

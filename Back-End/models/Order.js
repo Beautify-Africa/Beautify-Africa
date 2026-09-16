@@ -4,13 +4,26 @@ const { sequelize } = require('../config/db');
 
 // ===== OrderItem =====
 class OrderItem extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 OrderItem.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     orderId: { type: DataTypes.UUID, allowNull: false, references: { model: 'orders', key: 'id' } },
-    productId: { type: DataTypes.UUID, allowNull: true, references: { model: 'products', key: 'id' } },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'products', key: 'id' },
+    },
+    variantId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'product_variants', key: 'id' },
+    },
+    sku: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    variantName: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
     name: { type: DataTypes.STRING, allowNull: false },
     qty: { type: DataTypes.INTEGER, allowNull: false },
     image: { type: DataTypes.TEXT, allowNull: false },
@@ -28,10 +41,7 @@ OrderItem.init(
     modelName: 'OrderItem',
     tableName: 'order_items',
     timestamps: false,
-    indexes: [
-      { fields: ['orderId'] },
-      { fields: ['productId'] },
-    ],
+    indexes: [{ fields: ['orderId'] }, { fields: ['productId'] }, { fields: ['variantId'] }],
   }
 );
 
@@ -40,7 +50,12 @@ class OrderShippingAddress extends Model {}
 OrderShippingAddress.init(
   {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-    orderId: { type: DataTypes.UUID, allowNull: false, unique: true, references: { model: 'orders', key: 'id' } },
+    orderId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      unique: true,
+      references: { model: 'orders', key: 'id' },
+    },
     firstName: { type: DataTypes.STRING, allowNull: false },
     lastName: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false },
@@ -54,16 +69,15 @@ OrderShippingAddress.init(
     modelName: 'OrderShippingAddress',
     tableName: 'order_shipping_addresses',
     timestamps: false,
-    indexes: [
-      { fields: ['orderId'] },
-      { fields: ['email'] },
-    ],
+    indexes: [{ fields: ['orderId'] }, { fields: ['email'] }],
   }
 );
 
 // ===== AdminTimelineEntry =====
 class AdminTimelineEntry extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 AdminTimelineEntry.init(
   {
@@ -81,16 +95,15 @@ AdminTimelineEntry.init(
     tableName: 'admin_timeline_entries',
     timestamps: true,
     updatedAt: false,
-    indexes: [
-      { fields: ['orderId'] },
-      { fields: ['createdAt'] },
-    ],
+    indexes: [{ fields: ['orderId'] }, { fields: ['createdAt'] }],
   }
 );
 
 // ===== Order =====
 class Order extends Model {
-  get _id() { return this.id; }
+  get _id() {
+    return this.id;
+  }
 }
 
 Order.init(
@@ -144,22 +157,36 @@ Order.init(
     paidAt: { type: DataTypes.DATE, allowNull: true },
     isDelivered: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     fulfillmentStatus: {
-      type: DataTypes.ENUM('processing', 'packed', 'shipped', 'delivered'),
+      type: DataTypes.ENUM(
+        'pending_payment',
+        'processing',
+        'packed',
+        'shipped',
+        'delivered',
+        'cancelled',
+        'refunded'
+      ),
       defaultValue: 'processing',
     },
     deliveredAt: { type: DataTypes.DATE, allowNull: true },
+    trackingNumber: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    shippingCarrier: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    trackingUrl: { type: DataTypes.STRING, allowNull: true, defaultValue: null },
+    estimatedDeliveryDate: { type: DataTypes.DATE, allowNull: true, defaultValue: null },
   },
   {
     sequelize,
     modelName: 'Order',
     tableName: 'orders',
     timestamps: true,
+    paranoid: true,
     indexes: [
       { fields: ['userId'] },
       { fields: ['stripePaymentIntentId'] },
       { fields: ['createdAt'] },
       { fields: ['fulfillmentStatus'] },
       { fields: ['isPaid'] },
+      { fields: ['trackingNumber'] },
     ],
   }
 );
@@ -168,10 +195,18 @@ Order.init(
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'orderItems', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 
-Order.hasOne(OrderShippingAddress, { foreignKey: 'orderId', as: 'shippingAddress', onDelete: 'CASCADE' });
+Order.hasOne(OrderShippingAddress, {
+  foreignKey: 'orderId',
+  as: 'shippingAddress',
+  onDelete: 'CASCADE',
+});
 OrderShippingAddress.belongsTo(Order, { foreignKey: 'orderId' });
 
-Order.hasMany(AdminTimelineEntry, { foreignKey: 'orderId', as: 'adminTimeline', onDelete: 'CASCADE' });
+Order.hasMany(AdminTimelineEntry, {
+  foreignKey: 'orderId',
+  as: 'adminTimeline',
+  onDelete: 'CASCADE',
+});
 AdminTimelineEntry.belongsTo(Order, { foreignKey: 'orderId' });
 
 module.exports = { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry };

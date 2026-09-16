@@ -13,6 +13,27 @@ class User extends Model {
   async comparePassword(candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
   }
+
+  isLocked() {
+    return Boolean(this.lockUntil && new Date(this.lockUntil) > new Date());
+  }
+
+  async recordFailedLogin() {
+    this.failedLoginAttempts = (this.failedLoginAttempts || 0) + 1;
+    if (this.failedLoginAttempts >= 5) {
+      // 15-minute temporary lockout
+      this.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+    }
+    return this.save();
+  }
+
+  async recordSuccessfulLogin() {
+    if (this.failedLoginAttempts > 0 || this.lockUntil) {
+      this.failedLoginAttempts = 0;
+      this.lockUntil = null;
+      return this.save();
+    }
+  }
 }
 
 User.init(
@@ -54,9 +75,22 @@ User.init(
         len: { args: [8, 1024], msg: 'Password must be at least 8 characters' },
       },
     },
+    role: {
+      type: DataTypes.ENUM('customer', 'admin', 'manager', 'support'),
+      defaultValue: 'customer',
+    },
     isAdmin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+    },
+    failedLoginAttempts: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    lockUntil: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
     },
     passwordResetToken: {
       type: DataTypes.STRING,
@@ -74,10 +108,7 @@ User.init(
     modelName: 'User',
     tableName: 'users',
     timestamps: true,
-    indexes: [
-      { unique: true, fields: ['email'] },
-      { fields: ['passwordResetToken'] },
-    ],
+    indexes: [{ unique: true, fields: ['email'] }, { fields: ['passwordResetToken'] }],
     hooks: {
       beforeSave: async (user) => {
         if (user.changed('password')) {
