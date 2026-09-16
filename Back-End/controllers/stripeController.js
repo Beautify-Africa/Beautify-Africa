@@ -1,8 +1,10 @@
 // controllers/stripeController.js
 const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress } = require('../models/Order');
+const WebhookEvent = require('../models/WebhookEvent');
 const { createPaymentIntent, constructWebhookEvent } = require('../services/stripeService');
 const { buildVerifiedOrderItems, calculateOrderTotals } = require('../services/orderService');
+const { processPurchase } = require('../services/inventoryService');
 
 // @desc    Validate cart + Create Order + Create Stripe Payment Intent
 // @route   POST /api/stripe/create-payment-intent
@@ -15,19 +17,33 @@ const createStripePaymentIntent = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'No order items' });
     }
 
-    const requiredAddressFields = ['firstName', 'lastName', 'email', 'address', 'city', 'zip', 'country'];
+    const requiredAddressFields = [
+      'firstName',
+      'lastName',
+      'email',
+      'address',
+      'city',
+      'zip',
+      'country',
+    ];
     const missingFields = requiredAddressFields.filter((field) => !shippingAddress?.[field]);
     if (missingFields.length > 0) {
-      return res.status(400).json({ status: 'error', message: `Shipping address is missing: ${missingFields.join(', ')}` });
+      return res.status(400).json({
+        status: 'error',
+        message: `Shipping address is missing: ${missingFields.join(', ')}`,
+      });
     }
 
-    const { verifiedOrderItems, itemsPrice, error: verificationError } = await buildVerifiedOrderItems(
-      orderItems,
-      req.user?._id
-    );
+    const {
+      verifiedOrderItems,
+      itemsPrice,
+      error: verificationError,
+    } = await buildVerifiedOrderItems(orderItems, req.user?._id);
 
     if (verificationError) {
-      return res.status(verificationError.statusCode).json({ status: 'error', message: verificationError.message });
+      return res
+        .status(verificationError.statusCode)
+        .json({ status: 'error', message: verificationError.message });
     }
 
     const { shippingPrice, taxPrice, totalPrice } = calculateOrderTotals(itemsPrice);
@@ -36,8 +52,9 @@ const createStripePaymentIntent = async (req, res) => {
     const order = await sequelize.transaction(async (t) => {
       const newOrder = await Order.create(
         {
-          userId: req.user ? (req.user.id || req.user._id) : null,
+          userId: req.user ? req.user.id || req.user._id : null,
           paymentMethod: 'Stripe',
+          fulfillmentStatus: 'pending_payment',
           itemsPrice,
           taxPrice,
           shippingPrice,
@@ -46,11 +63,14 @@ const createStripePaymentIntent = async (req, res) => {
         { transaction: t }
       );
 
-      // Create order items
+      // Create order items with variant tracking
       await OrderItem.bulkCreate(
         verifiedOrderItems.map((item) => ({
           orderId: newOrder.id,
           productId: item.productId,
+          variantId: item.variantId || null,
+          sku: item.sku || null,
+          variantName: item.variantName || null,
           name: item.name,
           qty: item.qty,
           image: item.image,
@@ -79,7 +99,9 @@ const createStripePaymentIntent = async (req, res) => {
 
     // Create Stripe Payment Intent
     const amountInCents = Math.round(totalPrice * 100);
-    const paymentIntent = await createPaymentIntent(amountInCents, { orderId: order.id.toString() });
+    const paymentIntent = await createPaymentIntent(amountInCents, {
+      orderId: order.id.toString(),
+    });
 
     // Update Order with Stripe Intent ID
     order.stripePaymentIntentId = paymentIntent.id;
@@ -111,25 +133,86 @@ const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  // Enforce strict event idempotency
+  if (event.id) {
+    try {
+      const existing = await WebhookEvent.findByPk(event.id);
+      if (existing && existing.status === 'processed') {
+        console.log(`Stripe webhook event ${event.id} already processed. Skipping duplicate.`);
+        return res.status(200).json({ received: true, alreadyProcessed: true });
+      }
+
+      await WebhookEvent.findOrCreate({
+        where: { id: event.id },
+        defaults: {
+          type: event.type,
+          status: 'pending',
+          payload: event,
+        },
+      });
+    } catch (idempotencyErr) {
+      console.warn('Webhook idempotency lookup warning:', idempotencyErr.message);
+    }
+  }
+
   if (event.type === 'payment_intent.succeeded') {
     const paymentIntent = event.data.object;
-    const orderId = paymentIntent.metadata.orderId;
+    const orderId = paymentIntent.metadata?.orderId;
 
     if (orderId) {
       try {
-        const order = await Order.findByPk(orderId);
-        if (order && !order.isPaid) {
-          order.isPaid = true;
-          order.paidAt = new Date();
-          order.paymentResultId = paymentIntent.id;
-          order.paymentResultStatus = paymentIntent.status;
-          order.paymentResultUpdateTime = String(paymentIntent.created);
-          order.paymentResultEmail = paymentIntent.receipt_email || '';
-          await order.save();
-          console.log(`Payment confirmed via webhook! Order ${orderId} marked as paid.`);
-        }
+        await sequelize.transaction(async (t) => {
+          const order = await Order.findByPk(orderId, {
+            include: [{ model: OrderItem, as: 'orderItems' }],
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+          });
+
+          if (order && !order.isPaid) {
+            order.isPaid = true;
+            order.paidAt = new Date();
+            order.fulfillmentStatus = 'processing';
+            order.paymentResultId = paymentIntent.id;
+            order.paymentResultStatus = paymentIntent.status;
+            order.paymentResultUpdateTime = String(paymentIntent.created);
+            order.paymentResultEmail = paymentIntent.receipt_email || '';
+            await order.save({ transaction: t });
+
+            // Atomically deduct inventory with ledger recording
+            for (const item of order.orderItems || []) {
+              if (item.productId) {
+                await processPurchase(
+                  item.productId,
+                  item.variantId || null,
+                  item.qty,
+                  order.id,
+                  order.userId,
+                  { transaction: t }
+                );
+              }
+            }
+
+            console.log(
+              `Payment confirmed via webhook! Order ${orderId} marked as paid and inventory deducted.`
+            );
+          }
+
+          if (event.id) {
+            await WebhookEvent.update(
+              { status: 'processed', processedAt: new Date() },
+              { where: { id: event.id }, transaction: t }
+            );
+          }
+        });
       } catch (err) {
-        console.error('Failed to update order status on webhook success:', err);
+        console.error('Failed to process payment_intent.succeeded webhook transaction:', err);
+        if (event.id) {
+          await WebhookEvent.update(
+            { status: 'failed', errorMessage: err.message },
+            { where: { id: event.id } }
+          ).catch(() => {});
+        }
+        return res.status(500).json({ status: 'error', message: 'Webhook processing failed' });
       }
     }
   }
