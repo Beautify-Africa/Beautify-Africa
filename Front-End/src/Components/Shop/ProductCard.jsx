@@ -1,5 +1,6 @@
 import { HeartIcon, StarIcon } from '../Shared/Icons';
 import { buildResponsiveImageProps } from '../../utils/imageUtils';
+import { useCurrency } from '../../hooks/useCurrency';
 
 /**
  * Star rating display
@@ -99,6 +100,7 @@ export default function ProductCard({
   onAddToCart,
   onProductClick,
 }) {
+  const { formatPrice } = useCurrency();
   const imageProps = buildResponsiveImageProps(product.image);
 
   return (
@@ -145,12 +147,10 @@ export default function ProductCard({
           {product.name}
         </h3>
         <div className="flex items-center gap-3 mt-1">
-          <span className="text-sm font-medium text-stone-900">
-            ${Number(product.price || 0).toFixed(2)}
-          </span>
+          <span className="text-sm font-medium text-stone-900">{formatPrice(product.price)}</span>
           {product.originalPrice && (
             <span className="text-xs text-stone-500 line-through">
-              ${Number(product.originalPrice).toFixed(2)}
+              {formatPrice(product.originalPrice)}
             </span>
           )}
         </div>

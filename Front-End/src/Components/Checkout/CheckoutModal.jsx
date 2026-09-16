@@ -142,6 +142,8 @@ export default function CheckoutModal({ isOpen, onClose, cartItems = [] }) {
             <Elements stripe={stripePromise} options={{ clientSecret }}>
               <PaymentStep
                 clientSecret={clientSecret}
+                order={order}
+                token={token}
                 onBack={handleBackToShipping}
                 onSuccess={completePaymentFlow}
               />

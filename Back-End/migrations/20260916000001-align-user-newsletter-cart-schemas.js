@@ -49,6 +49,8 @@ module.exports = {
 
     // 3. Cart Items table alignment
     await queryInterface.sequelize.query(`
+      ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMPTZ DEFAULT NOW();
+      ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMPTZ DEFAULT NOW();
       ALTER TABLE cart_items ALTER COLUMN "createdAt" SET DEFAULT NOW();
       ALTER TABLE cart_items ALTER COLUMN "updatedAt" SET DEFAULT NOW();
       DO $$ BEGIN
@@ -56,6 +58,10 @@ module.exports = {
       EXCEPTION
         WHEN undefined_column THEN null;
       END $$;
+
+      -- Ensure soft-delete deletedAt exists on products and variants
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMPTZ DEFAULT NULL;
+      ALTER TABLE product_variants ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMPTZ DEFAULT NULL;
     `);
 
     const cartItemsTable = await queryInterface.describeTable('cart_items');

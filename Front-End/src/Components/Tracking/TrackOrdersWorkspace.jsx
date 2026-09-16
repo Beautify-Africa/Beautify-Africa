@@ -113,7 +113,7 @@ export default function TrackOrdersWorkspace() {
           >
             {orders.map((order) => (
               <MotionDiv
-                key={order._id}
+                key={order.id || order._id}
                 variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
               >

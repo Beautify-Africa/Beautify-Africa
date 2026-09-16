@@ -1,7 +1,9 @@
 import { MinusIcon, PlusIcon } from '../Shared/Icons';
 import { buildResponsiveImageProps } from '../../utils/imageUtils';
+import { useCurrency } from '../../hooks/useCurrency';
 
 export default function CartItem({ item, onUpdateQuantity, onRemove }) {
+  const { formatPrice } = useCurrency();
   const imageProps = buildResponsiveImageProps(item.image, {
     widths: [160, 240, 320],
     sizes: '80px',
@@ -23,9 +25,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }) {
         <div>
           <div className="flex justify-between items-start">
             <h3 className="font-serif text-lg text-stone-900 leading-none">{item.name}</h3>
-            <span className="text-sm text-stone-900 font-medium">
-              ${Number(item.price || 0).toFixed(2)}
-            </span>
+            <span className="text-sm text-stone-900 font-medium">{formatPrice(item.price)}</span>
           </div>
           <p className="text-stone-600 text-xs mt-1">{item.variant}</p>
         </div>

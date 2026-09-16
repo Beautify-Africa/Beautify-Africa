@@ -57,7 +57,7 @@ export default function ProfileOrdersSection({
       ) : (
         <div className="space-y-6">
           {orders.map((order) => (
-            <ProfileOrderCard key={order._id} order={order} />
+            <ProfileOrderCard key={order.id || order._id} order={order} />
           ))}
         </div>
       )}

@@ -15,8 +15,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), handleStripeW
 
 router.post(
   '/create-payment-intent',
-  paymentLimiter,
   optionalProtect,
+  paymentLimiter,
   express.json(),
   createStripePaymentIntent
 );
