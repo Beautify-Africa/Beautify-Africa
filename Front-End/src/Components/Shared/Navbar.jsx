@@ -78,10 +78,10 @@ const Navbar = ({ onOpenCart }) => {
 
             <Link
               to="/track-orders"
-              className={`group inline-flex items-center gap-2 rounded-full border px-3 py-2 transition-colors ${
+              className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-2 transition-colors shadow-sm ${
                 isTrackOrdersPage
-                  ? 'border-amber-300 bg-amber-50 text-amber-900'
-                  : 'border-stone-200 text-stone-700 hover:border-stone-900 hover:text-stone-900'
+                  ? 'border-amber-300 bg-amber-100 text-amber-950 font-medium'
+                  : 'border-stone-200 bg-stone-100/90 text-stone-800 hover:border-stone-300 hover:bg-stone-200/90 hover:text-stone-900'
               }`}
               aria-label="Track your order"
             >
@@ -116,7 +116,7 @@ const Navbar = ({ onOpenCart }) => {
               <button
                 type="button"
                 onClick={openAuthDialog}
-                className="rounded-sm border border-stone-900 bg-stone-900 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:border-amber-900 hover:bg-amber-900"
+                className="rounded-sm border border-stone-900 bg-stone-900 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:border-amber-900 hover:bg-amber-900 shadow-sm"
               >
                 Sign In
               </button>
@@ -126,7 +126,7 @@ const Navbar = ({ onOpenCart }) => {
               <button
                 type="button"
                 onClick={openAuthDialog}
-                className="hidden lg:block rounded-sm border border-stone-900 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-amber-900 hover:bg-amber-900 hover:text-white"
+                className="hidden lg:block rounded-sm border border-stone-300 bg-stone-100 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-stone-900 hover:bg-stone-900 hover:text-white shadow-sm"
               >
                 Sign In
               </button>
