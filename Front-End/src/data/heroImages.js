@@ -1,5 +1,4 @@
-import heroBg from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.opt.webp';
-import heroBgSmall from '../assets/kimia-zarifi-x4J_92kJBoY-unsplash.sm.webp';
+import heroBg from '../assets/african_beauty_hero.jpg';
 import premiumModel from '../assets/premium_african_model_1775937660048.opt.webp';
 import premiumModelSmall from '../assets/premium_african_model_1775937660048.sm.webp';
 import premiumSerum from '../assets/premium_serum_1775937605848.opt.webp';
@@ -11,9 +10,9 @@ import premiumSkincareSmall from '../assets/premium_skincare_routine_17759376426
 
 export const HERO_BACKGROUND = {
   src: heroBg,
-  srcSet: `${heroBgSmall} 960w, ${heroBg} 1600w`,
+  srcSet: `${heroBg} 1600w`,
   sizes: '100vw',
-  alt: 'Woman with avocado face mask',
+  alt: 'Radiant African women with luxury skincare and beauty essentials',
 };
 
 export const HERO_CARDS = [

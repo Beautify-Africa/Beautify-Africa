@@ -94,13 +94,7 @@ const HeroSection = () => {
       {/* Editorial content */}
       <article className="relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 z-30">
         <header>
-          <FadeIn delay={0.2} direction="up">
-            <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.5em] text-amber-900 mb-6 block">
-              {HERO_COPY.collectionLabel}
-            </span>
-          </FadeIn>
-
-          <FadeIn delay={0.4} direction="up" className="relative mb-10 max-w-6xl">
+          <FadeIn delay={0.3} direction="up" className="relative mb-10 max-w-6xl">
             <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] text-stone-900 tracking-tighter relative z-20">
               {HERO_COPY.headlineParts[0]}
               {/* Inline review chip anchored after the word 'The' */}
@@ -115,27 +109,27 @@ const HeroSection = () => {
                 return (
                   <FadeIn
                     key={`inline-${inlineReview.id}`}
-                    delay={0.6}
-                    className="inline-flex items-center gap-3 ml-6 -translate-y-1 align-middle text-sm bg-white/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-amber-100/50 hover:scale-105 transition-transform duration-300 cursor-default"
+                    delay={0.5}
+                    className="inline-flex items-center gap-3 ml-4 md:ml-6 -translate-y-1 md:-translate-y-2 align-middle font-sans not-italic tracking-normal bg-white/95 backdrop-blur-xl rounded-full px-4 py-2 shadow-[0_18px_50px_rgba(41,37,36,0.18)] ring-1 ring-amber-900/5 border border-white/70 hover:scale-105 transition-transform duration-300 cursor-default"
                   >
                     <img
                       src={imageProps.src}
                       srcSet={imageProps.srcSet}
                       sizes={imageProps.sizes}
                       alt={inlineReview.name}
-                      className="w-8 h-8 rounded-full object-cover border border-stone-100"
+                      className="w-8 h-8 rounded-full object-cover border border-stone-100 shrink-0"
                       loading="lazy"
                       decoding="async"
                       width="32"
                       height="32"
                     />
-                    <div className="flex flex-col leading-none">
+                    <div className="flex flex-col items-start leading-none min-w-0">
                       <div className="flex gap-0.5 text-amber-500" aria-hidden>
                         {[...Array(5)].map((_, i) => (
                           <StarIcon key={i} className="w-2.5 h-2.5" filled={true} />
                         ))}
                       </div>
-                      <span className="text-[10px] font-bold text-stone-600 mt-1">
+                      <span className="mt-1 whitespace-nowrap text-[11px] font-bold tracking-normal text-stone-800 font-sans not-italic">
                         {inlineReview.name}
                       </span>
                     </div>
@@ -169,17 +163,6 @@ const HeroSection = () => {
             aria-label="Hero actions"
           >
             <InteractiveButton label={HERO_COPY.primaryCta} primary />
-            <button
-              type="button"
-              className="group flex items-center gap-4 py-4 text-[10px] font-bold uppercase tracking-[0.4em] text-stone-900"
-              aria-label={HERO_COPY.secondaryCtaAriaLabel}
-            >
-              {HERO_COPY.secondaryCta}
-              <span
-                className="w-12 h-[1px] bg-stone-300 group-hover:w-20 group-hover:bg-amber-800 transition-all duration-700"
-                aria-hidden="true"
-              />
-            </button>
           </nav>
         </FadeIn>
       </article>
