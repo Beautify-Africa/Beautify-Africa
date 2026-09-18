@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
@@ -7,6 +7,11 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import { CartProvider } from './context/CartContext';
 import { queryClient } from './lib/queryClient';
 import './index.css';
+
+// Ensure React is globally available in browser environment to prevent any runtime ReferenceError
+if (typeof window !== 'undefined' && !window.React) {
+  window.React = React;
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <StrictMode>

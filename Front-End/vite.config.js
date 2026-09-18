@@ -6,9 +6,12 @@ import { fileURLToPath, URL } from 'node:url';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   plugins: [
     react({
-      jsxRuntime: 'automatic', // Explicitly use the modern automatic JSX runtime (no need to import React in every file)
+      jsxRuntime: 'automatic',
     }),
     tailwindcss(),
   ],
@@ -41,9 +44,19 @@ export default defineConfig({
         warn(warning);
       },
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'framer-motion': ['framer-motion'],
+        manualChunks(id) {
+          const normalized = id.replace(/\\/g, '/');
+          if (
+            normalized.includes('/node_modules/react/') ||
+            normalized.includes('/node_modules/react-dom/') ||
+            normalized.includes('/node_modules/react-router-dom/') ||
+            normalized.includes('/node_modules/scheduler/')
+          ) {
+            return 'react-vendor';
+          }
+          if (normalized.includes('/node_modules/framer-motion/')) {
+            return 'framer-motion';
+          }
         },
       },
     },
