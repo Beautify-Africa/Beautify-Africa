@@ -42,12 +42,17 @@ export default function useLowStockDashboard() {
           { threshold, limit: pagination.limit, skip: (page - 1) * pagination.limit },
           token
         );
-        setItems(data.data || []);
+        const itemsList = Array.isArray(data) ? data : data?.data || data?.items || [];
+        const limit = data?.limit || pagination.limit;
+        const totalCount = data?.totalCount ?? itemsList.length;
+        const totalPages = data?.totalPages ?? (totalCount > 0 ? Math.ceil(totalCount / limit) : 0);
+
+        setItems(itemsList);
         setPagination({
           page,
-          limit: data.limit || pagination.limit,
-          totalCount: data.totalCount || 0,
-          totalPages: data.totalPages || 0,
+          limit,
+          totalCount,
+          totalPages,
         });
       } catch (fetchError) {
         console.error('Failed to load low stock items:', fetchError);
