@@ -17,6 +17,10 @@ const inventoryService = require('../services/inventoryService');
 const inventoryNotificationService = require('../services/inventoryNotificationService');
 const { inventoryNotificationQueue } = require('../queues/inventoryNotificationQueue');
 const { Product, ProductVariant } = require('../models/Product');
+const {
+  fetchAdminCustomers,
+  fetchAdminCustomerDetail,
+} = require('../services/adminCustomerService');
 
 function handleAdminError(error, res, fallbackMessage, logLabel) {
   const statusCode = error.statusCode || 500;
@@ -481,15 +485,18 @@ async function getNotificationStatus(req, res) {
           delayed,
           total: waiting + active + completed + failed + delayed,
         },
-        recentJobs: recentJobs.map((job) => ({
-          id: job.id,
-          name: job.name,
-          state: job.getState(),
-          data: job.data,
-          createdAt: job.createdTimestamp,
-          failedReason: job.failedReason,
-          progress: job.progress?.toString() || null,
-        })),
+        recentJobs: await Promise.all(
+          recentJobs.map(async (job) => ({
+            id: job.id,
+            name: job.name,
+            state:
+              typeof job.getState === 'function' ? await job.getState() : job.state || 'unknown',
+            data: job.data,
+            createdAt: job.createdTimestamp,
+            failedReason: job.failedReason,
+            progress: job.progress?.toString() || null,
+          }))
+        ),
       },
     });
   } catch (error) {
@@ -498,6 +505,40 @@ async function getNotificationStatus(req, res) {
       status: 'error',
       message: 'Failed to fetch notification status',
     });
+  }
+}
+
+async function getAdminCustomers(req, res) {
+  try {
+    const data = await fetchAdminCustomers(req.query);
+    return res.status(200).json({
+      status: 'success',
+      data,
+    });
+  } catch (error) {
+    return handleAdminError(
+      error,
+      res,
+      'An unexpected error occurred while fetching customers.',
+      'getAdminCustomers'
+    );
+  }
+}
+
+async function getAdminCustomerDetail(req, res) {
+  try {
+    const data = await fetchAdminCustomerDetail(req.params.id);
+    return res.status(200).json({
+      status: 'success',
+      data,
+    });
+  } catch (error) {
+    return handleAdminError(
+      error,
+      res,
+      'An unexpected error occurred while fetching customer details.',
+      'getAdminCustomerDetail'
+    );
   }
 }
 
@@ -519,4 +560,6 @@ module.exports = {
   triggerLowStockNotification,
   scheduleRecurringLowStockCheck,
   getNotificationStatus,
+  getAdminCustomers,
+  getAdminCustomerDetail,
 };

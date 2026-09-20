@@ -17,6 +17,8 @@ const {
   triggerLowStockNotification,
   scheduleRecurringLowStockCheck,
   getNotificationStatus,
+  getAdminCustomers,
+  getAdminCustomerDetail,
 } = require('../controllers/adminController');
 const { protect, requireAdmin } = require('../middlewares/authMiddleware');
 const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
@@ -38,6 +40,10 @@ router.get('/products', getAdminProducts);
 router.post('/products', postAdminProduct);
 router.put('/products/:id', putAdminProduct);
 router.patch('/products/:id/archive', patchAdminProductArchive);
+
+// Customer management routes
+router.get('/customers', getAdminCustomers);
+router.get('/customers/:id', getAdminCustomerDetail);
 
 // PHASE 3: Inventory management dashboard routes
 router.get('/inventory/dashboard', getInventoryDashboard);

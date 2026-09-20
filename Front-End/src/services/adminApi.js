@@ -370,7 +370,21 @@ export async function fetchLowStockItems(query = {}, token, requestOptions = {})
     }
   );
 
-  return json.data;
+  const items = Array.isArray(json.data) ? json.data : Array.isArray(json.items) ? json.items : [];
+  const totalCount = json.totalCount ?? items.length;
+  const limit = json.limit ?? 20;
+  const totalPages = json.totalPages ?? (totalCount > 0 ? Math.ceil(totalCount / limit) : 0);
+  const page = json.page ?? 1;
+
+  return {
+    data: items,
+    items,
+    totalCount,
+    totalPages,
+    page,
+    limit,
+    threshold: json.threshold ?? 10,
+  };
 }
 
 export async function adjustVariantStock(
@@ -446,3 +460,43 @@ export async function getNotificationStatus(token, requestOptions = {}) {
 
   return json.data;
 }
+
+export async function fetchAdminCustomers(query = {}, token, requestOptions = {}) {
+  if (!token) throw new Error('Authentication token required.');
+
+  const params = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    params.set(key, String(value));
+  });
+
+  const search = params.toString();
+  const json = await requestJson(
+    `${API_URL}/admin/customers${search ? `?${search}` : ''}`,
+    {
+      ...requestOptions,
+      token,
+      cache: 'no-store',
+      fallbackMessage: 'Failed to fetch customer directory.',
+    }
+  );
+
+  return json.data;
+}
+
+export async function fetchAdminCustomerDetail(customerId, token, requestOptions = {}) {
+  if (!token) throw new Error('Authentication token required.');
+
+  const json = await requestJson(
+    `${API_URL}/admin/customers/${encodeURIComponent(customerId)}`,
+    {
+      ...requestOptions,
+      token,
+      cache: 'no-store',
+      fallbackMessage: 'Failed to fetch customer details.',
+    }
+  );
+
+  return json.data;
+}
+
