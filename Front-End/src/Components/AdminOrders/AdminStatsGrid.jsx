@@ -2,12 +2,14 @@ import FadeIn from '../Shared/FadeIn';
 import EmptyPanel from './EmptyPanel';
 import MetricCard from './MetricCard';
 
-export default function AdminStatsGrid({ stats }) {
+export default function AdminStatsGrid({ stats = [] }) {
+  const safeStats = Array.isArray(stats) ? stats : [];
+
   return (
     <FadeIn className="mt-8">
-      {stats.length > 0 ? (
+      {safeStats.length > 0 ? (
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {stats.map((stat) => (
+          {safeStats.map((stat) => (
             <MetricCard key={stat.label} {...stat} />
           ))}
         </section>

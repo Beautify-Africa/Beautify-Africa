@@ -1,9 +1,12 @@
 import FadeIn from '../Shared/FadeIn';
 import StatusBadge from './StatusBadge';
 
-export default function AdminHeroSection({ heroBadges, ritualChecklist }) {
+export default function AdminHeroSection({ heroBadges = [], ritualChecklist = [] }) {
+  const safeBadges = Array.isArray(heroBadges) ? heroBadges : [];
   const checklist =
-    ritualChecklist.length > 0 ? ritualChecklist : ['No urgent tasks are currently queued.'];
+    Array.isArray(ritualChecklist) && ritualChecklist.length > 0
+      ? ritualChecklist
+      : ['No urgent tasks are currently queued.'];
 
   return (
     <FadeIn className="mt-2">
@@ -25,7 +28,7 @@ export default function AdminHeroSection({ heroBadges, ritualChecklist }) {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2.5">
-              {heroBadges.map((badge, idx) => (
+              {safeBadges.map((badge, idx) => (
                 <StatusBadge key={`${badge.label}-${idx}`} tone={badge.tone}>
                   {badge.label}
                 </StatusBadge>
