@@ -2,9 +2,9 @@ import StatusBadge from './StatusBadge';
 
 export default function WatchCard({ title, detail, tone }) {
   return (
-    <article className="rounded-[1.45rem] border border-stone-200/80 bg-[#fffdf9] p-5">
+    <article className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4">
       <StatusBadge tone={tone}>{title}</StatusBadge>
-      <p className="mt-4 text-sm leading-relaxed text-stone-600">{detail}</p>
+      <p className="mt-2.5 text-xs leading-relaxed text-zinc-300">{detail}</p>
     </article>
   );
 }
