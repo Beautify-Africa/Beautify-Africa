@@ -170,7 +170,47 @@ function buildAdminDashboardFromOrders(orders = [], lowStockCount = 0, now = new
   };
 }
 
+const redisClient = require('../../config/redis');
+
+const ADMIN_DASHBOARD_CACHE_KEY = 'admin:dashboard:summary';
+const ADMIN_ANALYTICS_CACHE_KEY = 'admin:analytics:summary';
+const ADMIN_CACHE_TTL_SECONDS = 30; // 30s cache TTL for live metrics
+
+async function readAdminCache(key) {
+  if (process.env.NODE_ENV === 'test') return null;
+  try {
+    if (redisClient && redisClient.status === 'ready') {
+      const cached = await redisClient.get(key);
+      return cached ? JSON.parse(cached) : null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+async function writeAdminCache(key, payload) {
+  if (process.env.NODE_ENV === 'test') return;
+  try {
+    if (redisClient && redisClient.status === 'ready') {
+      await redisClient.set(key, JSON.stringify(payload), 'EX', ADMIN_CACHE_TTL_SECONDS);
+    }
+  } catch {}
+}
+
+async function invalidateAdminCache() {
+  if (process.env.NODE_ENV === 'test') return;
+  try {
+    if (redisClient && redisClient.status === 'ready') {
+      await redisClient.del(ADMIN_DASHBOARD_CACHE_KEY, ADMIN_ANALYTICS_CACHE_KEY);
+    }
+  } catch {}
+}
+
 async function fetchAdminDashboard() {
+  const cached = await readAdminCache(ADMIN_DASHBOARD_CACHE_KEY);
+  if (cached) return cached;
+
   const [orders, lowStockData] = await Promise.all([
     Order.findAll({
       include: buildFullOrderInclude(),
@@ -179,10 +219,15 @@ async function fetchAdminDashboard() {
     inventoryService.getLowStockItems(10, { limit: 1 }),
   ]);
 
-  return buildAdminDashboardFromOrders(orders, lowStockData.totalCount, new Date());
+  const result = buildAdminDashboardFromOrders(orders, lowStockData.totalCount, new Date());
+  await writeAdminCache(ADMIN_DASHBOARD_CACHE_KEY, result);
+  return result;
 }
 
 async function fetchAdminAnalytics() {
+  const cached = await readAdminCache(ADMIN_ANALYTICS_CACHE_KEY);
+  if (cached) return cached;
+
   const [orders, lowStockData] = await Promise.all([
     Order.findAll({
       include: [ORDER_USER_INCLUDE, ORDER_ITEMS_INCLUDE, ORDER_SHIPPING_INCLUDE],
@@ -191,7 +236,9 @@ async function fetchAdminAnalytics() {
     inventoryService.getLowStockItems(10, { limit: 1 }),
   ]);
 
-  return analytics.buildAdminAnalyticsFromOrders(orders, lowStockData.totalCount, new Date());
+  const result = analytics.buildAdminAnalyticsFromOrders(orders, lowStockData.totalCount, new Date());
+  await writeAdminCache(ADMIN_ANALYTICS_CACHE_KEY, result);
+  return result;
 }
 
 async function fetchReorderPlan(options) {
@@ -204,6 +251,7 @@ module.exports = {
   fetchAdminDashboard,
   fetchAdminAnalytics,
   fetchReorderPlan,
+  invalidateAdminCache,
   buildFullOrderInclude,
   ORDER_USER_INCLUDE,
   ORDER_SHIPPING_INCLUDE,

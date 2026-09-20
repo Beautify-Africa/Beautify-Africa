@@ -160,6 +160,18 @@ async function clearPaymentRateLimit(userId, ip) {
   }
 }
 
+// Search limiter: 60 requests per minute per IP — prevents heavy scraping and search DoS
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 60 : 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeRedisStore('rl:search:'),
+  passOnStoreError: true,
+  skip: () => isTestEnv,
+  message: { status: 'error', message: 'Too many search requests, please slow down.' },
+});
+
 module.exports = {
   rateLimitRedis,
   apiLimiter,
@@ -169,6 +181,7 @@ module.exports = {
   paymentLimiter,
   paymentVerificationLimiter,
   newsletterLimiter,
+  searchLimiter,
   clearPaymentRateLimit,
   getClientIdentifier,
 };
