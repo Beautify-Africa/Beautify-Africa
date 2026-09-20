@@ -57,7 +57,7 @@ export const FOOTER_NAV_SECTIONS = [
     title: 'Client Care',
     links: [
       { name: 'Shipping', href: '/shipping' },
-      { name: 'Track Order', href: '/track-order' },
+      { name: 'Track Order', href: '/track-orders' },
       { name: 'FAQ', href: '/faq' },
       { name: 'Contact', href: '/contact' },
       { name: 'Accessibility', href: '/accessibility' },
@@ -72,8 +72,8 @@ export const LEGAL_LINKS = [
 ];
 
 export const LOCALE_CONFIG = {
-  currentLocale: 'United States (USD)',
-  availableLocales: ['United States (USD)', 'United Kingdom (GBP)', 'Europe (EUR)'],
+  currentLocale: 'Africa',
+  availableLocales: ['Africa', 'United Kingdom (GBP)', 'Europe (EUR)', 'United States (USD)'],
 };
 
 export const PAYMENT_METHODS = [

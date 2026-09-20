@@ -70,18 +70,20 @@ export default function NavbarMobileMenu({
           </Link>
         )}
 
-        <Link
-          to="/track-orders"
-          onClick={closeMobileMenu}
-          className={`mb-10 inline-flex items-center gap-3 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors rounded-sm shadow-sm ${
-            isShopPage
-              ? 'border border-stone-900 bg-stone-100 text-stone-900 hover:bg-stone-900 hover:text-white'
-              : 'border border-stone-300 bg-stone-100 text-stone-800 hover:border-stone-900 hover:bg-stone-200 hover:text-stone-900'
-          }`}
-        >
-          <TrackingIcon className="h-4 w-4" />
-          Track Your Order
-        </Link>
+        {isAuthenticated && (
+          <Link
+            to="/track-orders"
+            onClick={closeMobileMenu}
+            className={`mb-10 inline-flex items-center gap-3 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors rounded-sm shadow-sm ${
+              isShopPage
+                ? 'border border-stone-900 bg-stone-100 text-stone-900 hover:bg-stone-900 hover:text-white'
+                : 'border border-stone-300 bg-stone-100 text-stone-800 hover:border-stone-900 hover:bg-stone-200 hover:text-stone-900'
+            }`}
+          >
+            <TrackingIcon className="h-4 w-4" />
+            Track Your Order
+          </Link>
+        )}
 
         {!isRestoringSession && !isAuthenticated && (
           <button

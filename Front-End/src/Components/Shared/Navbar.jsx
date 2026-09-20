@@ -74,22 +74,24 @@ const Navbar = ({ onOpenCart }) => {
 
           {/* Action Icons */}
           <div className="flex-1 flex justify-end items-center gap-4 md:gap-6">
-            <CurrencySelector />
+            {isShopPage && <CurrencySelector />}
 
-            <Link
-              to="/track-orders"
-              className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-2 transition-colors shadow-sm ${
-                isTrackOrdersPage
-                  ? 'border-amber-300 bg-amber-100 text-amber-950 font-medium'
-                  : 'border-stone-200 bg-stone-100/90 text-stone-800 hover:border-stone-300 hover:bg-stone-200/90 hover:text-stone-900'
-              }`}
-              aria-label="Track your order"
-            >
-              <TrackingIcon className="h-4 w-4" />
-              <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-[0.2em]">
-                Track Order
-              </span>
-            </Link>
+            {isAuthenticated && (
+              <Link
+                to="/track-orders"
+                className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-2 transition-colors shadow-sm ${
+                  isTrackOrdersPage
+                    ? 'border-amber-300 bg-amber-100 text-amber-950 font-medium'
+                    : 'border-stone-200 bg-stone-100/90 text-stone-800 hover:border-stone-300 hover:bg-stone-200/90 hover:text-stone-900'
+                }`}
+                aria-label="Track your order"
+              >
+                <TrackingIcon className="h-4 w-4" />
+                <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-[0.2em]">
+                  Track Order
+                </span>
+              </Link>
+            )}
 
             {isShopPage && (
               <button
@@ -110,7 +112,7 @@ const Navbar = ({ onOpenCart }) => {
               </button>
             )}
 
-            {isShopPage && <CustomerProfileMenu />}
+            {isShopPage && isAuthenticated && <CustomerProfileMenu />}
 
             {isShopPage && !isRestoringSession && !isAuthenticated && (
               <button
