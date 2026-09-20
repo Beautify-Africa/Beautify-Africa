@@ -8,32 +8,37 @@ import { useAuth } from '../hooks/useAuth';
 import { fetchAdminAnalytics } from '../services/adminApi';
 
 function MetricCard({ label, value, note, tone = 'stone' }) {
-  const toneClasses = {
-    stone: 'border-stone-200 bg-stone-50 text-stone-900',
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-    amber: 'border-amber-200 bg-amber-50 text-amber-900',
-    rose: 'border-rose-200 bg-rose-50 text-rose-900',
-  }[tone];
+  const toneDot = {
+    stone: 'bg-zinc-400',
+    emerald: 'bg-emerald-400',
+    amber: 'bg-amber-400',
+    rose: 'bg-rose-400',
+  }[tone] || 'bg-zinc-400';
 
   return (
-    <div className={`rounded-[1.4rem] border p-5 shadow-sm ${toneClasses}`}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-current/60">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
-      {note ? <p className="mt-2 text-sm leading-relaxed text-current/70">{note}</p> : null}
+    <div className="rounded-2xl border border-zinc-800/80 bg-[#0E131F] p-5 shadow-xl">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-zinc-400">{label}</p>
+        <span className={`inline-block h-2 w-2 rounded-full ${toneDot}`} />
+      </div>
+      <p className="mt-3 font-mono text-3xl font-bold tracking-tight text-white">{value}</p>
+      {note ? <p className="mt-2 text-xs leading-relaxed text-zinc-400">{note}</p> : null}
     </div>
   );
 }
 
 function SectionCard({ title, children, eyebrow }) {
   return (
-    <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-[0_18px_44px_rgba(28,25,23,0.06)]">
-      {eyebrow ? (
-        <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-400">
-          {eyebrow}
-        </p>
-      ) : null}
-      <h3 className="mt-2 text-lg font-semibold text-stone-900">{title}</h3>
-      <div className="mt-5">{children}</div>
+    <section className="rounded-2xl border border-zinc-800/80 bg-[#0E131F] p-6 shadow-xl">
+      <div className="border-b border-zinc-800/80 pb-3 mb-5">
+        {eyebrow ? (
+          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-amber-400">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h3 className="mt-1 text-base font-bold text-white tracking-tight">{title}</h3>
+      </div>
+      <div>{children}</div>
     </section>
   );
 }
@@ -50,22 +55,22 @@ function AnalyticsSeries({ series = [] }) {
   const maxRevenue = Math.max(...series.map((entry) => Number(entry.revenue || 0)), 1);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3.5">
       {series.map((entry) => {
         const width = `${Math.max(6, (Number(entry.revenue || 0) / maxRevenue) * 100)}%`;
 
         return (
           <div
             key={entry.key}
-            className="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)_72px] sm:items-center"
+            className="grid gap-2 sm:grid-cols-[72px_minmax(0,1fr)_80px] sm:items-center"
           >
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+            <div className="text-xs font-mono font-semibold uppercase tracking-[0.16em] text-zinc-400">
               {entry.label}
             </div>
-            <div className="h-3 overflow-hidden rounded-full bg-stone-100">
-              <div className="h-full rounded-full bg-stone-900" style={{ width }} />
+            <div className="h-2.5 overflow-hidden rounded-full bg-zinc-800">
+              <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400 shadow-sm" style={{ width }} />
             </div>
-            <div className="text-right text-sm font-semibold text-stone-900">
+            <div className="text-right font-mono text-xs font-semibold text-zinc-200">
               {formatCurrency(entry.revenue)}
             </div>
           </div>
@@ -76,8 +81,8 @@ function AnalyticsSeries({ series = [] }) {
 }
 
 export default function AdminAnalyticsPage() {
-  const { token, user, isAuthenticated, isRestoringSession } = useAuth();
-  const isAdmin = Boolean(user?.isAdmin);
+  const { token, user, isAuthenticated, isRestoringSession, isAdmin: authIsAdmin } = useAuth();
+  const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || authIsAdmin);
   const [analytics, setAnalytics] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -120,47 +125,49 @@ export default function AdminAnalyticsPage() {
         description="Revenue reporting, velocity trends, and inventory pressure signals."
       >
         {isRestoringSession ? (
-          <section className="rounded-[2rem] border border-stone-200 bg-white px-8 py-16 text-center shadow-[0_18px_44px_rgba(28,25,23,0.08)]">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
-              Loading workspace...
+          <section className="rounded-2xl border border-zinc-800/80 bg-[#0E131F] px-8 py-16 text-center shadow-xl">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" />
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400">
+              Restoring Session State...
             </p>
           </section>
         ) : !isAuthenticated || !isAdmin ? (
           <RestrictedState isAuthenticated={isAuthenticated} />
         ) : isLoading ? (
-          <section className="rounded-[2rem] border border-stone-200 bg-white px-8 py-16 text-center shadow-[0_18px_44px_rgba(28,25,23,0.08)]">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
-              Loading analytics...
+          <section className="rounded-2xl border border-zinc-800/80 bg-[#0E131F] px-8 py-16 text-center shadow-xl">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" />
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400">
+              Querying Analytics Data Lake...
             </p>
           </section>
         ) : error ? (
           <AdminFlashNotice type="error" message={error} onDismiss={() => setError('')} />
         ) : analytics ? (
           <div className="space-y-8">
-            <section className="rounded-[2rem] border border-stone-200 bg-[linear-gradient(135deg,#fffefb,#f5ede4)] p-8 shadow-[0_20px_55px_rgba(28,25,23,0.08)]">
-              <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-stone-400">
-                Phase 4A reporting
-              </p>
-              <h2 className="mt-3 font-serif text-4xl text-stone-900">
-                Revenue, velocity, and forecast signals in one place.
+            <section className="rounded-2xl border border-zinc-800/80 bg-gradient-to-br from-[#0E131F] via-[#111827] to-[#090D16] p-8 shadow-2xl">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-400">
+                  Telemetry Engine Active
+                </p>
+              </div>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                Revenue velocity, forecasting, and demand signals.
               </h2>
-              <p className="mt-4 max-w-3xl text-sm leading-relaxed text-stone-600">
-                This view turns recent order history into a lightweight reporting layer for the
-                admin team. It highlights what sold, how quickly it sold, and where inventory
-                pressure is building.
+              <p className="mt-3 max-w-3xl text-xs sm:text-sm leading-relaxed text-zinc-400">
+                Live operational layer synthesizing real-time order logs. Monitors transactional velocity,
+                regional fulfillment performance, and inventory exhaustion risks.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">
-                <span className="rounded-full border border-stone-200 bg-white px-3 py-1">
-                  Paid order rate {analytics.summary.paidOrderRate}
+              <div className="mt-6 flex flex-wrap gap-2.5 font-mono text-xs text-zinc-300">
+                <span className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 py-1.5 shadow-sm">
+                  Paid Order Ratio: <strong className="text-amber-400">{analytics.summary.paidOrderRate}</strong>
                 </span>
-                <span className="rounded-full border border-stone-200 bg-white px-3 py-1">
-                  7d revenue trend {analytics.velocity.revenueTrend}
+                <span className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 py-1.5 shadow-sm">
+                  7d Revenue Vector: <strong className="text-emerald-400">{analytics.velocity.revenueTrend}</strong>
                 </span>
-                <span className="rounded-full border border-stone-200 bg-white px-3 py-1">
-                  Forecast {analytics.forecast.trendLabel}
+                <span className="rounded-xl border border-zinc-800 bg-zinc-900/80 px-3.5 py-1.5 shadow-sm">
+                  Runway Forecast: <strong className="text-white">{analytics.forecast.trendLabel}</strong>
                 </span>
               </div>
             </section>
@@ -169,128 +176,122 @@ export default function AdminAnalyticsPage() {
               <MetricCard
                 label="Gross Revenue"
                 value={analytics.summary.grossRevenue}
-                note="All paid orders captured in the current reporting window."
-                tone="stone"
+                note="All settled orders captured in the reporting period."
+                tone="emerald"
               />
               <MetricCard
                 label="Average Order Value"
                 value={analytics.summary.averageOrderValue}
-                note="A simple average based on paid order totals."
-                tone="emerald"
+                note="Computed across all completed client checkouts."
+                tone="amber"
               />
               <MetricCard
                 label="Paid Orders"
                 value={analytics.summary.paidOrders}
-                note={`Out of ${analytics.summary.totalOrders} total orders.`}
-                tone="amber"
-              />
-              <MetricCard
-                label="7d Revenue"
-                value={analytics.summary.recentRevenue7d}
-                note={`Previous 7d: ${analytics.summary.previousRevenue7d}`}
-                tone="rose"
-              />
-              <MetricCard
-                label="7d Orders"
-                value={analytics.summary.recentOrders7d}
-                note={`Trend: ${analytics.velocity.orderTrend}`}
+                note={`Captured from ${analytics.summary.totalOrders} total ledger entries.`}
                 tone="stone"
               />
               <MetricCard
-                label="Forecast Next 7d"
-                value={analytics.forecast.next7dRevenue}
-                note={`Inventory pressure score: ${analytics.forecast.inventoryPressure}`}
+                label="7d Gross Velocity"
+                value={analytics.summary.recentRevenue7d}
+                note={`Previous 7d baseline: ${analytics.summary.previousRevenue7d}`}
                 tone="emerald"
+              />
+              <MetricCard
+                label="7d Order Volume"
+                value={analytics.summary.recentOrders7d}
+                note={`Velocity delta: ${analytics.velocity.orderTrend}`}
+                tone="stone"
+              />
+              <MetricCard
+                label="Forecast 7d Inflow"
+                value={analytics.forecast.next7dRevenue}
+                note={`Inventory pressure index: ${analytics.forecast.inventoryPressure}`}
+                tone="amber"
               />
             </section>
 
-            <div className="grid gap-8 lg:grid-cols-[1.4fr_0.9fr]">
-              <SectionCard title="Sales Velocity" eyebrow="Last 14 days">
+            <div className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
+              <SectionCard title="Sales Velocity Trajectory" eyebrow="Rolling 14-Day Baseline">
                 <AnalyticsSeries series={analytics.velocity.salesSeries || []} />
               </SectionCard>
 
-              <SectionCard title="Forecast Snapshot" eyebrow="Planning window">
-                <div className="space-y-4 text-sm text-stone-600">
-                  <div className="rounded-[1.2rem] border border-stone-200 bg-stone-50 px-4 py-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
-                      Projection
+              <SectionCard title="Forecast Horizon" eyebrow="Predictive Modeling">
+                <div className="space-y-3 font-mono text-xs">
+                  <div className="rounded-xl border border-zinc-800 bg-[#090D16] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">
+                      Projected Revenue Run-Rate
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-stone-900">
-                      {analytics.forecast.next7dRevenue} expected revenue
+                    <p className="mt-1.5 text-xl font-bold text-white">
+                      {analytics.forecast.next7dRevenue}
                     </p>
-                    <p className="mt-1">
-                      Projected order count:{' '}
-                      <span className="font-semibold text-stone-900">
-                        {analytics.forecast.next7dOrders}
-                      </span>
+                    <p className="mt-1 text-zinc-400">
+                      Projected orders: <span className="text-amber-400 font-semibold">{analytics.forecast.next7dOrders}</span>
                     </p>
                   </div>
-                  <div className="rounded-[1.2rem] border border-stone-200 bg-white px-4 py-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
-                      Trend
+                  <div className="rounded-xl border border-zinc-800 bg-[#090D16] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">
+                      Period Trend Vector
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-stone-900">
+                    <p className="mt-1.5 text-base font-semibold text-emerald-400">
                       {analytics.forecast.trendLabel}
                     </p>
-                    <p className="mt-1">
-                      Change from the previous period:{' '}
-                      <span className="font-semibold text-stone-900">
-                        {analytics.forecast.trendValue}
-                      </span>
+                    <p className="mt-1 text-zinc-400">
+                      Variance: <span className="text-zinc-200">{analytics.forecast.trendValue}</span>
                     </p>
                   </div>
-                  <div className="rounded-[1.2rem] border border-stone-200 bg-white px-4 py-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
-                      Inventory pressure
+                  <div className="rounded-xl border border-zinc-800 bg-[#090D16] p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-500">
+                      Inventory Depletion Warning
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-stone-900">
-                      {analytics.summary.lowStockCount} low-stock item(s)
+                    <p className="mt-1.5 text-base font-semibold text-amber-400">
+                      {analytics.summary.lowStockCount} SKU(s) below reserve
                     </p>
-                    <p className="mt-1">
-                      Use this as an early signal for restock and reorder planning.
+                    <p className="mt-1 text-zinc-400">
+                      Immediate procurement schedule recommendation triggered.
                     </p>
                   </div>
                 </div>
               </SectionCard>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-              <SectionCard title="Top Selling Products" eyebrow="Best performers">
-                <div className="space-y-3">
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+              <SectionCard title="Leading SKU Performance" eyebrow="Volume Generators">
+                <div className="space-y-2.5">
                   {(analytics.topProducts || []).length > 0 ? (
                     analytics.topProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between rounded-[1.15rem] border border-stone-200 px-4 py-4"
+                        className="flex items-center justify-between rounded-xl border border-zinc-800/80 bg-[#090D16] px-4 py-3"
                       >
                         <div>
-                          <p className="font-semibold text-stone-900">{product.name}</p>
-                          <p className="text-xs text-stone-500">{product.quantity} unit(s) sold</p>
+                          <p className="font-semibold text-zinc-100 text-sm">{product.name}</p>
+                          <p className="font-mono text-xs text-zinc-400">{product.quantity} units cleared</p>
                         </div>
-                        <p className="text-sm font-semibold text-stone-900">
+                        <p className="font-mono text-sm font-bold text-amber-400">
                           {product.revenueLabel}
                         </p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-stone-500">
-                      No paid product sales were found in the current dataset.
+                    <p className="font-mono text-xs text-zinc-500 py-4 text-center">
+                      No settled product volumes identified in current interval.
                     </p>
                   )}
                 </div>
               </SectionCard>
 
-              <SectionCard title="Fulfillment Mix" eyebrow="Operational health">
-                <div className="space-y-3">
+              <SectionCard title="Fulfillment Pipeline Mix" eyebrow="Operational Health">
+                <div className="space-y-3 font-mono">
                   {(analytics.fulfillmentBreakdown || []).map((item) => (
                     <div key={item.status}>
-                      <div className="mb-1 flex items-center justify-between text-sm">
-                        <span className="font-medium capitalize text-stone-700">{item.status}</span>
-                        <span className="font-semibold text-stone-900">{item.count}</span>
+                      <div className="mb-1.5 flex items-center justify-between text-xs">
+                        <span className="font-medium uppercase tracking-wider text-zinc-300">{item.status}</span>
+                        <span className="font-bold text-zinc-100">{item.count}</span>
                       </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-stone-100">
+                      <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
                         <div
-                          className="h-full rounded-full bg-stone-900"
+                          className="h-full rounded-full bg-amber-400 shadow-sm"
                           style={{ width: `${Math.max(item.count * 12, 4)}%` }}
                         />
                       </div>
