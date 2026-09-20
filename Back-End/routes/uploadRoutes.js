@@ -3,6 +3,9 @@ const multer = require('multer');
 const multerStorageCloudinary = require('multer-storage-cloudinary');
 const CloudinaryStorage = multerStorageCloudinary.CloudinaryStorage || multerStorageCloudinary;
 const cloudinary = require('../config/cloudinary');
+if (!cloudinary.v2) {
+  cloudinary.v2 = cloudinary;
+}
 const { protect, requireAdmin } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -63,10 +66,10 @@ router.post(
       return res.status(400).json({ status: 'error', message: 'No image uploaded' });
     }
 
-    // Cloudinary returns the secure URL in req.file.path
+    const uploadedUrl = req.file.secure_url || req.file.path || req.file.url;
     res.status(200).json({
       status: 'success',
-      url: req.file.path,
+      url: uploadedUrl,
       message: 'Image uploaded successfully to Cloudinary',
     });
   }

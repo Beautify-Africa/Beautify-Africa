@@ -1,7 +1,7 @@
 // services/adminService.js
 const { Op } = require('sequelize');
 const { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry } = require('../models/Order');
-const { Product } = require('../models/Product');
+const { Product, ProductVariant } = require('../models/Product');
 const User = require('../models/User');
 const redisClient = require('../config/redis');
 const inventoryService = require('../services/inventoryService');
@@ -108,6 +108,69 @@ function buildAdminDashboardFromOrders(orders = [], lowStockCount = 0, now = new
     now
   );
 
+  const mappedPriorityOrders = priorityOrders.map(mapPriorityOrder);
+
+  const stats = [
+    {
+      label: 'Live Order Queue',
+      value: String(orders.length),
+      note: `${paidOrders.length} settled payments`,
+      tone: 'stone',
+    },
+    {
+      label: 'Gross Settlement',
+      value: formatCurrency(totalRevenue),
+      note: `${formatCurrency(recentRevenue)} in last 7d`,
+      tone: 'emerald',
+    },
+    {
+      label: 'Average Basket',
+      value: formatCurrency(averageOrderValue),
+      note: 'Per transaction realized',
+      tone: 'amber',
+    },
+    {
+      label: 'Inventory Alerts',
+      value: String(lowStockCount),
+      note: 'SKUs requiring replenishment',
+      tone: lowStockCount > 0 ? 'rose' : 'emerald',
+    },
+  ];
+
+  const lanes = [
+    {
+      title: 'Processing Lane',
+      count: orders.filter((o) => o.fulfillmentStatus === 'processing').length,
+      note: 'Awaiting fulfillment batching',
+      tone: 'stone',
+    },
+    {
+      title: 'Packing Station',
+      count: orders.filter((o) => o.fulfillmentStatus === 'packed').length,
+      note: 'Prepared for courier handoff',
+      tone: 'amber',
+    },
+    {
+      title: 'In Transit',
+      count: orders.filter((o) => o.fulfillmentStatus === 'shipped').length,
+      note: 'Active regional dispatch',
+      tone: 'emerald',
+    },
+  ];
+
+  const watchlist = orders
+    .filter((o) => !o.isPaid || (!o.isDelivered && now - new Date(o.createdAt) > 3 * DAY_IN_MS))
+    .slice(0, 3)
+    .map((o) => ({
+      title: !o.isPaid
+        ? `Order #${(o.id || '').slice(0, 8)} Awaiting Payment`
+        : `Order #${(o.id || '').slice(0, 8)} Delayed Dispatch`,
+      detail: !o.isPaid
+        ? 'Customer has not finalized payment settlement.'
+        : 'Order has been in processing for > 3 days.',
+      tone: !o.isPaid ? 'amber' : 'rose',
+    }));
+
   return {
     metrics: {
       totalOrders: orders.length,
@@ -120,7 +183,11 @@ function buildAdminDashboardFromOrders(orders = [], lowStockCount = 0, now = new
       averageOrderValueValue: averageOrderValue,
       lowStockItemsCount: lowStockCount,
     },
-    priorityQueue: priorityOrders.map(mapPriorityOrder),
+    priorityQueue: mappedPriorityOrders,
+    priorityOrders: mappedPriorityOrders,
+    stats,
+    lanes,
+    watchlist,
     regionalPulse: buildRegionalPulse(orders, now),
   };
 }
@@ -279,12 +346,13 @@ function buildAdminOrderFilter(query = {}) {
   normalizedFilters.payment = payment;
 
   // Fulfillment status filter
-  const fulfillment = String(query.fulfillment || 'all')
+  const fulfillment = String(query.fulfillment || query.status || 'all')
     .trim()
     .toLowerCase();
   if (fulfillment !== 'all' && FULFILLMENT_STATUSES.includes(fulfillment))
     where.fulfillmentStatus = fulfillment;
   normalizedFilters.fulfillment = fulfillment;
+  normalizedFilters.status = fulfillment;
 
   // Country filter (via shippingAddress join — handled at query level below)
   const country = String(query.country || '')
@@ -505,12 +573,21 @@ async function fetchAdminProducts(query = {}) {
   const skip = (page - 1) * limit;
 
   const [products, totalCount] = await Promise.all([
-    Product.findAll({ where: filter, order: [['updatedAt', 'DESC']], offset: skip, limit }),
+    Product.findAll({
+      where: filter,
+      include: [{ model: ProductVariant, as: 'variants', required: false }],
+      order: [['updatedAt', 'DESC']],
+      offset: skip,
+      limit,
+    }),
     Product.count({ where: filter }),
   ]);
 
   return {
-    products: products.map((p) => ({ ...p.toJSON(), _id: p.id })),
+    products: products.map((p) => {
+      const json = p.toJSON ? p.toJSON() : p;
+      return { ...json, _id: json.id };
+    }),
     pagination: {
       page,
       limit,
@@ -543,6 +620,7 @@ async function setAdminProductArchived(productId, isArchived) {
   const product = await Product.findByPk(productId);
   if (!product) throw createAdminError('Product not found', 404);
   product.isArchived = Boolean(isArchived);
+  product.status = product.isArchived ? 'archived' : 'published';
   await product.save();
   await bumpProductCacheVersion();
   return product;
