@@ -41,9 +41,9 @@ const DEFAULT_ORDER_DETAIL = null;
 
 function WorkspaceLoading({ label = 'Loading dashboard...' }) {
   return (
-    <section className="rounded-[2rem] border border-stone-200/80 bg-white px-8 py-16 text-center shadow-[0_24px_60px_rgba(28,25,23,0.08)]">
-      <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
+    <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 px-8 py-16 text-center shadow-xl backdrop-blur-md">
+      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
+      <p className="mt-4 text-xs font-bold uppercase tracking-wider text-zinc-400">
         {label}
       </p>
     </section>
@@ -65,8 +65,8 @@ function normalizeLedgerResponse(payload = {}) {
 }
 
 export default function AdminOrdersWorkspace() {
-  const { user, token, isAuthenticated, isRestoringSession } = useAuth();
-  const isAdmin = Boolean(user?.isAdmin);
+  const { user, token, isAuthenticated, isRestoringSession, isAdmin: authIsAdmin } = useAuth();
+  const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || authIsAdmin);
   const isAdminEnabled = isAuthenticated && isAdmin;
   const detailRequestControllerRef = useRef(null);
   const [orderFilters, setOrderFilters] = useLocalStorageState(
@@ -101,6 +101,7 @@ export default function AdminOrdersWorkspace() {
     dashboard,
     isLoading,
     error,
+    clearError,
     busyActionKey,
     timelineByOrderId,
     reloadDashboard,
@@ -369,13 +370,12 @@ export default function AdminOrdersWorkspace() {
         title="Orders Studio"
         description="Command view for dispatch, payment clearance, note handoffs, and the wider order ledger."
         headerContent={
-          <div className="rounded-[1.4rem] border border-stone-200 bg-[#fffdf9] px-4 py-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
-              Phase 1.5 gain
+          <div className="rounded-xl border border-zinc-800/90 bg-zinc-900/60 px-4 py-3 shadow-inner">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">
+              Operations Notice
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-stone-600">
-              The live priority queue now has its own focus controls, and Phase 2 starts by giving
-              each order a full drawer for shipping, payment, item, and timeline review.
+            <p className="mt-1 text-xs leading-relaxed text-zinc-300">
+              Live priority queue active with instant fulfillment drawer review and status transitions.
             </p>
           </div>
         }
@@ -392,7 +392,11 @@ export default function AdminOrdersWorkspace() {
                 message={successMessage}
                 onDismiss={() => setSuccessMessage('')}
               />
-              <AdminFlashNotice tone="error" message={error} />
+              <AdminFlashNotice
+                tone="error"
+                message={error}
+                onDismiss={clearError}
+              />
             </div>
 
             <AdminHeroSection
@@ -439,9 +443,9 @@ export default function AdminOrdersWorkspace() {
               <button
                 type="button"
                 onClick={handleRefreshWorkspace}
-                className="rounded-full border border-stone-300 bg-white px-5 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-stone-700 shadow-sm"
+                className="rounded-xl border border-zinc-700/80 bg-zinc-800/70 px-4 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white"
               >
-                Refresh full workspace
+                Refresh Full Workspace
               </button>
             </div>
           </>
