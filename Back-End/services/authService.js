@@ -42,14 +42,23 @@ function isConfiguredAdminDashboardCredential(email, password) {
   return isEmailMatch && isPasswordMatch;
 }
 
+function isSoleOwnerEmail(email = '') {
+  const normalized = normalizeEmail(email);
+  const primaryAdmin = getPrimaryConfiguredAdminEmail();
+  return Boolean(primaryAdmin && timingSafeStringEqual(normalized, primaryAdmin));
+}
+
 function isAdminUser(userDoc) {
   if (!userDoc) return false;
   const normalizedEmail = normalizeEmail(userDoc.email || '');
-  return (
-    Boolean(userDoc.isAdmin) ||
-    userDoc.role === 'admin' ||
-    getConfiguredAdminEmails().includes(normalizedEmail)
-  );
+  const configuredEmails = getConfiguredAdminEmails();
+
+  // If server has configured admin emails, strictly require the email to be in the whitelist
+  if (configuredEmails.length > 0) {
+    return configuredEmails.includes(normalizedEmail);
+  }
+
+  return Boolean(userDoc.isAdmin) || userDoc.role === 'admin';
 }
 
 function sanitizeUser(userDoc) {
@@ -141,6 +150,7 @@ module.exports = {
   getPrimaryConfiguredAdminEmail,
   getConfiguredAdminDashboardPassword,
   isConfiguredAdminDashboardCredential,
+  isSoleOwnerEmail,
   isAdminUser,
   hashPasswordResetToken,
   hashJwtToken,

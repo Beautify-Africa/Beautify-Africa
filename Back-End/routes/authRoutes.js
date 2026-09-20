@@ -12,6 +12,7 @@ const {
 const { protect } = require('../middlewares/authMiddleware');
 const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
 const { validateBody } = require('../middlewares/validate');
+const { authLimiter, adminAuthLimiter } = require('../middlewares/rateLimiters');
 const {
   registerSchema,
   loginSchema,
@@ -25,9 +26,9 @@ const router = express.Router();
 
 router.use(setPrivateNoStore);
 
-router.post('/register', validateBody(registerSchema), register);
-router.post('/login', validateBody(loginSchema), login);
-router.post('/admin-login', validateBody(adminLoginSchema), adminDashboardLogin);
+router.post('/register', authLimiter, validateBody(registerSchema), register);
+router.post('/login', authLimiter, validateBody(loginSchema), login);
+router.post('/admin-login', adminAuthLimiter, validateBody(adminLoginSchema), adminDashboardLogin);
 router.post('/forgot-password', validateBody(forgotPasswordSchema), forgotPassword);
 router.post('/reset-password', validateBody(resetPasswordSchema), resetPassword);
 router.get('/me', protect, me);

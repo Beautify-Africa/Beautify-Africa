@@ -27,13 +27,16 @@ export default function ProtectedRoute({ children, adminOnly = false, requiredRo
   }
 
   if (!isAuthenticated) {
+    if (adminOnly) {
+      return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    }
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin');
 
   if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/admin/login" state={{ from: location, unauthorized: true }} replace />;
   }
 
   if (requiredRole && user?.role !== requiredRole && !isAdmin) {
