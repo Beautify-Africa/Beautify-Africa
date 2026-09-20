@@ -1,18 +1,18 @@
 export default function RegionCard({ region, share, movement, note }) {
   return (
-    <article className="rounded-[1.5rem] border border-stone-200/80 bg-white p-5 shadow-[0_10px_22px_rgba(28,25,23,0.05)]">
+    <article className="rounded-xl border border-zinc-800/90 bg-zinc-900/60 p-4 shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
             {region}
           </p>
-          <p className="mt-3 font-serif text-3xl text-stone-900">{share}</p>
+          <p className="mt-1.5 font-mono font-bold text-2xl text-white tabular-nums">{share}</p>
         </div>
-        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-700">
+        <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400 font-mono">
           {movement}
         </span>
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-stone-500">{note}</p>
+      <p className="mt-2.5 text-xs leading-relaxed text-zinc-400">{note}</p>
     </article>
   );
 }
