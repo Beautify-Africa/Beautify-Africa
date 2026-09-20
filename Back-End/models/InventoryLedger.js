@@ -122,6 +122,7 @@ InventoryLedger.init(
       { fields: ['variantId'] },
       { fields: ['type'] },
       { fields: ['createdAt'] },
+      { fields: ['productId', 'createdAt'] },
     ],
   }
 );

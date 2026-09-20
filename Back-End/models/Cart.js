@@ -39,7 +39,11 @@ CartItem.init(
     modelName: 'CartItem',
     tableName: 'cart_items',
     timestamps: true,
-    indexes: [{ fields: ['cartId'] }, { fields: ['productId'] }],
+    indexes: [
+      { fields: ['cartId'] },
+      { fields: ['productId'] },
+      { fields: ['cartId', 'productId'] },
+    ],
   }
 );
 
