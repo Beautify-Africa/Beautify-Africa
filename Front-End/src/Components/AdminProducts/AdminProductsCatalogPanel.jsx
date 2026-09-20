@@ -17,42 +17,43 @@ export default function AdminProductsCatalogPanel({
   onArchiveProduct,
 }) {
   return (
-    <section>
+    <section className="space-y-8">
       <ImageUploader />
 
-      <div className="mt-8 rounded-[2rem] border border-stone-200 bg-white p-6 shadow-[0_18px_48px_rgba(28,25,23,0.07)]">
-        <div className="flex flex-wrap items-end gap-3">
+      <div className="rounded-2xl border border-zinc-800/80 bg-[#0E131F] p-6 shadow-xl">
+        <div className="flex flex-wrap items-end gap-3 border-b border-zinc-800/80 pb-5">
           <div className="min-w-[220px] flex-1">
-            <label className="block text-xs font-bold uppercase tracking-[0.16em] text-stone-500">
-              Search
+            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+              Filter By Keyword
             </label>
             <input
               type="text"
               value={activeProductFilters.search}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Name, brand, category"
-              className="mt-2 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm"
+              placeholder="Search by name, brand, category..."
+              className="mt-2 w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-[0.16em] text-stone-500">
-              Archive
+            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+              Archive Status
             </label>
             <select
               value={activeProductFilters.archived}
               onChange={(event) => onArchiveChange(event.target.value)}
-              className="mt-2 rounded-xl border border-stone-200 px-3 py-2 text-sm"
+              className="mt-2 rounded-xl border border-zinc-800 bg-[#090D16] px-3 py-2 text-sm text-zinc-200 focus:border-amber-400 focus:outline-none"
             >
-              <option value="false">Active</option>
-              <option value="true">Archived</option>
-              <option value="all">All</option>
+              <option value="false">Active Only</option>
+              <option value="true">Archived Only</option>
+              <option value="all">All States</option>
             </select>
           </div>
 
-          <label className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700">
+          <label className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-[#090D16] px-3 py-2 text-sm text-zinc-300 hover:border-zinc-700 cursor-pointer">
             <input
               type="checkbox"
+              className="accent-amber-400 rounded"
               checked={Boolean(activeProductFilters.lowStockOnly)}
               onChange={(event) => onLowStockChange(event.target.checked)}
             />
@@ -62,26 +63,28 @@ export default function AdminProductsCatalogPanel({
           <button
             type="button"
             onClick={onRefresh}
-            className="rounded-full bg-stone-900 px-5 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white"
+            className="rounded-xl bg-amber-400 px-5 py-2 text-xs font-bold uppercase tracking-[0.16em] text-stone-950 hover:bg-amber-300 transition-all shadow-sm"
           >
-            Refresh
+            Refresh Catalog
           </button>
         </div>
 
         {lowStockProducts.length > 0 ? (
-          <div className="mt-6 rounded-[1.6rem] border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-700">
-              Low stock alert
-            </p>
-            <p className="mt-2 text-sm text-amber-900">
-              {lowStockProducts.length} product(s) on this page are at or below their low-stock
-              threshold.
+          <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-ping" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-400">
+                Low Stock Warning ({lowStockProducts.length} items at risk)
+              </p>
+            </div>
+            <p className="mt-1 text-xs text-amber-200/80">
+              The following products are currently tracking below their designated inventory thresholds:
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {lowStockProducts.slice(0, 5).map((product) => (
                 <span
                   key={product._id}
-                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-800"
+                  className="rounded-md border border-amber-500/30 bg-black/40 px-2.5 py-1 text-xs font-mono font-medium text-amber-300"
                 >
                   {product.name}
                 </span>
@@ -93,71 +96,74 @@ export default function AdminProductsCatalogPanel({
         <div className="mt-5 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-stone-200 text-xs uppercase tracking-[0.16em] text-stone-500">
-                <th className="py-2 pr-3">Product</th>
-                <th className="py-2 pr-3">Price</th>
-                <th className="py-2 pr-3">Stock</th>
-                <th className="py-2 pr-3">State</th>
-                <th className="py-2">Actions</th>
+              <tr className="border-b border-zinc-800 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                <th className="py-3 pr-4">Product Identifier</th>
+                <th className="py-3 pr-4">List Price</th>
+                <th className="py-3 pr-4">Stock Cadence</th>
+                <th className="py-3 pr-4">Health State</th>
+                <th className="py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-zinc-800/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-stone-500">
-                    Loading products...
+                  <td colSpan={5} className="py-8 text-center text-xs text-zinc-500 font-mono">
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border border-zinc-500 border-t-amber-400 mr-2 align-middle" />
+                    Querying product ledger...
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-stone-500">
-                    No products found.
+                  <td colSpan={5} className="py-8 text-center text-xs text-zinc-500">
+                    No products matching current filter criteria.
                   </td>
                 </tr>
               ) : (
                 products.map((product) => (
-                  <tr key={product._id} className="border-b border-stone-100 align-top">
-                    <td className="py-3 pr-3">
-                      <p className="font-medium text-stone-900">{product.name}</p>
-                      <p className="text-xs text-stone-500">
+                  <tr key={product._id} className="hover:bg-zinc-900/40 transition-colors">
+                    <td className="py-3 pr-4">
+                      <p className="font-semibold text-zinc-100">{product.name}</p>
+                      <p className="text-xs text-zinc-400 font-mono">
                         {product.brand} · {product.category}
                       </p>
                     </td>
-                    <td className="py-3 pr-3">${Number(product.price || 0).toFixed(2)}</td>
-                    <td className="py-3 pr-3">
-                      <p>{product.stockQuantity ?? 0}</p>
-                      <p className="text-xs text-stone-500">
-                        Low at {product.lowStockThreshold ?? 5}
+                    <td className="py-3 pr-4 font-mono font-medium text-zinc-200">
+                      ${Number(product.price || 0).toFixed(2)}
+                    </td>
+                    <td className="py-3 pr-4">
+                      <p className="font-mono font-semibold text-zinc-100">{product.stockQuantity ?? 0}</p>
+                      <p className="text-[11px] font-mono text-zinc-500">
+                        Threshold: {product.lowStockThreshold ?? 5}
                       </p>
                     </td>
-                    <td className="py-3 pr-3">
+                    <td className="py-3 pr-4">
                       {product.isArchived ? (
-                        <span className="rounded-full border border-stone-300 px-2 py-1 text-xs">
+                        <span className="inline-flex rounded-md border border-zinc-700 bg-zinc-800/80 px-2 py-0.5 text-[11px] font-mono text-zinc-400">
                           Archived
                         </span>
                       ) : (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 5) ? (
-                        <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-700">
-                          Low stock
+                        <span className="inline-flex rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-mono text-amber-400">
+                          Low Stock
                         </span>
                       ) : (
-                        <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs text-emerald-700">
+                        <span className="inline-flex rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-mono text-emerald-400">
                           Healthy
                         </span>
                       )}
                     </td>
-                    <td className="py-3">
-                      <div className="flex flex-wrap gap-2">
+                    <td className="py-3 text-right">
+                      <div className="inline-flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => onEditProduct(product)}
-                          className="rounded-full border border-stone-300 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-stone-700"
+                          className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs font-semibold text-zinc-200 hover:bg-zinc-700 hover:text-white transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => onArchiveProduct(product)}
-                          className="rounded-full border border-stone-300 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-stone-700"
+                          className="rounded-lg border border-zinc-700/80 bg-zinc-850 px-3 py-1 text-xs font-semibold text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 transition-colors"
                         >
                           {product.isArchived ? 'Restore' : 'Archive'}
                         </button>
@@ -170,25 +176,25 @@ export default function AdminProductsCatalogPanel({
           </table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-sm text-stone-600">
-          <p>{pagination.totalCount || 0} product(s)</p>
+        <div className="mt-5 flex items-center justify-between border-t border-zinc-800/80 pt-4 text-xs font-mono text-zinc-400">
+          <p>{pagination.totalCount || 0} product(s) in catalog</p>
           <div className="flex items-center gap-2">
             <button
               type="button"
               disabled={(activeProductFilters.page || 1) <= 1}
               onClick={onPrevPage}
-              className="rounded border border-stone-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1 text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-zinc-700"
             >
               Prev
             </button>
-            <span>
-              Page {activeProductFilters.page || 1} / {Math.max(1, pagination.totalPages || 1)}
+            <span className="px-2">
+              Page {activeProductFilters.page || 1} of {Math.max(1, pagination.totalPages || 1)}
             </span>
             <button
               type="button"
               disabled={!canGoNext}
               onClick={onNextPage}
-              className="rounded border border-stone-300 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1 text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-zinc-700"
             >
               Next
             </button>
