@@ -17,24 +17,38 @@ const {
   adjustVariantStock,
   getStockHistory,
 } = require('../controllers/productController');
+const { setPublicCache, setEdgeCdnCache } = require('../middlewares/cacheHeaders');
 const { protect, requireAdmin } = require('../middlewares/authMiddleware');
-const { setPublicCache } = require('../middlewares/cacheHeaders');
-const { validateBody, validateParams } = require('../middlewares/validate');
+const { validateBody, validateParams, validateQuery } = require('../middlewares/validate');
+const { searchLimiter } = require('../middlewares/rateLimiters');
 const {
   productIdParamSchema,
+  productIdOrSlugParamSchema,
   variantParamSchema,
   createReviewSchema,
   adjustStockSchema,
   addVariantSchema,
   productStatusSchema,
+  getProductsQuerySchema,
 } = require('../validations/productValidation');
 
 const router = express.Router();
 
 // ===== Public Product Routes =====
-router.get('/', setPublicCache(60, 300), getProducts);
-router.get('/catalog', setPublicCache(300, 1800), getProductCatalog);
-router.get('/:idOrSlug', setPublicCache(120, 600), getProductByIdOrSlug);
+router.get(
+  '/',
+  (req, res, next) => (req.query.q ? searchLimiter(req, res, next) : next()),
+  validateQuery(getProductsQuerySchema),
+  setEdgeCdnCache(30, 300, 60),
+  getProducts
+);
+router.get('/catalog', setEdgeCdnCache(60, 3600, 600), getProductCatalog);
+router.get(
+  '/:idOrSlug',
+  validateParams(productIdOrSlugParamSchema),
+  setEdgeCdnCache(60, 600, 120),
+  getProductByIdOrSlug
+);
 router.post(
   '/:id/reviews',
   protect,

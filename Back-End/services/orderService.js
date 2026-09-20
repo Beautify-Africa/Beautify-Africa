@@ -82,6 +82,32 @@ async function buildVerifiedOrderItems(orderItems = [], userId = null) {
   let itemsPrice = 0;
   const { directProductMap, cartProductMap } = await buildProductLookupMaps(orderItems, userId);
 
+  const requestedVariantIds = [
+    ...new Set(
+      orderItems
+        .map(
+          (item) =>
+            item.variantId ||
+            (typeof item.variant === 'string' ? item.variant : item.variant?.id) ||
+            null
+        )
+        .filter((vid) => vid && UUID_REGEX.test(String(vid)))
+    ),
+  ];
+
+  let variantMap = new Map();
+  if (
+    requestedVariantIds.length > 0 &&
+    typeof ProductVariant !== 'undefined' &&
+    typeof ProductVariant.findAll === 'function'
+  ) {
+    const variants = await ProductVariant.findAll({
+      where: { id: { [Op.in]: requestedVariantIds } },
+      raw: true,
+    });
+    variantMap = new Map(variants.map((v) => [String(v.id), v]));
+  }
+
   for (const item of orderItems) {
     const productId = getOrderItemProductId(item);
     const quantity = Number(item.qty ?? item.quantity);
@@ -117,17 +143,10 @@ async function buildVerifiedOrderItems(orderItems = [], userId = null) {
     let variantSku = null;
     let variantName = null;
 
-    if (
-      variantId &&
-      typeof ProductVariant !== 'undefined' &&
-      typeof ProductVariant.findOne === 'function'
-    ) {
-      const variant = await ProductVariant.findOne({
-        where: { id: variantId, productId: dbProduct.id },
-        raw: true,
-      });
+    if (variantId) {
+      const variant = variantMap.get(String(variantId));
 
-      if (!variant) {
+      if (!variant || String(variant.productId) !== String(dbProduct.id)) {
         return {
           error: {
             statusCode: 400,

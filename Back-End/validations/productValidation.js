@@ -51,11 +51,35 @@ const productStatusSchema = z.object({
   }),
 });
 
+const productIdOrSlugParamSchema = z.object({
+  idOrSlug: z.string().trim().min(1, 'Product identifier is required'),
+});
+
+const getProductsQuerySchema = z
+  .object({
+    page: z.union([z.string().regex(/^\d+$/), z.number().int().positive()]).optional(),
+    limit: z.union([z.string().regex(/^\d+$/), z.number().int().positive()]).optional(),
+    cursor: z.string().trim().optional(),
+    category: z.string().trim().optional(),
+    subcategory: z.string().trim().optional(),
+    brand: z.string().trim().optional(),
+    skinType: z.string().trim().optional(),
+    inStock: z.enum(['true', 'false', '']).optional(),
+    minPrice: z.union([z.string().regex(/^\d+(\.\d+)?$/), z.number().min(0)]).optional(),
+    maxPrice: z.union([z.string().regex(/^\d+(\.\d+)?$/), z.number().min(0)]).optional(),
+    sort: z.string().trim().optional(),
+    q: z.string().trim().max(100, 'Search query too long').optional(),
+    ids: z.union([z.string(), z.array(z.string())]).optional(),
+  })
+  .passthrough();
+
 module.exports = {
   productIdParamSchema,
+  productIdOrSlugParamSchema,
   variantParamSchema,
   createReviewSchema,
   adjustStockSchema,
   addVariantSchema,
   productStatusSchema,
+  getProductsQuerySchema,
 };

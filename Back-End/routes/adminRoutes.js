@@ -22,6 +22,13 @@ const {
 } = require('../controllers/adminController');
 const { protect, requireAdmin } = require('../middlewares/authMiddleware');
 const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
+const { validateParams, validateQuery } = require('../middlewares/validate');
+const {
+  adminOrdersQuerySchema,
+  adminCustomersQuerySchema,
+  adminOrderIdParamSchema,
+  adminCustomerParamSchema,
+} = require('../validations/adminValidation');
 
 const router = express.Router();
 
@@ -31,19 +38,19 @@ router.use(protect, requireAdmin);
 router.get('/dashboard', getAdminDashboard);
 router.get('/analytics/summary', getAdminAnalytics);
 router.get('/inventory/reorder-plan', getReorderPlan);
-router.get('/orders', getAdminOrders);
-router.get('/orders/:id', getAdminOrderDetail);
-router.patch('/orders/:id', updateAdminOrderStatus);
-router.post('/orders/:id/notes', createAdminOrderNote);
-router.get('/orders/:id/timeline', getAdminOrderTimeline);
+router.get('/orders', validateQuery(adminOrdersQuerySchema), getAdminOrders);
+router.get('/orders/:id', validateParams(adminOrderIdParamSchema), getAdminOrderDetail);
+router.patch('/orders/:id', validateParams(adminOrderIdParamSchema), updateAdminOrderStatus);
+router.post('/orders/:id/notes', validateParams(adminOrderIdParamSchema), createAdminOrderNote);
+router.get('/orders/:id/timeline', validateParams(adminOrderIdParamSchema), getAdminOrderTimeline);
 router.get('/products', getAdminProducts);
 router.post('/products', postAdminProduct);
 router.put('/products/:id', putAdminProduct);
 router.patch('/products/:id/archive', patchAdminProductArchive);
 
 // Customer management routes
-router.get('/customers', getAdminCustomers);
-router.get('/customers/:id', getAdminCustomerDetail);
+router.get('/customers', validateQuery(adminCustomersQuerySchema), getAdminCustomers);
+router.get('/customers/:id', validateParams(adminCustomerParamSchema), getAdminCustomerDetail);
 
 // PHASE 3: Inventory management dashboard routes
 router.get('/inventory/dashboard', getInventoryDashboard);

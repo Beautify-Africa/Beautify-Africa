@@ -4,6 +4,8 @@ const { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry } = require('
 const { buildVerifiedOrderItems, calculateOrderTotals } = require('../services/orderService');
 const { processPurchase } = require('../services/inventoryService');
 const { cancelOrder } = require('./orderCancellationController');
+const { invalidateCartCache } = require('./cartController');
+const { bumpProductCacheVersion } = require('./productController.cache');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -123,6 +125,13 @@ const addOrderItems = async (req, res) => {
       });
     });
 
+    // Invalidate user cart in Redis and bump product catalog version
+    const authUserId = req.user ? req.user.id || req.user._id : null;
+    if (authUserId) {
+      invalidateCartCache(authUserId).catch(() => {});
+    }
+    bumpProductCacheVersion().catch(() => {});
+
     res.status(201).json({ status: 'success', data: createdOrder });
   } catch (error) {
     console.error('addOrderItems error:', error);
@@ -149,17 +158,35 @@ const getMyOrders = async (req, res) => {
     }
 
     const userId = req.user.id || req.user._id;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const offset = (page - 1) * limit;
 
-    const orders = await Order.findAll({
+    const { count, rows: orders } = await Order.findAndCountAll({
       where: { userId },
       include: [
         { model: OrderItem, as: 'orderItems' },
         { model: OrderShippingAddress, as: 'shippingAddress' },
       ],
       order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
     });
 
-    res.status(200).json({ status: 'success', data: orders });
+    const totalPages = count > 0 ? Math.ceil(count / limit) : 0;
+
+    res.status(200).json({
+      status: 'success',
+      count: orders.length,
+      totalCount: count,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1 && totalPages > 0,
+      data: orders,
+    });
   } catch (error) {
     console.error('getMyOrders error:', error);
     res.status(500).json({

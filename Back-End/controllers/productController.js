@@ -10,6 +10,7 @@ const {
   buildCatalogPayload,
   normalizeReviewPayload,
   findProductByIdOrSlug,
+  encodeCursor,
 } = require('../services/productService');
 const {
   PRODUCT_LIST_CACHE_TTL_SECONDS,
@@ -55,6 +56,9 @@ async function getProducts(req, res) {
 
     const mappedProducts = products.map((p) => ({ ...p, _id: p.id }));
     const totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : 0;
+    const lastProduct = mappedProducts.length > 0 ? mappedProducts[mappedProducts.length - 1] : null;
+    const nextCursor = mappedProducts.length === limit && lastProduct ? encodeCursor(lastProduct) : null;
+
     const payload = {
       status: 'success',
       count: mappedProducts.length,
@@ -64,6 +68,8 @@ async function getProducts(req, res) {
       totalPages,
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1 && totalPages > 0,
+      nextCursor,
+      hasMore: Boolean(nextCursor),
       data: mappedProducts,
     };
 
