@@ -11,8 +11,10 @@ export function useUserOrdersQuery(token, options = {}) {
       return Array.isArray(orders) ? orders : [];
     },
     enabled: Boolean(token),
-    staleTime: 60 * 1000, // 1 minute
-    refetchInterval: 2 * 60 * 1000, // Poll every 2 minutes for status updates
+    staleTime: 5 * 1000, // 5 seconds freshness
+    refetchInterval: 10 * 1000, // Responsive 10-second polling for live status tracking
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
     ...options,
   });
 }
