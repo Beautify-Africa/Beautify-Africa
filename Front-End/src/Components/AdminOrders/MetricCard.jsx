@@ -4,20 +4,31 @@ export default function MetricCard({ label, value, note, tone }) {
   const classes = toneClasses(tone);
 
   return (
-    <article className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-white/90 p-6 shadow-[0_18px_45px_rgba(28,25,23,0.08)] backdrop-blur-sm">
+    <article className="relative overflow-hidden rounded-xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 shadow-lg backdrop-blur-md transition-all hover:border-zinc-700/80">
       <div
-        className={`pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b ${classes.accent}`}
+        className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${classes.accent}`}
       />
-      <p className="relative text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">
-        {label}
-      </p>
-      <div className="relative mt-4 flex items-end justify-between gap-4">
-        <p className="font-serif text-4xl leading-none text-stone-900">{value}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-400 truncate">
+          {label}
+        </p>
         <span
-          className={`h-3 w-3 rounded-full shadow-[0_0_0_6px_rgba(255,255,255,0.85)] ${classes.dot}`}
+          className={`h-2 w-2 shrink-0 rounded-full ${classes.dot}`}
+          aria-hidden="true"
         />
       </div>
-      <p className="relative mt-4 max-w-[22rem] text-sm leading-relaxed text-stone-500">{note}</p>
+      
+      <div className="mt-3 flex items-baseline justify-between gap-4">
+        <p className="font-bold text-2xl sm:text-3xl tracking-tight text-white font-mono tabular-nums">
+          {value}
+        </p>
+      </div>
+
+      {note ? (
+        <p className="mt-2 text-xs leading-relaxed text-zinc-400 line-clamp-2">
+          {note}
+        </p>
+      ) : null}
     </article>
   );
 }
