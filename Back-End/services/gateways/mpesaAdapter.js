@@ -1,112 +1,15 @@
 // services/gateways/mpesaAdapter.js
 const logger = require('../../utils/logger');
+const MpesaClient = require('./mpesaClient');
 
 /**
  * Safaricom M-Pesa (Daraja API) STK Push Gateway Adapter
  * Enables East African shoppers to pay instantly via Mobile Money (SIM Toolkit push).
  */
-class MpesaAdapter {
+class MpesaAdapter extends MpesaClient {
   constructor() {
+    super();
     this.name = 'mpesa';
-    this.shortcode = process.env.MPESA_SHORTCODE || '174379';
-    this.passkey =
-      process.env.MPESA_PASSKEY ||
-      'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
-    this.consumerKey = process.env.MPESA_CONSUMER_KEY || '';
-    this.consumerSecret = process.env.MPESA_CONSUMER_SECRET || '';
-    this.env = process.env.MPESA_ENV || 'sandbox';
-    this.callbackUrl =
-      process.env.MPESA_CALLBACK_URL ||
-      'https://beautifyafrica.app/api/payments/webhook/mpesa';
-
-    this.cachedToken = null;
-    this.tokenExpiresAt = 0;
-  }
-
-  getBaseUrl() {
-    return this.env === 'production'
-      ? 'https://api.safaricom.co.ke'
-      : 'https://sandbox.safaricom.co.ke';
-  }
-
-  isConfigured() {
-    return Boolean(
-      this.consumerKey &&
-        this.consumerSecret &&
-        !this.consumerKey.includes('your-') &&
-        !this.consumerSecret.includes('your-')
-    );
-  }
-
-  /**
-   * Fetch OAuth access token from Safaricom Daraja API
-   */
-  async getOAuthToken() {
-    if (this.cachedToken && Date.now() < this.tokenExpiresAt) {
-      return this.cachedToken;
-    }
-
-    const auth = Buffer.from(
-      `${this.consumerKey.trim()}:${this.consumerSecret.trim()}`
-    ).toString('base64');
-
-    const response = await fetch(
-      `${this.getBaseUrl()}/oauth/v1/generate?grant_type=client_credentials`,
-      {
-        headers: {
-          Authorization: `Basic ${auth}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Failed to obtain M-Pesa OAuth token: ${errText}`);
-    }
-
-    const data = await response.json();
-    this.cachedToken = data.access_token;
-    // Expire 60 seconds before reported lifetime
-    const expiresIn = Number(data.expires_in) || 3599;
-    this.tokenExpiresAt = Date.now() + (expiresIn - 60) * 1000;
-
-    return this.cachedToken;
-  }
-
-  /**
-   * Generates timestamp formatted as YYYYMMDDHHmmss
-   */
-  getTimestamp() {
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-  }
-
-  /**
-   * Generates base64-encoded Daraja password
-   */
-  getPassword(timestamp) {
-    return Buffer.from(
-      `${this.shortcode}${this.passkey}${timestamp}`
-    ).toString('base64');
-  }
-
-  /**
-   * Normalize Kenyan phone number to 254XXXXXXXXX format
-   */
-  normalizePhoneNumber(phone) {
-    if (!phone) return null;
-    const digits = phone.replace(/\D/g, '');
-    if (digits.startsWith('254') && digits.length === 12) {
-      return digits;
-    }
-    if (digits.startsWith('0') && digits.length === 10) {
-      return `254${digits.substring(1)}`;
-    }
-    if (digits.length === 9) {
-      return `254${digits}`;
-    }
-    return digits;
   }
 
   /**
@@ -122,7 +25,6 @@ class MpesaAdapter {
 
     const amount = Math.max(1, Math.round(Number(order.totalPrice)));
 
-    // If Daraja credentials are not yet added to .env, run in simulation mode
     if (!this.isConfigured()) {
       const checkoutRequestId = `mock_ws_CO_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
       logger.info(
@@ -142,7 +44,6 @@ class MpesaAdapter {
       };
     }
 
-    // Live Daraja STK Push call
     try {
       const token = await this.getOAuthToken();
       const timestamp = this.getTimestamp();
@@ -252,7 +153,6 @@ class MpesaAdapter {
 
       const data = await response.json();
 
-      // ResultCode 0 indicates payment was successful and PIN was entered
       if (data.ResultCode === '0' || data.ResultCode === 0) {
         return {
           success: true,
@@ -263,7 +163,6 @@ class MpesaAdapter {
         };
       }
 
-      // User cancelled PIN prompt on phone
       if (data.ResultCode === '1032') {
         return {
           success: false,
@@ -274,7 +173,6 @@ class MpesaAdapter {
         };
       }
 
-      // Prompt timed out without PIN
       if (data.ResultCode === '1037') {
         return {
           success: false,

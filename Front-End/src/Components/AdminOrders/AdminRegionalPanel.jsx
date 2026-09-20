@@ -2,7 +2,9 @@ import FadeIn from '../Shared/FadeIn';
 import EmptyPanel from './EmptyPanel';
 import RegionCard from './RegionCard';
 
-export default function AdminRegionalPanel({ regionalPulse }) {
+export default function AdminRegionalPanel({ regionalPulse = [] }) {
+  const safePulse = Array.isArray(regionalPulse) ? regionalPulse : [];
+
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
       <FadeIn>
@@ -20,8 +22,8 @@ export default function AdminRegionalPanel({ regionalPulse }) {
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            {regionalPulse.length > 0 ? (
-              regionalPulse.map((region) => <RegionCard key={region.region} {...region} />)
+            {safePulse.length > 0 ? (
+              safePulse.map((region) => <RegionCard key={region.region} {...region} />)
             ) : (
               <EmptyPanel
                 title="No regional data"

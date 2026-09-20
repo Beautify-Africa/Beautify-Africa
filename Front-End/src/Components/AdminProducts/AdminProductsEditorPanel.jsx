@@ -1,4 +1,6 @@
 import VariantList from './VariantList';
+import ProductBasicFields from './ProductBasicFields';
+import ProductBulkIngestionForm from './ProductBulkIngestionForm';
 
 export default function AdminProductsEditorPanel({
   formState,
@@ -71,134 +73,7 @@ export default function AdminProductsEditorPanel({
       ) : null}
 
       <form className="space-y-4" onSubmit={onSubmit}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Product Title *
-            </label>
-            <input
-              value={formState.name}
-              onChange={(event) => onChangeField('name', event.target.value)}
-              placeholder="e.g. Shea Butter Hydration Elixir"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Brand Identifier *
-            </label>
-            <input
-              value={formState.brand}
-              onChange={(event) => onChangeField('brand', event.target.value)}
-              placeholder="e.g. Beautify Africa Botanical"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Category *
-            </label>
-            <input
-              value={formState.category}
-              onChange={(event) => onChangeField('category', event.target.value)}
-              placeholder="e.g. Skincare"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Subcategory
-            </label>
-            <input
-              value={formState.subcategory}
-              onChange={(event) => onChangeField('subcategory', event.target.value)}
-              placeholder="e.g. Moisturisers"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Retail Price (USD) *
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formState.price}
-              onChange={(event) => onChangeField('price', event.target.value)}
-              placeholder="0.00"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 font-mono text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Original / Strike Price
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formState.originalPrice}
-              onChange={(event) => onChangeField('originalPrice', event.target.value)}
-              placeholder="0.00"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 font-mono text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Stock Quantity *
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={formState.stockQuantity}
-              onChange={(event) => onChangeField('stockQuantity', event.target.value)}
-              placeholder="Units available"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 font-mono text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Low Stock Threshold *
-            </label>
-            <input
-              type="number"
-              min="0"
-              value={formState.lowStockThreshold}
-              onChange={(event) => onChangeField('lowStockThreshold', event.target.value)}
-              placeholder="Alert when below"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 font-mono text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Target Skin Types
-            </label>
-            <input
-              value={formState.skinType}
-              onChange={(event) => onChangeField('skinType', event.target.value)}
-              placeholder="Dry, Normal, Sensitive (comma separated)"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
-              Discovery Tags
-            </label>
-            <input
-              value={formState.tags}
-              onChange={(event) => onChangeField('tags', event.target.value)}
-              placeholder="hydrating, natural, organic"
-              className="w-full rounded-xl border border-zinc-800 bg-[#090D16] px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
-            />
-          </div>
-        </div>
+        <ProductBasicFields formState={formState} onChangeField={onChangeField} />
 
         <div>
           <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 mb-1.5">
@@ -298,37 +173,12 @@ export default function AdminProductsEditorPanel({
         </div>
       </form>
 
-      <form
-        className="mt-8 rounded-2xl border border-zinc-800/80 bg-[#090D16] p-5"
-        onSubmit={onImport}
-      >
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h4 className="text-sm font-bold text-zinc-200">Bulk Ingestion Pipeline</h4>
-            <p className="mt-1 text-xs text-zinc-400">
-              Paste CSV rows with headers. Nested fields support pipe-delimited values for{' '}
-              <span className="font-mono text-amber-300">images</span>,{' '}
-              <span className="font-mono text-amber-300">skinType</span>, and{' '}
-              <span className="font-mono text-amber-300">tags</span>;{' '}
-              <span className="font-mono text-amber-300">variants</span> accepts JSON arrays.
-            </p>
-          </div>
-          <button
-            type="submit"
-            disabled={isBulkImporting || !bulkImportText.trim()}
-            className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-zinc-200 hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
-          >
-            {isBulkImporting ? 'Ingesting Batch...' : 'Run Bulk Ingestion'}
-          </button>
-        </div>
-        <textarea
-          rows={5}
-          value={bulkImportText}
-          onChange={(event) => onImportTextChange(event.target.value)}
-          placeholder="Paste raw CSV payload here..."
-          className="mt-4 w-full rounded-xl border border-zinc-800 bg-[#0E131F] px-3.5 py-2 font-mono text-xs text-zinc-200 placeholder-zinc-600 focus:border-amber-400 focus:outline-none"
-        />
-      </form>
+      <ProductBulkIngestionForm
+        bulkImportText={bulkImportText}
+        isBulkImporting={isBulkImporting}
+        onImport={onImport}
+        onImportTextChange={onImportTextChange}
+      />
 
       {selectedProduct ? (
         <div className="mt-8 border-t border-zinc-800/80 pt-6">
