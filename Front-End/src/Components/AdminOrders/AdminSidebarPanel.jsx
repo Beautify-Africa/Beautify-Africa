@@ -3,7 +3,10 @@ import EmptyPanel from './EmptyPanel';
 import LaneCard from './LaneCard';
 import WatchCard from './WatchCard';
 
-export default function AdminSidebarPanel({ lanes, watchlist }) {
+export default function AdminSidebarPanel({ lanes = [], watchlist = [] }) {
+  const safeLanes = Array.isArray(lanes) ? lanes : [];
+  const safeWatchlist = Array.isArray(watchlist) ? watchlist : [];
+
   return (
     <FadeIn>
       <aside className="space-y-6">
@@ -20,8 +23,8 @@ export default function AdminSidebarPanel({ lanes, watchlist }) {
           </h2>
 
           <div className="mt-4 space-y-3">
-            {lanes.length > 0 ? (
-              lanes.map((lane) => <LaneCard key={lane.title} {...lane} />)
+            {safeLanes.length > 0 ? (
+              safeLanes.map((lane) => <LaneCard key={lane.title} {...lane} />)
             ) : (
               <EmptyPanel
                 title="No lane data"
@@ -44,8 +47,8 @@ export default function AdminSidebarPanel({ lanes, watchlist }) {
           </h2>
 
           <div className="mt-4 space-y-3">
-            {watchlist.length > 0 ? (
-              watchlist.map((item) => <WatchCard key={item.title} {...item} />)
+            {safeWatchlist.length > 0 ? (
+              safeWatchlist.map((item) => <WatchCard key={item.title} {...item} />)
             ) : (
               <EmptyPanel
                 title="All clear"
