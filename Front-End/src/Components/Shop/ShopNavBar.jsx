@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { ALL_FILTER_OPTION } from './shopConfig';
 
 /**
  * Single nav tab button (no dropdown rendered here)
  */
-function NavTab({ category, isActive, isOpen, hasDropdown, onClick }) {
+const NavTab = memo(function NavTab({ category, isActive, isOpen, hasDropdown, onClick }) {
   return (
     <button
       onClick={onClick}
@@ -31,12 +31,12 @@ function NavTab({ category, isActive, isOpen, hasDropdown, onClick }) {
       )}
     </button>
   );
-}
+});
 
 /**
  * Subcategory dropdown — absolutely positioned relative to the nav
  */
-function SubcategoryDropdown({
+const SubcategoryDropdown = memo(function SubcategoryDropdown({
   category,
   isOpen,
   activeSubcategory,
@@ -72,12 +72,12 @@ function SubcategoryDropdown({
       </ul>
     </div>
   );
-}
+});
 
 /**
  * ShopNavBar — horizontal sticky category navigation with click-driven dropdowns
  */
-export default function ShopNavBar({
+const ShopNavBar = memo(function ShopNavBar({
   categories = [],
   selectedCategory,
   selectedSubcategory,
@@ -167,4 +167,6 @@ export default function ShopNavBar({
       )}
     </nav>
   );
-}
+});
+
+export default ShopNavBar;

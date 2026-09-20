@@ -1,7 +1,9 @@
-const InteractiveButton = ({ label, primary = false }) => {
+import { Link } from 'react-router-dom';
+
+const InteractiveButton = ({ label, primary = false, to, onClick, onMouseEnter, onFocus, ...props }) => {
   const baseStyles = `
     group relative overflow-hidden px-10 py-5 text-[11px] uppercase tracking-[0.4em] font-bold
-    transition-all duration-700 rounded-sm w-full sm:w-auto
+    transition-all duration-700 rounded-sm w-full sm:w-auto inline-block text-center
   `;
 
   const variantStyles = primary
@@ -10,8 +12,8 @@ const InteractiveButton = ({ label, primary = false }) => {
 
   const fillStyles = primary ? 'bg-stone-800' : 'bg-stone-50';
 
-  return (
-    <button type="button" className={`${baseStyles} ${variantStyles}`}>
+  const content = (
+    <>
       {/* Minimalist fill effect */}
       <span
         className={`absolute inset-0 w-0 transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:w-full ${fillStyles}`}
@@ -36,6 +38,34 @@ const InteractiveButton = ({ label, primary = false }) => {
           />
         </svg>
       </span>
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onFocus={onFocus}
+        className={`${baseStyles} ${variantStyles}`}
+        {...props}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onFocus={onFocus}
+      className={`${baseStyles} ${variantStyles}`}
+      {...props}
+    >
+      {content}
     </button>
   );
 };

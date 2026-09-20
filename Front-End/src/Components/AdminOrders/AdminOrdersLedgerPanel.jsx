@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import ActionButton from './ActionButton';
 import StatusBadge from './StatusBadge';
 
@@ -19,6 +21,14 @@ export default function AdminOrdersLedgerPanel({
   const safeFilters = filters && typeof filters === 'object' ? filters : {};
   const canGoPrevious = (safePagination.page || 1) > 1;
   const canGoNext = (safePagination.page || 1) < (safePagination.totalPages || 1);
+
+  const tableContainerRef = useRef(null);
+  const rowVirtualizer = useVirtualizer({
+    count: safeOrders.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 72,
+    overscan: 5,
+  });
 
   return (
     <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 sm:p-6 shadow-xl backdrop-blur-md">
@@ -103,9 +113,9 @@ export default function AdminOrdersLedgerPanel({
         </div>
       ) : null}
 
-      <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-800/90">
+      <div ref={tableContainerRef} className="mt-4 max-h-[620px] overflow-auto rounded-xl border border-zinc-800/90">
         <table className="min-w-full text-left text-xs">
-          <thead className="bg-zinc-900/80 text-[10px] uppercase font-bold tracking-wider text-zinc-400 border-b border-zinc-800">
+          <thead className="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur text-[10px] uppercase font-bold tracking-wider text-zinc-400 border-b border-zinc-800">
             <tr>
               <th className="px-4 py-3">Order &amp; Customer</th>
               <th className="px-4 py-3">Destination</th>
@@ -131,76 +141,98 @@ export default function AdminOrdersLedgerPanel({
                 </td>
               </tr>
             ) : (
-              safeOrders.map((order) => (
-                <tr key={order.id} className="align-top hover:bg-zinc-800/30 transition-colors">
-                  <td className="px-4 py-3.5">
-                    <span className="font-mono text-amber-400 font-bold tracking-wider text-xs">
-                      {order.reference}
-                    </span>
-                    <p className="mt-1 font-bold text-white text-sm tracking-tight">{order.customer}</p>
-                    <p className="mt-0.5 text-xs text-zinc-400 truncate max-w-xs">
-                      {order.email || 'No customer email'}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-zinc-500 font-mono">
-                      {order.itemCount} items &bull; {order.lane}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3.5 text-zinc-300">
-                    <p className="font-medium text-white">{order.city}</p>
-                    <p className="text-[11px] text-zinc-500">{order.country}</p>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span className="font-mono font-bold text-white text-sm tabular-nums">
-                      {order.total}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className={`inline-block rounded-md border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase font-mono ${
-                        order.isPaid
-                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-                          : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
-                      }`}
-                    >
-                      {order.paymentLabel}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <StatusBadge tone={order.statusTone}>{order.status}</StatusBadge>
-                    <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
-                      {order.fulfillmentLabel}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3.5 text-zinc-400 text-[11px] font-mono whitespace-nowrap">
-                    {order.placedAtLabel}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="flex min-w-[200px] flex-wrap gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => onOpenOrderDetail(order.id)}
-                        className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-                      >
-                        Detail
-                      </button>
-                      {order.availableActions?.length > 0 ? (
-                        order.availableActions.map((action) => (
-                          <ActionButton
-                            key={`${order.id}:${action.type}`}
-                            action={action}
-                            isBusy={busyActionKey === `${order.id}:${action.type}`}
-                            onClick={() => onOrderAction(order.id, action.type)}
-                          />
-                        ))
-                      ) : (
-                        <span className="self-center text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
-                          No actions
+              <>
+                {rowVirtualizer.getVirtualItems().length > 0 && rowVirtualizer.getVirtualItems()[0].start > 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ height: `${rowVirtualizer.getVirtualItems()[0].start}px` }} />
+                  </tr>
+                )}
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const order = safeOrders[virtualRow.index];
+                  if (!order) return null;
+                  return (
+                    <tr key={order.id} className="align-top hover:bg-zinc-800/30 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <span className="font-mono text-amber-400 font-bold tracking-wider text-xs">
+                          {order.reference}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        <p className="mt-1 font-bold text-white text-sm tracking-tight">{order.customer}</p>
+                        <p className="mt-0.5 text-xs text-zinc-400 truncate max-w-xs">
+                          {order.email || 'No customer email'}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-zinc-500 font-mono">
+                          {order.itemCount} items &bull; {order.lane}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-300">
+                        <p className="font-medium text-white">{order.city}</p>
+                        <p className="text-[11px] text-zinc-500">{order.country}</p>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="font-mono font-bold text-white text-sm tabular-nums">
+                          {order.total}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span
+                          className={`inline-block rounded-md border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase font-mono ${
+                            order.isPaid
+                              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                              : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                          }`}
+                        >
+                          {order.paymentLabel}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <StatusBadge tone={order.statusTone}>{order.status}</StatusBadge>
+                        <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
+                          {order.fulfillmentLabel}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-400 text-[11px] font-mono whitespace-nowrap">
+                        {order.placedAtLabel}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex min-w-[200px] flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => onOpenOrderDetail(order.id)}
+                            className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                          >
+                            Detail
+                          </button>
+                          {order.availableActions?.length > 0 ? (
+                            order.availableActions.map((action) => (
+                              <ActionButton
+                                key={`${order.id}:${action.type}`}
+                                action={action}
+                                isBusy={busyActionKey === `${order.id}:${action.type}`}
+                                onClick={() => onOrderAction(order.id, action.type)}
+                              />
+                            ))
+                          ) : (
+                            <span className="self-center text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
+                              No actions
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {rowVirtualizer.getVirtualItems().length > 0 && (
+                  (() => {
+                    const lastItem = rowVirtualizer.getVirtualItems()[rowVirtualizer.getVirtualItems().length - 1];
+                    const bottomSpace = rowVirtualizer.getTotalSize() - lastItem.end;
+                    return bottomSpace > 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ height: `${bottomSpace}px` }} />
+                      </tr>
+                    ) : null;
+                  })()
+                )}
+              </>
             )}
           </tbody>
         </table>

@@ -12,9 +12,8 @@ const TheJournal = lazy(() => import('../Components/Home/TheJournal'));
 const Newsletter = lazy(() => import('../Components/Shared/Newsletter'));
 const Footer = lazy(() => import('../Components/Shared/Footer'));
 
-// Minimal loader for below-the-fold sections
-function SectionLoader() {
-  return <div className="min-h-[200px] bg-[#faf9f6]" />;
+function SectionPlaceholder({ minHeight = 'min-h-[600px]' }) {
+  return <div className={`${minHeight} w-full bg-[#faf9f6] animate-pulse`} aria-hidden="true" />;
 }
 
 /**
@@ -53,14 +52,20 @@ export default function HomePage({ onOpenCart }) {
         <HeroSection />
         <MarqueeText />
         <TrustBar />
-        <Suspense fallback={<SectionLoader />}>
+        <Suspense fallback={<SectionPlaceholder minHeight="min-h-[700px]" />}>
           <FeaturedCollections />
+        </Suspense>
+        <Suspense fallback={<SectionPlaceholder minHeight="min-h-[600px]" />}>
           <RegimenCollection />
+        </Suspense>
+        <Suspense fallback={<SectionPlaceholder minHeight="min-h-[500px]" />}>
           <TheJournal />
+        </Suspense>
+        <Suspense fallback={<SectionPlaceholder minHeight="min-h-[350px]" />}>
           <Newsletter />
         </Suspense>
       </main>
-      <Suspense fallback={<SectionLoader />}>
+      <Suspense fallback={<SectionPlaceholder minHeight="min-h-[300px]" />}>
         <Footer />
       </Suspense>
     </>

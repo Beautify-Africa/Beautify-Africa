@@ -29,6 +29,7 @@ export default defineConfig({
     },
   },
   build: {
+    target: 'es2020',
     // Optimize bundle
     minify: 'terser',
     terserOptions: {
@@ -57,13 +58,33 @@ export default defineConfig({
           if (normalized.includes('/node_modules/framer-motion/')) {
             return 'framer-motion';
           }
+          if (
+            normalized.includes('/node_modules/@stripe/stripe-js/') ||
+            normalized.includes('/node_modules/@stripe/react-stripe-js/')
+          ) {
+            return 'stripe-vendor';
+          }
+          if (
+            normalized.includes('/node_modules/@tanstack/react-query/') ||
+            normalized.includes('/node_modules/@tanstack/react-virtual/')
+          ) {
+            return 'tanstack-vendor';
+          }
+          if (
+            normalized.includes('/node_modules/sonner/') ||
+            normalized.includes('/node_modules/react-helmet-async/') ||
+            normalized.includes('/node_modules/react-hook-form/') ||
+            normalized.includes('/node_modules/@hookform/resolvers/') ||
+            normalized.includes('/node_modules/zod/')
+          ) {
+            return 'ui-vendor';
+          }
         },
       },
     },
-    // Chunk size warnings
-    chunkSizeWarningLimit: 600,
-    // Enable CSS code splitting
+    chunkSizeWarningLimit: 500,
     cssCodeSplit: true,
+    reportCompressedSize: true,
   },
   test: {
     globals: true,

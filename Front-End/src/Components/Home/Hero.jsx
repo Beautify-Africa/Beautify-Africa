@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import InteractiveButton from '../Shared/InteractiveButton';
 import FadeIn from '../Shared/FadeIn';
 import HeroBackground from './HeroBackground';
+import { usePrefetchShop } from '../../hooks/usePrefetchShop';
 
 import HeroReviews from './HeroReviews';
 import { SCATTERED_REVIEWS } from '../../data/heroReviews';
@@ -73,6 +74,7 @@ const RotatingWord = () => {
  */
 const HeroSection = () => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const prefetchShop = usePrefetchShop();
 
   const handleMouseMove = useCallback((e) => {
     const x = (e.clientX - window.innerWidth / 2) / HERO_CONFIG.parallaxIntensity;
@@ -129,7 +131,7 @@ const HeroSection = () => {
                           <StarIcon key={i} className="w-2.5 h-2.5" filled={true} />
                         ))}
                       </div>
-                      <span className="mt-1 whitespace-nowrap text-[11px] font-bold tracking-normal text-stone-800 font-sans not-italic">
+                      <span className="text-[10px] font-bold text-stone-900 mt-1 tracking-wider uppercase">
                         {inlineReview.name}
                       </span>
                     </div>
@@ -162,7 +164,13 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row items-center gap-8 relative z-20"
             aria-label="Hero actions"
           >
-            <InteractiveButton label={HERO_COPY.primaryCta} primary />
+            <InteractiveButton
+              label={HERO_COPY.primaryCta}
+              primary
+              to="/shop"
+              onMouseEnter={prefetchShop.onMouseEnter}
+              onFocus={prefetchShop.onFocus}
+            />
           </nav>
         </FadeIn>
       </article>

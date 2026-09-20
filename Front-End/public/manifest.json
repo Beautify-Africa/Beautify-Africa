@@ -1,0 +1,19 @@
+{
+  "name": "Beautify Africa",
+  "short_name": "BeautifyAfrica",
+  "description": "Discover luxurious African-inspired skincare, makeup, and beauty essentials.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf9f6",
+  "theme_color": "#8b5e34",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

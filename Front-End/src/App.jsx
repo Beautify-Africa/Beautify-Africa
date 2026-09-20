@@ -2,6 +2,7 @@ import { useState, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import AppLink from './Components/Shared/AppLink';
 import ProtectedRoute from './Components/Shared/ProtectedRoute';
 import ErrorBoundary from './Components/Shared/ErrorBoundary';
@@ -138,6 +139,7 @@ function App() {
           {/* Global modals & notifications */}
           <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
           <Toaster position="top-right" richColors closeButton />
+          <SpeedInsights />
         </BrowserRouter>
       </ErrorBoundary>
     </HelmetProvider>

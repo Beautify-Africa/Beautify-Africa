@@ -33,9 +33,11 @@ const HeroBackground = ({ parallaxTransform }) => {
           alt=""
           className="w-full h-full object-cover object-center"
           style={{ opacity: 1 }}
-          fetchpriority="high"
+          fetchPriority="high"
           loading="eager"
           decoding="async"
+          width="1920"
+          height="1080"
         />
       </div>
 

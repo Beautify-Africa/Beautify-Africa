@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import ProductCard from './ProductCard';
 import ShopEmptyState from './ShopEmptyState';
 
-export default function ShopProductGrid({
+const ShopProductGrid = memo(function ShopProductGrid({
   isLoading,
   error,
   displayedProducts,
@@ -51,7 +52,7 @@ export default function ShopProductGrid({
           role="list"
           aria-label={isSavedCollection ? 'Saved products' : 'Products'}
         >
-          {displayedProducts.map((product) => (
+          {displayedProducts.map((product, index) => (
             <ProductCard
               key={product._id}
               product={product}
@@ -59,6 +60,7 @@ export default function ShopProductGrid({
               onToggleWishlist={onToggleWishlist}
               onAddToCart={onAddToCart}
               onProductClick={onProductClick}
+              isAboveFold={currentPage === 1 && index < 4}
             />
           ))}
         </div>
@@ -111,4 +113,6 @@ export default function ShopProductGrid({
       onShowAllProducts={onShowAllProducts}
     />
   );
-}
+});
+
+export default ShopProductGrid;

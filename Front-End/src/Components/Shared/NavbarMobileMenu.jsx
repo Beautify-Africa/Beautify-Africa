@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { CloseIcon, TrackingIcon } from './Icons';
+import { usePrefetchShop } from '../../hooks/usePrefetchShop';
 
 export default function NavbarMobileMenu({
   isOpen,
@@ -14,6 +15,8 @@ export default function NavbarMobileMenu({
   isAuthenticated,
   onOpenAuthDialogFromMobileMenu,
 }) {
+  const prefetchShop = usePrefetchShop();
+
   return (
     <div
       id="mobile-menu"
@@ -64,6 +67,8 @@ export default function NavbarMobileMenu({
           <Link
             to="/shop"
             onClick={closeMobileMenu}
+            onMouseEnter={prefetchShop.onMouseEnter}
+            onFocus={prefetchShop.onFocus}
             className="mb-16 bg-stone-900 px-10 py-4 text-[12px] font-bold uppercase tracking-[0.3em] text-white transition-colors hover:bg-amber-900"
           >
             Shop Now

@@ -1,9 +1,12 @@
-function buildCloudinarySrcSet(url, widths) {
+function buildCloudinaryFormatSrcSet(url, widths, format = 'auto') {
   if (typeof url !== 'string' || !url.includes('/upload/')) return null;
 
   const srcSet = widths
     .map((width) => {
-      const transformed = url.replace('/upload/', `/upload/f_auto,q_auto,dpr_auto,w_${width}/`);
+      const transformed = url.replace(
+        '/upload/',
+        `/upload/f_${format},q_auto,dpr_auto,w_${width}/`
+      );
       return `${transformed} ${width}w`;
     })
     .join(', ');
@@ -11,7 +14,7 @@ function buildCloudinarySrcSet(url, widths) {
   return { srcSet };
 }
 
-function buildRemoteCdnSrcSet(url, widths) {
+function buildRemoteCdnFormatSrcSet(url, widths, format = null) {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname;
@@ -24,7 +27,11 @@ function buildRemoteCdnSrcSet(url, widths) {
         const candidate = new URL(parsed.toString());
         candidate.searchParams.set('w', String(width));
         if (isUnsplash) {
-          candidate.searchParams.set('auto', 'format');
+          if (format) {
+            candidate.searchParams.set('fm', format);
+          } else {
+            candidate.searchParams.set('auto', 'format');
+          }
           candidate.searchParams.set('fit', 'crop');
         }
         return `${candidate.toString()} ${width}w`;
@@ -37,31 +44,89 @@ function buildRemoteCdnSrcSet(url, widths) {
   }
 }
 
-export function buildResponsiveImageProps(url, options = {}) {
-  if (typeof url !== 'string' || !url.trim()) {
-    return { src: url };
+/**
+ * Builds next-generation picture source elements (AVIF, WebP) for modern format negotiation.
+ * Enables 20-50% smaller payload sizes on browsers supporting AVIF (Chrome, Safari 16+, Firefox 93+).
+ */
+export function buildPictureSources(url, options = {}) {
+  if (typeof url !== 'string' || !url.trim()) return [];
+
+  const widths = options.widths || [320, 480, 720, 960];
+  const sources = [];
+
+  // 1. Cloudinary AVIF & WebP
+  if (url.includes('/upload/')) {
+    const avifSrcSet = buildCloudinaryFormatSrcSet(url, widths, 'avif');
+    if (avifSrcSet) {
+      sources.push({
+        type: 'image/avif',
+        srcSet: avifSrcSet.srcSet,
+      });
+    }
+    const webpSrcSet = buildCloudinaryFormatSrcSet(url, widths, 'webp');
+    if (webpSrcSet) {
+      sources.push({
+        type: 'image/webp',
+        srcSet: webpSrcSet.srcSet,
+      });
+    }
+    return sources;
   }
 
-  const widths = options.widths || [320, 480, 720];
-  const sizes = options.sizes || '(max-width: 640px) 48vw, (max-width: 1024px) 32vw, 22vw';
+  // 2. Unsplash AVIF & WebP
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('unsplash.com')) {
+      const avifSrcSet = buildRemoteCdnFormatSrcSet(url, widths, 'avif');
+      if (avifSrcSet) {
+        sources.push({
+          type: 'image/avif',
+          srcSet: avifSrcSet.srcSet,
+        });
+      }
+      const webpSrcSet = buildRemoteCdnFormatSrcSet(url, widths, 'webp');
+      if (webpSrcSet) {
+        sources.push({
+          type: 'image/webp',
+          srcSet: webpSrcSet.srcSet,
+        });
+      }
+    }
+  } catch {
+    // non-URL strings fall back safely
+  }
 
-  const cloudinary = buildCloudinarySrcSet(url, widths);
+  return sources;
+}
+
+export function buildResponsiveImageProps(url, options = {}) {
+  if (typeof url !== 'string' || !url.trim()) {
+    return { src: url, sources: [] };
+  }
+
+  const widths = options.widths || [320, 480, 720, 960];
+  const sizes = options.sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw';
+  const sources = buildPictureSources(url, { widths });
+
+  const cloudinary = buildCloudinaryFormatSrcSet(url, widths, 'auto');
   if (cloudinary) {
     return {
       src: url,
       srcSet: cloudinary.srcSet,
       sizes,
+      sources,
     };
   }
 
-  const remoteCdn = buildRemoteCdnSrcSet(url, widths);
+  const remoteCdn = buildRemoteCdnFormatSrcSet(url, widths);
   if (remoteCdn) {
     return {
       src: url,
       srcSet: remoteCdn.srcSet,
       sizes,
+      sources,
     };
   }
 
-  return { src: url };
+  return { src: url, sources: [] };
 }
