@@ -16,6 +16,7 @@ const NewsletterUnsubscribeRequestPage = lazy(
   () => import('./pages/NewsletterUnsubscribeRequestPage')
 );
 const NewsletterUnsubscribePage = lazy(() => import('./pages/NewsletterUnsubscribePage'));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
 const AdminProductsPage = lazy(() => import('./pages/AdminProductsPage'));
 const AdminInventoryPage = lazy(() => import('./pages/AdminInventoryPage'));
@@ -71,6 +72,7 @@ function App() {
                 element={<NewsletterUnsubscribeRequestPage />}
               />
               <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
+              <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
               <Route
                 path="/admin/orders"
