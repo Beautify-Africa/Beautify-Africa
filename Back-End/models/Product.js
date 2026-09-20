@@ -170,10 +170,14 @@ Product.init(
         }
 
         // Sync status and isArchived
-        if (product.status === 'archived') {
+        if (product.changed('isArchived') && !product.changed('status')) {
+          product.status = product.isArchived ? 'archived' : 'published';
+        } else if (product.status === 'archived') {
           product.isArchived = true;
-        } else {
+        } else if (product.changed('status')) {
           product.isArchived = false;
+        } else {
+          product.isArchived = Boolean(product.isArchived);
         }
 
         // inStock is computed from stockQuantity (variants are handled at service level)

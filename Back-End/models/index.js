@@ -10,8 +10,14 @@ const InventoryLedger = require('./InventoryLedger');
 const WebhookEvent = require('./WebhookEvent');
 
 // Cross-model associations
-Order.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'SET NULL' });
-User.hasMany(Order, { foreignKey: 'userId', as: 'orders', onDelete: 'SET NULL' });
+if (
+  !Order.associations?.user &&
+  typeof User?.hasMany === 'function' &&
+  User.prototype instanceof require('sequelize').Model
+) {
+  Order.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'SET NULL' });
+  User.hasMany(Order, { foreignKey: 'userId', as: 'orders', onDelete: 'SET NULL' });
+}
 
 OrderItem.belongsTo(Product, { foreignKey: 'productId', as: 'product', onDelete: 'SET NULL' });
 OrderItem.belongsTo(ProductVariant, {

@@ -2,10 +2,13 @@
 
 // --- Built-in ---
 const path = require('path');
+const dotenv = require('dotenv');
+
+// Load environment variables immediately before any local modules are loaded
+dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 // --- Third-party ---
 const express = require('express');
-const dotenv = require('dotenv');
 const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
@@ -13,6 +16,7 @@ const swaggerUi = require('swagger-ui-express');
 
 // --- Local ---
 const { connectDB, sequelize } = require('./config/db');
+require('./models'); // Ensure all cross-model associations are registered
 const redisClient = require('./config/redis');
 const logger = require('./utils/logger');
 const requestIdMiddleware = require('./middlewares/requestId');
@@ -42,8 +46,6 @@ const currencyRoutes = require('./routes/currencyRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);

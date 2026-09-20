@@ -225,6 +225,12 @@ Order.init(
 );
 
 // Associations
+const User = require('./User');
+if (!Order.associations?.user && typeof User?.hasMany === 'function' && User.prototype instanceof Model) {
+  Order.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'SET NULL' });
+  User.hasMany(Order, { foreignKey: 'userId', as: 'orders', onDelete: 'SET NULL' });
+}
+
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'orderItems', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 
