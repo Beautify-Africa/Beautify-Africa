@@ -100,6 +100,7 @@ async function resetPassword(req, res) {
     user.password = password;
     user.passwordResetToken = null;
     user.passwordResetExpires = null;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     if (typeof user.recordSuccessfulLogin === 'function') {
       await user.recordSuccessfulLogin();
     }

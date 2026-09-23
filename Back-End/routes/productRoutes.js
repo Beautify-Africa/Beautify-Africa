@@ -63,10 +63,16 @@ router.get('/bulk/export', protect, requireAdmin, exportProducts);
 router.post('/bulk/import', protect, requireAdmin, importProducts);
 
 // Get variants (public)
-router.get('/:id/variants', getVariants);
+router.get('/:id/variants', validateParams(productIdParamSchema), getVariants);
 
 // Get stock history (admin only - contains internal ledger & staff emails)
-router.get('/:id/stock-history', protect, requireAdmin, getStockHistory);
+router.get(
+  '/:id/stock-history',
+  protect,
+  requireAdmin,
+  validateParams(productIdParamSchema),
+  getStockHistory
+);
 
 // Add variant (admin only)
 router.post(
@@ -79,7 +85,14 @@ router.post(
 );
 
 // Update variant (admin only)
-router.put('/:id/variants/:variantId', protect, requireAdmin, updateVariant);
+router.put(
+  '/:id/variants/:variantId',
+  protect,
+  requireAdmin,
+  validateParams(variantParamSchema),
+  validateBody(addVariantSchema.partial()),
+  updateVariant
+);
 
 // Adjust variant stock (admin only)
 router.post(
@@ -92,7 +105,13 @@ router.post(
 );
 
 // Remove variant (admin only)
-router.delete('/:id/variants/:variantId', protect, requireAdmin, removeVariant);
+router.delete(
+  '/:id/variants/:variantId',
+  protect,
+  requireAdmin,
+  validateParams(variantParamSchema),
+  removeVariant
+);
 
 // Change product status (admin only)
 router.patch(
@@ -105,6 +124,12 @@ router.patch(
 );
 
 // Duplicate product (admin only)
-router.post('/:id/duplicate', protect, requireAdmin, duplicateProduct);
+router.post(
+  '/:id/duplicate',
+  protect,
+  requireAdmin,
+  validateParams(productIdParamSchema),
+  duplicateProduct
+);
 
 module.exports = router;
