@@ -12,7 +12,7 @@ export const HERO_BACKGROUND = {
   src: heroBg,
   srcSet: `${heroBg} 1600w`,
   sizes: '100vw',
-  alt: 'Radiant African women with luxury skincare and beauty essentials',
+  alt: 'Beauty essentials for every routine and look',
 };
 
 export const HERO_CARDS = [
@@ -22,7 +22,7 @@ export const HERO_CARDS = [
     srcSet: `${premiumSerumSmall} 320w, ${premiumSerum} 700w`,
     sizes: '(max-width: 1023px) 35vw, 200px',
     alt: 'Luxury Serum Bottle',
-    label: 'Elixir No. 9',
+    label: 'Daily Glow Serum',
     position: { top: '8%', right: '8%' },
     size: 'w-[200px] aspect-[3/4]',
     rotation: 'rotate-[12deg] hover:-rotate-2',
@@ -34,7 +34,7 @@ export const HERO_CARDS = [
     srcSet: `${premiumSkincareSmall} 320w, ${premiumSkincare} 800w`,
     sizes: '(max-width: 1023px) 45vw, 160px',
     alt: 'Cream Texture Swatch',
-    label: 'Texture Study',
+    label: 'Skincare Essential',
     labelPosition: 'top-left',
     position: { top: '52%', right: '36%' },
     size: 'w-[160px] aspect-square',
@@ -47,9 +47,9 @@ export const HERO_CARDS = [
     srcSet: `${premiumModelSmall} 520w, ${premiumModel} 900w`,
     sizes: '(max-width: 1023px) 48vw, 340px',
     alt: 'Model Portrait',
-    label: 'The Radiant Gaze',
-    sublabel: 'Campaign',
-    badge: 'Muse',
+    label: 'Everyday Beauty',
+    sublabel: 'Collection',
+    badge: 'Edit',
     position: { bottom: '8%', right: '6%' },
     size: 'w-[340px] aspect-[4/5]',
     rotation: 'rotate-[-5deg] hover:rotate-0',
@@ -62,7 +62,7 @@ export const HERO_CARDS = [
     srcSet:
       'https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=320&auto=format&fit=crop 320w, https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=800&auto=format&fit=crop 800w',
     sizes: '(max-width: 1023px) 28vw, 150px',
-    alt: 'Gold Oil Texture',
+    alt: 'Beauty oil bottle',
     position: { top: '20%', right: '32%' },
     size: 'w-[150px] aspect-[2/3]',
     rotation: 'rotate-[8deg] hover:-rotate-3',
@@ -74,8 +74,8 @@ export const HERO_CARDS = [
     src: premiumLipstick,
     srcSet: `${premiumLipstickSmall} 320w, ${premiumLipstick} 700w`,
     sizes: '(max-width: 1023px) 40vw, 170px',
-    alt: 'Crushed Cosmetic Powder',
-    label: 'Pigment',
+    alt: 'Makeup pigment',
+    label: 'Makeup Essential',
     labelPosition: 'top-right',
     position: { bottom: '35%', right: '24%' },
     size: 'w-[170px] aspect-square',
@@ -90,16 +90,16 @@ export const HERO_CONFIG = {
   parallaxScale: 1.2,
 };
 
-/** Words that rotate in the hero headline (replacing the static "Radiance") */
+/** Words that rotate in the hero headline to spotlight every beauty category. */
 export const HERO_ROTATING_WORDS = [
-  'Radiance',
-  'Opulence',
-  'Eminence',
-  'Grandeur',
-  'Elegance',
-  'Splendor',
-  'Botanica',
-  'Heritage',
+  'Beauty',
+  'Makeup',
+  'Skincare',
+  'Haircare',
+  'Fragrance',
+  'Tools',
+  'Wellness',
+  'Essentials',
 ];
 
 export const HERO_ROTATION_CONFIG = {
@@ -118,16 +118,16 @@ export const HERO_ROTATION_CONFIG = {
 
 /** All editorial copy shown in the hero section */
 export const HERO_COPY = {
-  collectionLabel: "Archive Summer '25 Collection",
-  headlineParts: ['The', 'Report.'],
+  collectionLabel: 'The Complete Beauty Collection',
+  headlineParts: ['The', 'Edit.'],
   subtitle:
-    'Merging molecular botanical science with the artistry of velvet pigments. A new standard for the illuminating ritual.',
-  priceLabel: 'Starting At',
-  priceValue: '$42.00',
-  primaryCta: 'Shop the Archive',
-  secondaryCta: 'Explore the Lab',
-  secondaryCtaAriaLabel: 'Explore the Lab - Learn about our science and research',
-  featuredLabel: 'Featured Masterpiece',
-  featuredProduct: 'The Velvet Botanique No. 4',
-  scrollHint: 'Scroll',
+    'Discover makeup, skincare, haircare, fragrance, and the tools that bring every beauty routine to life.',
+  priceLabel: 'Beauty Starts At',
+  priceValue: '$12.00',
+  primaryCta: 'Shop All Beauty',
+  secondaryCta: 'Explore Categories',
+  secondaryCtaAriaLabel: 'Explore beauty product categories',
+  featuredLabel: 'Featured Beauty Pick',
+  featuredProduct: 'The Everyday Beauty Edit',
+  scrollHint: 'Explore',
 };
