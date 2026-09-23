@@ -75,3 +75,42 @@ export async function updateUser(userData, token, options = {}) {
     fallbackMessage: 'Update failed',
   });
 }
+
+export async function setupTwoFactor(token) {
+  return requestJson(`${API_URL}/auth/2fa/setup`, {
+    method: 'POST',
+    token,
+    cache: 'no-store',
+    fallbackMessage: 'Failed to initiate 2FA setup',
+  });
+}
+
+export async function enableTwoFactor(code, token) {
+  return requestJson(`${API_URL}/auth/2fa/enable`, {
+    method: 'POST',
+    token,
+    body: { code },
+    cache: 'no-store',
+    fallbackMessage: 'Failed to enable 2FA',
+  });
+}
+
+export async function disableTwoFactor(payload, token) {
+  return requestJson(`${API_URL}/auth/2fa/disable`, {
+    method: 'POST',
+    token,
+    body: payload,
+    cache: 'no-store',
+    fallbackMessage: 'Failed to disable 2FA',
+  });
+}
+
+export async function revokeAllSessions(token) {
+  return requestJson(`${API_URL}/auth/revoke-all-sessions`, {
+    method: 'POST',
+    token,
+    cache: 'no-store',
+    fallbackMessage: 'Failed to revoke sessions',
+  });
+}
+

@@ -31,16 +31,19 @@ const loginSchema = z.object({
   password: z
     .string({ message: 'Email and password are required' })
     .min(1, 'Email and password are required'),
+  twoFactorCode: z.string().trim().optional(),
 });
 
 const adminLoginSchema = z.object({
   email: z
     .string({ message: 'Email and password are required' })
     .trim()
-    .min(1, 'Email and password are required'),
+    .min(1, 'Email and password are required')
+    .email('Please provide a valid email address'),
   password: z
     .string({ message: 'Email and password are required' })
     .min(1, 'Email and password are required'),
+  twoFactorCode: z.string().trim().optional(),
 });
 
 const forgotPasswordSchema = z.object({
@@ -62,15 +65,35 @@ const resetPasswordSchema = z.object({
     .regex(PASSWORD_COMPLEXITY_REGEX, PASSWORD_COMPLEXITY_MESSAGE),
 });
 
-const updateProfileSchema = z.object({
-  name: z.string().trim().min(1, 'Name cannot be empty').optional(),
-  email: z.string().trim().email('Please provide a valid email address').optional(),
-  password: z
-    .string()
-    .min(8, PASSWORD_COMPLEXITY_MESSAGE)
-    .regex(PASSWORD_COMPLEXITY_REGEX, PASSWORD_COMPLEXITY_MESSAGE)
-    .optional(),
-});
+const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Name cannot be empty').optional(),
+    email: z.string().trim().email('Please provide a valid email address').optional(),
+    password: z
+      .string()
+      .min(8, PASSWORD_COMPLEXITY_MESSAGE)
+      .regex(PASSWORD_COMPLEXITY_REGEX, PASSWORD_COMPLEXITY_MESSAGE)
+      .optional(),
+  })
+  .strict();
+
+const twoFactorEnableSchema = z
+  .object({
+    code: z
+      .string({ message: 'Verification code is required' })
+      .trim()
+      .min(1, 'Verification code is required'),
+  })
+  .strict();
+
+const twoFactorDisableSchema = z
+  .object({
+    password: z
+      .string({ message: 'Password is required to disable 2FA' })
+      .min(1, 'Password is required to disable 2FA'),
+    code: z.string().trim().optional(),
+  })
+  .strict();
 
 module.exports = {
   registerSchema,
@@ -79,6 +102,8 @@ module.exports = {
   forgotPasswordSchema,
   resetPasswordSchema,
   updateProfileSchema,
+  twoFactorEnableSchema,
+  twoFactorDisableSchema,
   PASSWORD_COMPLEXITY_REGEX,
   PASSWORD_COMPLEXITY_MESSAGE,
 };
