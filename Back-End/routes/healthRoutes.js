@@ -1,76 +1,92 @@
+// routes/healthRoutes.js
 const express = require('express');
 const { sequelize } = require('../config/db');
 const redisClient = require('../config/redis');
-const logger = require('../utils/logger');
-const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
 
 const router = express.Router();
 
-// Liveness probe (cheap process responsiveness check)
-router.get('/live', setPrivateNoStore, (req, res) => {
+/**
+ * @route   GET /api/health
+ * @desc    Liveness probe for process orchestrators (Kubernetes / Docker / PM2)
+ * @access  Public
+ */
+router.get('/health', (req, res) => {
+  const memory = process.memoryUsage();
   res.status(200).json({
     status: 'ok',
-    uptime: process.uptime(),
+    service: 'beautify-africa-api',
     timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || 'development',
+    memory: {
+      heapUsedMb: Math.round((memory.heapUsed / 1024 / 1024) * 100) / 100,
+      heapTotalMb: Math.round((memory.heapTotal / 1024 / 1024) * 100) / 100,
+      rssMb: Math.round((memory.rss / 1024 / 1024) * 100) / 100,
+    },
   });
 });
 
-// Readiness probe (dependency connectivity check: DB & Redis)
-router.get('/ready', setPrivateNoStore, async (req, res) => {
+/**
+ * @route   GET /api/ready
+ * @desc    Deep readiness probe validating downstream infrastructure dependencies
+ * @access  Public
+ */
+router.get('/ready', async (req, res) => {
   const checks = {
-    database: 'down',
-    redis: 'down',
+    database: { status: 'unknown' },
+    redis: { status: 'unknown' },
+    memory: { status: 'unknown' },
   };
 
-  let isReady = true;
+  let isHealthy = true;
 
+  // 1. PostgreSQL Database Ping
   try {
-    await sequelize.authenticate();
-    checks.database = 'up';
-  } catch (err) {
-    checks.database = 'down';
-    isReady = false;
-    (req.log || logger).warn({ err: err.message }, 'Readiness check: database unreachable');
+    const dbStart = Date.now();
+    await sequelize.query('SELECT 1', { timeout: 3000 });
+    checks.database = {
+      status: 'healthy',
+      latencyMs: Date.now() - dbStart,
+    };
+  } catch (dbErr) {
+    isHealthy = false;
+    checks.database = {
+      status: 'unhealthy',
+      error: dbErr.message,
+    };
   }
 
+  // 2. Redis Cache Ping
   try {
-    if (redisClient && redisClient.status === 'ready') {
-      checks.redis = 'up';
-    } else if (redisClient) {
-      const pong = await redisClient.ping();
-      checks.redis = pong === 'PONG' ? 'up' : 'down';
-      if (checks.redis !== 'up') isReady = false;
-    } else {
-      checks.redis = 'not_configured';
-    }
-  } catch (err) {
-    checks.redis = 'down';
-    isReady = false;
-    (req.log || logger).warn({ err: err.message }, 'Readiness check: redis unreachable');
+    const redisStart = Date.now();
+    const pingRes = await redisClient.ping();
+    checks.redis = {
+      status: pingRes === 'PONG' ? 'healthy' : 'degraded',
+      latencyMs: Date.now() - redisStart,
+    };
+    if (pingRes !== 'PONG') isHealthy = false;
+  } catch (redisErr) {
+    // Redis degradation allows partial fallback
+    checks.redis = {
+      status: 'degraded',
+      error: redisErr.message,
+    };
   }
 
-  const statusCode = isReady ? 200 : 503;
-  res.status(statusCode).json({
-    status: isReady ? 'ready' : 'degraded',
-    uptime: process.uptime(),
+  // 3. Memory Pressure Check (< 95% heap headroom)
+  const mem = process.memoryUsage();
+  const heapUsageRatio = mem.heapUsed / mem.heapTotal;
+  checks.memory = {
+    status: heapUsageRatio < 0.95 ? 'healthy' : 'warning',
+    heapUsagePercentage: `${Math.round(heapUsageRatio * 100)}%`,
+  };
+
+  const statusCode = isHealthy ? 200 : 503;
+  return res.status(statusCode).json({
+    status: isHealthy ? 'ready' : 'degraded',
+    service: 'beautify-africa-api',
     timestamp: new Date().toISOString(),
     checks,
-  });
-});
-
-// Legacy /health endpoint preserved for backward compatibility
-router.get('/', setPrivateNoStore, async (req, res) => {
-  let isDbConnected = false;
-  try {
-    await sequelize.authenticate();
-    isDbConnected = true;
-  } catch {
-    isDbConnected = false;
-  }
-
-  res.status(isDbConnected ? 200 : 503).json({
-    status: isDbConnected ? 'ok' : 'degraded',
-    database: isDbConnected ? 'connected' : 'disconnected',
   });
 });
 
