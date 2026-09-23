@@ -12,7 +12,7 @@ export const HERO_BACKGROUND = {
   src: heroBg,
   srcSet: `${heroBg} 1600w`,
   sizes: '100vw',
-  alt: 'Beauty essentials for every routine and look',
+  alt: 'A curated African beauty collection spanning skincare, makeup, haircare, fragrance, and self-care',
 };
 
 export const HERO_CARDS = [
@@ -21,7 +21,7 @@ export const HERO_CARDS = [
     src: premiumSerum,
     srcSet: `${premiumSerumSmall} 320w, ${premiumSerum} 700w`,
     sizes: '(max-width: 1023px) 35vw, 200px',
-    alt: 'Luxury Serum Bottle',
+    alt: 'Daily glow face serum in a luxury glass bottle',
     label: 'Daily Glow Serum',
     position: { top: '8%', right: '8%' },
     size: 'w-[200px] aspect-[3/4]',
@@ -33,8 +33,8 @@ export const HERO_CARDS = [
     src: premiumSkincare,
     srcSet: `${premiumSkincareSmall} 320w, ${premiumSkincare} 800w`,
     sizes: '(max-width: 1023px) 45vw, 160px',
-    alt: 'Cream Texture Swatch',
-    label: 'Skincare Essential',
+    alt: 'Nourishing cream texture for a skincare ritual',
+    label: 'Skincare Ritual',
     labelPosition: 'top-left',
     position: { top: '52%', right: '36%' },
     size: 'w-[160px] aspect-square',
@@ -46,10 +46,10 @@ export const HERO_CARDS = [
     src: premiumModel,
     srcSet: `${premiumModelSmall} 520w, ${premiumModel} 900w`,
     sizes: '(max-width: 1023px) 48vw, 340px',
-    alt: 'Model Portrait',
+    alt: 'Beauty model showcasing a polished everyday makeup look',
     label: 'Everyday Beauty',
-    sublabel: 'Collection',
-    badge: 'Edit',
+    sublabel: 'Makeup, skin & hair',
+    badge: 'Full Edit',
     position: { bottom: '8%', right: '6%' },
     size: 'w-[340px] aspect-[4/5]',
     rotation: 'rotate-[-5deg] hover:rotate-0',
@@ -62,7 +62,7 @@ export const HERO_CARDS = [
     srcSet:
       'https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=320&auto=format&fit=crop 320w, https://images.unsplash.com/photo-1601049676869-702ea24cfd58?q=80&w=800&auto=format&fit=crop 800w',
     sizes: '(max-width: 1023px) 28vw, 150px',
-    alt: 'Beauty oil bottle',
+    alt: 'Nourishing beauty oil bottle for skin, hair, and body care',
     position: { top: '20%', right: '32%' },
     size: 'w-[150px] aspect-[2/3]',
     rotation: 'rotate-[8deg] hover:-rotate-3',
@@ -74,8 +74,8 @@ export const HERO_CARDS = [
     src: premiumLipstick,
     srcSet: `${premiumLipstickSmall} 320w, ${premiumLipstick} 700w`,
     sizes: '(max-width: 1023px) 40vw, 170px',
-    alt: 'Makeup pigment',
-    label: 'Makeup Essential',
+    alt: 'Rich makeup pigment for expressive colour looks',
+    label: 'Colour Essentials',
     labelPosition: 'top-right',
     position: { bottom: '35%', right: '24%' },
     size: 'w-[170px] aspect-square',
@@ -90,15 +90,19 @@ export const HERO_CONFIG = {
   parallaxScale: 1.2,
 };
 
-/** Words that rotate in the hero headline to spotlight every beauty category. */
+/** Words that rotate in the hero headline to spotlight the full beauty assortment. */
 export const HERO_ROTATING_WORDS = [
   'Beauty',
   'Makeup',
   'Skincare',
   'Haircare',
   'Fragrance',
-  'Tools',
+  'Bath & Body',
+  'Nails',
+  'Grooming',
+  'Beauty Tools',
   'Wellness',
+  'Self-Care',
   'Essentials',
 ];
 
@@ -118,16 +122,16 @@ export const HERO_ROTATION_CONFIG = {
 
 /** All editorial copy shown in the hero section */
 export const HERO_COPY = {
-  collectionLabel: 'The Complete Beauty Collection',
+  collectionLabel: 'The Complete African Beauty Collection',
   headlineParts: ['The', 'Edit.'],
   subtitle:
-    'Discover makeup, skincare, haircare, fragrance, and the tools that bring every beauty routine to life.',
-  priceLabel: 'Beauty Starts At',
+    'Discover a complete beauty destination for every ritual, routine, and expression—from complexion-perfecting makeup and hardworking skincare to nourishing haircare, memorable fragrance, bath and body care, nail colour, grooming essentials, wellness favourites, and the tools that bring it all together.',
+  priceLabel: 'Beauty Finds From',
   priceValue: '$12.00',
-  primaryCta: 'Shop All Beauty',
-  secondaryCta: 'Explore Categories',
-  secondaryCtaAriaLabel: 'Explore beauty product categories',
-  featuredLabel: 'Featured Beauty Pick',
-  featuredProduct: 'The Everyday Beauty Edit',
-  scrollHint: 'Explore',
+  primaryCta: 'Shop the Full Collection',
+  secondaryCta: 'Browse Every Category',
+  secondaryCtaAriaLabel: 'Browse makeup, skincare, haircare, fragrance, wellness, and beauty tools',
+  featuredLabel: 'This Season’s Beauty Edit',
+  featuredProduct: 'Everyday essentials for skin, colour, hair, and self-care',
+  scrollHint: 'Discover More',
 };
