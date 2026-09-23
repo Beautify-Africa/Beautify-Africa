@@ -49,9 +49,6 @@ class StripeAdapter {
    */
   verifyWebhook(payload, signature) {
     try {
-      if (!signature) {
-        throw new Error('Missing stripe-signature header');
-      }
       const event = constructWebhookEvent(payload, signature);
       return {
         eventId: event.id,

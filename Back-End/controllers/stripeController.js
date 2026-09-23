@@ -2,11 +2,6 @@
 const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress } = require('../models/Order');
 const WebhookEvent = require('../models/WebhookEvent');
-const {
-  checkOrClaimWebhookEvent,
-  markWebhookProcessed,
-  markWebhookFailed,
-} = require('../services/webhookDeduplication');
 const { createPaymentIntent, constructWebhookEvent } = require('../services/stripeService');
 const { buildVerifiedOrderItems, calculateOrderTotals } = require('../services/orderService');
 const { processPurchase } = require('../services/inventoryService');
@@ -138,19 +133,23 @@ const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Enforce strict event idempotency via two-tier deduplication (Redis + DB)
+  // Enforce strict event idempotency
   if (event.id) {
     try {
-      const dedup = await checkOrClaimWebhookEvent({
-        gateway: 'stripe',
-        eventId: event.id,
-        eventType: event.type,
-        payload: event,
-      });
-      if (dedup.isDuplicate) {
+      const existing = await WebhookEvent.findByPk(event.id);
+      if (existing && existing.status === 'processed') {
         console.log(`Stripe webhook event ${event.id} already processed. Skipping duplicate.`);
         return res.status(200).json({ received: true, alreadyProcessed: true });
       }
+
+      await WebhookEvent.findOrCreate({
+        where: { id: event.id },
+        defaults: {
+          type: event.type,
+          status: 'pending',
+          payload: event,
+        },
+      });
     } catch (idempotencyErr) {
       console.warn('Webhook idempotency lookup warning:', idempotencyErr.message);
     }
@@ -199,21 +198,19 @@ const handleStripeWebhook = async (req, res) => {
           }
 
           if (event.id) {
-            await markWebhookProcessed({
-              gateway: 'stripe',
-              eventId: event.id,
-              transaction: t,
-            });
+            await WebhookEvent.update(
+              { status: 'processed', processedAt: new Date() },
+              { where: { id: event.id }, transaction: t }
+            );
           }
         });
       } catch (err) {
         console.error('Failed to process payment_intent.succeeded webhook transaction:', err);
         if (event.id) {
-          await markWebhookFailed({
-            gateway: 'stripe',
-            eventId: event.id,
-            errorMessage: err.message,
-          });
+          await WebhookEvent.update(
+            { status: 'failed', errorMessage: err.message },
+            { where: { id: event.id } }
+          ).catch(() => {});
         }
         return res.status(500).json({ status: 'error', message: 'Webhook processing failed' });
       }

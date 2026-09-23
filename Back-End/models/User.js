@@ -92,25 +92,6 @@ User.init(
       allowNull: true,
       defaultValue: null,
     },
-    twoFactorEnabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    twoFactorSecret: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: null,
-    },
-    twoFactorRecoveryCodes: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      defaultValue: [],
-    },
-    tokenVersion: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-    },
     passwordResetToken: {
       type: DataTypes.STRING,
       allowNull: true,

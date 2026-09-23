@@ -4,10 +4,5 @@
       "name": "Preset Connection",
       "connectionString": "mongodb://localhost:27017"
     }
-  ],
-  "python.testing.pytestArgs": [
-    "Back-End"
-  ],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  ]
 }

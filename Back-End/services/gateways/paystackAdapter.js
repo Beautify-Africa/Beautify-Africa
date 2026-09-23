@@ -161,43 +161,20 @@ class PaystackAdapter {
 
   /**
    * Verify and parse Paystack webhook signature (HMAC-SHA512)
-   * Enforces constant-time equality check (timingSafeEqual) to eliminate timing attacks.
    */
   verifyWebhook(rawBody, signature) {
-    const payloadBuffer = Buffer.isBuffer(rawBody)
-      ? rawBody
-      : Buffer.from(typeof rawBody === 'string' ? rawBody : JSON.stringify(rawBody));
-
     if (this.isConfigured()) {
-      const signatureStr = String(signature || '').trim();
-      if (!signatureStr) {
-        throw new Error('Missing Paystack webhook signature');
-      }
-
       const hash = crypto
         .createHmac('sha512', this.secretKey)
-        .update(payloadBuffer)
+        .update(typeof rawBody === 'string' ? rawBody : JSON.stringify(rawBody))
         .digest('hex');
 
-      const hashBuf = Buffer.from(hash, 'utf8');
-      const sigBuf = Buffer.from(signatureStr, 'utf8');
-
-      if (hashBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hashBuf, sigBuf)) {
+      if (hash !== signature) {
         throw new Error('Invalid Paystack webhook signature');
       }
     }
 
-    let payload;
-    try {
-      payload = Buffer.isBuffer(rawBody)
-        ? JSON.parse(rawBody.toString('utf8'))
-        : typeof rawBody === 'string'
-          ? JSON.parse(rawBody)
-          : rawBody;
-    } catch {
-      throw new Error('Invalid webhook JSON payload');
-    }
-
+    const payload = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
     return {
       eventId: payload.data?.id?.toString() || payload.data?.reference,
       eventType: payload.event,

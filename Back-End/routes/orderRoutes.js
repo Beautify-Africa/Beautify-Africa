@@ -16,11 +16,10 @@ const {
   cancelOrderSchema,
   getMyOrdersQuerySchema,
 } = require('../validations/orderValidation');
-const idempotency = require('../middlewares/idempotency');
 
 router.use(setPrivateNoStore);
 
-router.post('/', optionalProtect, idempotency, validateBody(createOrderSchema), addOrderItems);
+router.post('/', optionalProtect, validateBody(createOrderSchema), addOrderItems);
 router.get('/myorders', protect, validateQuery(getMyOrdersQuerySchema), getMyOrders);
 router.get('/:id', optionalProtect, validateParams(orderIdParamSchema), getOrderById);
 router.put(
