@@ -10,6 +10,9 @@
   "engines": {
     "node": "24.x"
   },
+  "overrides": {
+    "vite": "7.3.6"
+  },
   "optionalDependencies": {
     "@esbuild/linux-x64": "0.28.2",
     "@rollup/rollup-linux-x64-gnu": "4.60.0",
@@ -42,7 +45,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "vite": "7.3.6"
   },
   "keywords": [
     "ecommerce",
