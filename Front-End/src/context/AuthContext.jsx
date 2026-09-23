@@ -12,54 +12,56 @@ import { AuthContext } from './auth-context';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isRestoringSession, setIsRestoringSession] = useState(true);
+  const [isRestoringSession, setIsRestoringSession] = useState(() =>
+    Boolean(localStorage.getItem('token'))
+  );
 
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // On mount, restore session via secure HttpOnly cookie (no localStorage used)
   useEffect(() => {
+    if (!token) {
+      setUser(null);
+      setIsRestoringSession(false);
+      return;
+    }
+
     const controller = new AbortController();
     setIsRestoringSession(true);
 
-    fetchMe(null, { signal: controller.signal })
-      .then((data) => {
-        if (data?.user) {
-          setUser(data.user);
-          if (data.token) {
-            setToken(data.token);
-          }
-        } else {
-          setUser(null);
-          setToken(null);
-        }
-      })
+    fetchMe(token, { signal: controller.signal })
+      .then((data) => setUser(data.user))
       .catch(() => {
         if (controller.signal.aborted) {
           return;
         }
+
         setUser(null);
         setToken(null);
+        localStorage.removeItem('token');
       })
       .finally(() => {
-        if (!controller.signal.aborted) {
-          setIsRestoringSession(false);
+        if (controller.signal.aborted) {
+          return;
         }
+
+        setIsRestoringSession(false);
       });
 
     return () => controller.abort();
-  }, []);
+  }, [token]);
 
   const register = async (userData) => {
     setLoading(true);
     clearError();
     try {
       const data = await registerUser(userData);
-      setToken(data.token || null);
+      setToken(data.token);
+      localStorage.setItem('token', data.token);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -76,10 +78,8 @@ export function AuthProvider({ children }) {
     clearError();
     try {
       const data = await loginUser(userData);
-      if (data?.require2FA) {
-        return data;
-      }
-      setToken(data.token || null);
+      setToken(data.token);
+      localStorage.setItem('token', data.token);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -96,10 +96,8 @@ export function AuthProvider({ children }) {
     clearError();
     try {
       const data = await loginAdminUser(userData);
-      if (data?.require2FA) {
-        return data;
-      }
-      setToken(data.token || null);
+      setToken(data.token);
+      localStorage.setItem('token', data.token);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -115,9 +113,9 @@ export function AuthProvider({ children }) {
     setLoading(true);
     clearError();
     try {
-      if (!user) throw new Error('Not authenticated');
+      if (!token) throw new Error('Not authenticated');
       const data = await updateUser(userData, token);
-      setUser(data.user);
+      setUser(data.user); // Dynamically update the global state
       return data;
     } catch (err) {
       setError(err.message);
@@ -133,10 +131,13 @@ export function AuthProvider({ children }) {
     setToken(null);
     setIsRestoringSession(false);
     clearError();
-    logoutUser(activeToken).catch(() => {});
+    localStorage.removeItem('token');
+    if (activeToken) {
+      logoutUser(activeToken).catch(() => {});
+    }
   };
 
-  const isAuthenticated = Boolean(user);
+  const isAuthenticated = Boolean(user && token);
   const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin');
 
   return (

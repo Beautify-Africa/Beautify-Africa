@@ -15,63 +15,27 @@ const {
 } = require('../services/authService');
 const { clearPaymentRateLimit } = require('../middlewares/rateLimiters');
 const { forgotPassword, resetPassword } = require('./authPasswordResetController');
-const bcrypt = require('bcryptjs');
-const {
-  generateTotpSecret,
-  generateOtpAuthUri,
-  verifyTotpCode,
-  generateRecoveryCodes,
-  verifyAndConsumeRecoveryCode,
-  isTotpCodeReplayed,
-  markTotpCodeUsed,
-} = require('../services/totpService');
-
-// Pre-computed bcrypt cost 12 hash of a 32-char high-entropy string to normalize timing and block email enumeration
-const DUMMY_BCRYPT_HASH =
-  '$2a$12$e8kQ8YQ.Z7n.a3fL0F1GauQZzXW9vU0K6T8Y5e.Z7n.a3fL0F1Gau';
 
 const AUTH_COOKIE_NAME = 'token';
 
 function setAuthCookie(res, token) {
   if (typeof res.cookie === 'function') {
-    const isProductionLike =
-      process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging';
-    const cookieOptions = {
+    res.cookie(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: isProductionLike,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    };
-
-    // Set standard httpOnly authentication cookie
-    res.cookie(AUTH_COOKIE_NAME, token, cookieOptions);
-
-    // In production/staging over HTTPS, set __Secure- and __Host- prefixed cookies for maximum browser boundary enforcement
-    if (isProductionLike) {
-      res.cookie('__Secure-token', token, cookieOptions);
-      res.cookie('__Host-token', token, {
-        ...cookieOptions,
-        secure: true,
-      });
-    }
+    });
   }
 }
 
 function clearAuthCookie(res) {
   if (typeof res.clearCookie === 'function') {
-    const isProductionLike =
-      process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging';
-    const clearOptions = {
+    res.clearCookie(AUTH_COOKIE_NAME, {
       httpOnly: true,
-      secure: isProductionLike,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/',
-    };
-
-    res.clearCookie(AUTH_COOKIE_NAME, clearOptions);
-    res.clearCookie('__Secure-token', clearOptions);
-    res.clearCookie('__Host-token', clearOptions);
+    });
   }
 }
 
@@ -100,7 +64,7 @@ async function register(req, res) {
       return res.status(409).json({ status: 'error', message: 'Email is already registered' });
 
     const user = await User.create({ name: name.trim(), email: normalizedEmail, password });
-    const token = signToken(user);
+    const token = signToken(user.id);
     setAuthCookie(res, token);
     return res.status(201).json({ status: 'success', token, user: sanitizeUser(user) });
   } catch (error) {
@@ -110,17 +74,13 @@ async function register(req, res) {
 
 async function login(req, res) {
   try {
-    const { email, password, twoFactorCode } = req.body;
+    const { email, password } = req.body;
     const normalizedEmail = normalizeEmail(email || '');
     if (!email || !password)
       return res.status(400).json({ status: 'error', message: 'Email and password are required' });
 
     const user = await User.findOne({ where: { email: normalizedEmail } });
-    if (!user) {
-      // Execute dummy bcrypt comparison to ensure constant-time response and prevent email enumeration
-      await bcrypt.compare(password, DUMMY_BCRYPT_HASH).catch(() => {});
-      return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
-    }
+    if (!user) return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
 
     if (typeof user.isLocked === 'function' && user.isLocked()) {
       return res.status(429).json({
@@ -138,56 +98,11 @@ async function login(req, res) {
       return res.status(401).json({ status: 'error', message: 'Invalid credentials' });
     }
 
-    // Two-factor authentication check if enabled
-    if (user.twoFactorEnabled) {
-      if (!twoFactorCode) {
-        return res.status(200).json({
-          status: 'require_2fa',
-          message: 'Two-factor authentication code required',
-          require2FA: true,
-        });
-      }
-
-      // Check if TOTP code was already submitted within this validity window (replay defense)
-      const isReplayed = await isTotpCodeReplayed(user.id, twoFactorCode);
-      if (isReplayed) {
-        return res.status(401).json({
-          status: 'error',
-          message: 'Two-factor authentication code has already been used. Please wait for the next code.',
-        });
-      }
-
-      const isTotpValid = verifyTotpCode({
-        secret: user.twoFactorSecret,
-        code: twoFactorCode,
-      });
-
-      if (isTotpValid) {
-        await markTotpCodeUsed(user.id, twoFactorCode);
-      } else {
-        const recoveryCheck = verifyAndConsumeRecoveryCode(
-          user.twoFactorRecoveryCodes,
-          twoFactorCode
-        );
-        if (!recoveryCheck.isValid) {
-          if (typeof user.recordFailedLogin === 'function') {
-            await user.recordFailedLogin();
-          }
-          return res.status(401).json({
-            status: 'error',
-            message: 'Invalid two-factor authentication code or recovery code',
-          });
-        }
-        user.twoFactorRecoveryCodes = recoveryCheck.remainingCodes;
-        await user.save();
-      }
-    }
-
     if (typeof user.recordSuccessfulLogin === 'function') {
       await user.recordSuccessfulLogin();
     }
 
-    const token = signToken(user);
+    const token = signToken(user.id);
     setAuthCookie(res, token);
     await clearPaymentRateLimit(user.id, req.ip);
     return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
@@ -198,7 +113,7 @@ async function login(req, res) {
 
 async function adminDashboardLogin(req, res) {
   try {
-    const { email, password, twoFactorCode } = req.body;
+    const { email, password } = req.body;
     const normalizedEmail = normalizeEmail(email || '');
     if (!email || !password)
       return res.status(400).json({ status: 'error', message: 'Email and password are required' });
@@ -218,14 +133,6 @@ async function adminDashboardLogin(req, res) {
     }
 
     let user = await User.findOne({ where: { email: normalizedEmail } });
-    if (user && typeof user.isLocked === 'function' && user.isLocked()) {
-      return res.status(429).json({
-        status: 'error',
-        message:
-          'Account temporarily locked due to excessive failed attempts. Please try again in 15 minutes.',
-      });
-    }
-
     if (!user) {
       user = await User.create({
         name: 'Admin User',
@@ -244,185 +151,11 @@ async function adminDashboardLogin(req, res) {
         user.password = password;
         requiresSave = true;
       }
-
-      // Check 2FA if enabled
-      if (user.twoFactorEnabled) {
-        if (!twoFactorCode) {
-          return res.status(200).json({
-            status: 'require_2fa',
-            message: 'Two-factor authentication code required',
-            require2FA: true,
-          });
-        }
-
-        // Check if TOTP code was already submitted within this validity window (replay defense)
-        const isReplayed = await isTotpCodeReplayed(user.id, twoFactorCode);
-        if (isReplayed) {
-          return res.status(401).json({
-            status: 'error',
-            message: 'Two-factor authentication code has already been used. Please wait for the next code.',
-          });
-        }
-
-        const isTotpValid = verifyTotpCode({
-          secret: user.twoFactorSecret,
-          code: twoFactorCode,
-        });
-
-        if (isTotpValid) {
-          await markTotpCodeUsed(user.id, twoFactorCode);
-        } else {
-          const recoveryCheck = verifyAndConsumeRecoveryCode(
-            user.twoFactorRecoveryCodes,
-            twoFactorCode
-          );
-          if (!recoveryCheck.isValid) {
-            if (typeof user.recordFailedLogin === 'function') {
-              await user.recordFailedLogin();
-            }
-            return res.status(401).json({
-              status: 'error',
-              message: 'Invalid two-factor authentication code or recovery code',
-            });
-          }
-          user.twoFactorRecoveryCodes = recoveryCheck.remainingCodes;
-          requiresSave = true;
-        }
-      }
-
-      if (typeof user.recordSuccessfulLogin === 'function') {
-        await user.recordSuccessfulLogin();
-      } else if (requiresSave) {
-        await user.save();
-      }
+      if (requiresSave) await user.save();
     }
-    const token = signToken(user);
+    const token = signToken(user.id);
     setAuthCookie(res, token);
     return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
-  } catch (error) {
-    return handleAuthError(res, error);
-  }
-}
-
-async function setupTwoFactor(req, res) {
-  try {
-    const user = await User.findByPk(req.user.id || req.user._id);
-    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
-
-    const secret = generateTotpSecret(20);
-    const otpAuthUrl = generateOtpAuthUri({
-      secret,
-      email: user.email,
-      issuer: 'Beautify Africa',
-    });
-    const { plainCodes, hashedCodes } = generateRecoveryCodes(8);
-
-    user.twoFactorSecret = secret;
-    user.twoFactorRecoveryCodes = hashedCodes;
-    await user.save();
-
-    return res.status(200).json({
-      status: 'success',
-      secret,
-      otpAuthUrl,
-      recoveryCodes: plainCodes,
-    });
-  } catch (error) {
-    return handleAuthError(res, error);
-  }
-}
-
-async function enableTwoFactor(req, res) {
-  try {
-    const { code } = req.body;
-    if (!code) {
-      return res.status(400).json({ status: 'error', message: 'Verification code is required' });
-    }
-
-    const user = await User.findByPk(req.user.id || req.user._id);
-    if (!user || !user.twoFactorSecret) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Please initiate two-factor setup before verifying.',
-      });
-    }
-
-    const isValid = verifyTotpCode({ secret: user.twoFactorSecret, code });
-    if (!isValid) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid verification code. Please check your authenticator app.',
-      });
-    }
-
-    await markTotpCodeUsed(user.id, code);
-
-    user.twoFactorEnabled = true;
-    await user.save();
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Two-factor authentication successfully enabled.',
-      user: sanitizeUser(user),
-    });
-  } catch (error) {
-    return handleAuthError(res, error);
-  }
-}
-
-async function disableTwoFactor(req, res) {
-  try {
-    const { password, code } = req.body;
-    if (!password) {
-      return res.status(400).json({ status: 'error', message: 'Password is required to disable 2FA' });
-    }
-
-    const user = await User.findByPk(req.user.id || req.user._id);
-    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
-
-    const passwordMatch = await user.comparePassword(password);
-    if (!passwordMatch) {
-      return res.status(401).json({ status: 'error', message: 'Invalid password' });
-    }
-
-    if (user.twoFactorEnabled && code) {
-      const isValid = verifyTotpCode({ secret: user.twoFactorSecret, code });
-      if (!isValid) {
-        return res.status(400).json({ status: 'error', message: 'Invalid authentication code' });
-      }
-    }
-
-    user.twoFactorEnabled = false;
-    user.twoFactorSecret = null;
-    user.twoFactorRecoveryCodes = [];
-    await user.save();
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Two-factor authentication disabled successfully.',
-      user: sanitizeUser(user),
-    });
-  } catch (error) {
-    return handleAuthError(res, error);
-  }
-}
-
-async function revokeAllSessions(req, res) {
-  try {
-    const user = await User.findByPk(req.user.id || req.user._id);
-    if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
-
-    user.tokenVersion = (user.tokenVersion || 0) + 1;
-    await user.save();
-
-    const token = signToken(user);
-    setAuthCookie(res, token);
-
-    return res.status(200).json({
-      status: 'success',
-      token,
-      message: 'All other active sessions have been invalidated.',
-    });
   } catch (error) {
     return handleAuthError(res, error);
   }
@@ -505,8 +238,4 @@ module.exports = {
   me,
   logout,
   updateUserProfile,
-  setupTwoFactor,
-  enableTwoFactor,
-  disableTwoFactor,
-  revokeAllSessions,
 };

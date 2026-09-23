@@ -42,11 +42,7 @@ async function createPaymentIntent(amountInCents, metadata) {
  */
 function constructWebhookEvent(rawBody, signature, secret) {
   const stripe = getStripe();
-  const webhookSecret = secret || process.env.STRIPE_WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    throw new Error('STRIPE_WEBHOOK_SECRET is not configured on the server');
-  }
-  return stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+  return stripe.webhooks.constructEvent(rawBody, signature, secret);
 }
 
 module.exports = {

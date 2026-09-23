@@ -14,33 +14,17 @@ const {
   apiLimiter,
 } = require('../middlewares/rateLimiters');
 
-const { validateBody, validateParams } = require('../middlewares/validate');
-const {
-  initializePaymentSchema,
-  verifyPaymentParamSchema,
-} = require('../validations/paymentValidation');
-const idempotency = require('../middlewares/idempotency');
-
 // Webhooks require raw body buffer for HMAC signature verification
 router.post('/webhook/:gateway', express.raw({ type: 'application/json' }), handleWebhook);
 
 // Payment initialization: optionalProtect first so limiter can associate with authenticated user
-router.post(
-  '/initialize',
-  optionalProtect,
-  paymentLimiter,
-  express.json(),
-  idempotency,
-  validateBody(initializePaymentSchema),
-  initializePayment
-);
+router.post('/initialize', optionalProtect, paymentLimiter, express.json(), initializePayment);
 
 // Payment verification (polling or return callback): generous verification limiter so polling never blocks checkout
 router.get(
   '/verify/:gateway/:reference',
   optionalProtect,
   paymentVerificationLimiter,
-  validateParams(verifyPaymentParamSchema),
   verifyPayment
 );
 

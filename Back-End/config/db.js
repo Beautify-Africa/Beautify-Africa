@@ -4,7 +4,6 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 
 const { Sequelize } = require('sequelize');
-const pg = require('pg');
 
 function parsePositiveInt(value, fallback) {
   const parsed = Number.parseInt(value, 10);
@@ -52,7 +51,6 @@ const dialectOptions = {
 
 const sequelizeOptions = {
   dialect: 'postgres',
-  dialectModule: pg,
   dialectOptions,
   pool: poolConfig,
   logging: process.env.NODE_ENV === 'development' ? safeSqlLogger : false,

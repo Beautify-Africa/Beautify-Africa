@@ -22,17 +22,13 @@ const {
 } = require('../controllers/adminController');
 const { protect, requireAdmin } = require('../middlewares/authMiddleware');
 const { setPrivateNoStore } = require('../middlewares/cacheHeaders');
-const { validateBody, validateParams, validateQuery } = require('../middlewares/validate');
+const { validateParams, validateQuery } = require('../middlewares/validate');
 const {
   adminOrdersQuerySchema,
   adminCustomersQuerySchema,
   adminOrderIdParamSchema,
   adminCustomerParamSchema,
-  updateOrderStatusSchema,
-  createOrderNoteSchema,
-  adminProductSchema,
 } = require('../validations/adminValidation');
-const { productIdParamSchema } = require('../validations/productValidation');
 
 const router = express.Router();
 
@@ -44,32 +40,13 @@ router.get('/analytics/summary', getAdminAnalytics);
 router.get('/inventory/reorder-plan', getReorderPlan);
 router.get('/orders', validateQuery(adminOrdersQuerySchema), getAdminOrders);
 router.get('/orders/:id', validateParams(adminOrderIdParamSchema), getAdminOrderDetail);
-router.patch(
-  '/orders/:id',
-  validateParams(adminOrderIdParamSchema),
-  validateBody(updateOrderStatusSchema),
-  updateAdminOrderStatus
-);
-router.post(
-  '/orders/:id/notes',
-  validateParams(adminOrderIdParamSchema),
-  validateBody(createOrderNoteSchema),
-  createAdminOrderNote
-);
+router.patch('/orders/:id', validateParams(adminOrderIdParamSchema), updateAdminOrderStatus);
+router.post('/orders/:id/notes', validateParams(adminOrderIdParamSchema), createAdminOrderNote);
 router.get('/orders/:id/timeline', validateParams(adminOrderIdParamSchema), getAdminOrderTimeline);
 router.get('/products', getAdminProducts);
-router.post('/products', validateBody(adminProductSchema), postAdminProduct);
-router.put(
-  '/products/:id',
-  validateParams(productIdParamSchema),
-  validateBody(adminProductSchema.partial()),
-  putAdminProduct
-);
-router.patch(
-  '/products/:id/archive',
-  validateParams(productIdParamSchema),
-  patchAdminProductArchive
-);
+router.post('/products', postAdminProduct);
+router.put('/products/:id', putAdminProduct);
+router.patch('/products/:id/archive', patchAdminProductArchive);
 
 // Customer management routes
 router.get('/customers', validateQuery(adminCustomersQuerySchema), getAdminCustomers);

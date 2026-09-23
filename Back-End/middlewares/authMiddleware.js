@@ -16,8 +16,8 @@ function extractToken(req) {
   if (authHeader.startsWith('Bearer ')) {
     return authHeader.split(' ')[1];
   }
-  // Fallback to httpOnly cookie (supporting standard 'token', '__Secure-token', and '__Host-token')
-  const cookieMatch = req.headers.cookie?.match(/(?:^|;\s*)(?:__Host-|__Secure-)?token=([^;]+)/);
+  // Fallback to httpOnly cookie
+  const cookieMatch = req.headers.cookie?.match(/(?:^|;\s*)token=([^;]+)/);
   if (cookieMatch) {
     return decodeURIComponent(cookieMatch[1]);
   }
@@ -39,36 +39,15 @@ async function protect(req, res, next) {
     const token = extractToken(req);
     if (!token)
       return res.status(401).json({ status: 'error', message: 'Not authorized. Missing token' });
-
-    // Enforce HS256 algorithm to block algorithm confusion attacks ('none' or asymmetric public key forging)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-      algorithms: ['HS256'],
-    });
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     if (await isTokenBlacklisted(token))
       return res.status(401).json({
         status: 'error',
         message: 'Not authorized. Token has been invalidated. Please sign in again.',
       });
-
-    const userId = decoded.id || decoded.sub;
-    const user = await findAuthUserById(userId);
+    const user = await findAuthUserById(decoded.id);
     if (!user)
       return res.status(401).json({ status: 'error', message: 'Not authorized. User not found' });
-
-    // Enforce centralized session invalidation (token revocation across devices)
-    if (
-      decoded.tokenVersion !== undefined &&
-      user.tokenVersion !== undefined &&
-      user.tokenVersion !== decoded.tokenVersion
-    ) {
-      return res.status(401).json({
-        status: 'error',
-        code: 'SESSION_REVOKED',
-        message: 'Session has been revoked. Please sign in again.',
-      });
-    }
-
     // Add _id virtual for backward compat
     req.user = { ...user, _id: user.id };
     next();
@@ -84,20 +63,9 @@ async function optionalProtect(req, res, next) {
     const token = extractToken(req);
     if (!token) return next();
     if (await isTokenBlacklisted(token)) return next();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
-      algorithms: ['HS256'],
-    });
-    const userId = decoded.id || decoded.sub;
-    const user = await findAuthUserById(userId);
-    if (user) {
-      if (
-        decoded.tokenVersion === undefined ||
-        user.tokenVersion === undefined ||
-        user.tokenVersion === decoded.tokenVersion
-      ) {
-        req.user = { ...user, _id: user.id };
-      }
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await findAuthUserById(decoded.id);
+    if (user) req.user = { ...user, _id: user.id };
   } catch {
     /* treat as guest */
   }

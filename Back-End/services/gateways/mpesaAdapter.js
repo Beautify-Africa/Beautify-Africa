@@ -205,34 +205,17 @@ class MpesaAdapter extends MpesaClient {
   }
 
   /**
-   * Parse & validate M-Pesa Daraja callback webhook payload
+   * Parse M-Pesa Daraja callback webhook payload
    */
-  verifyWebhook(rawPayload) {
-    let payload;
-    try {
-      if (Buffer.isBuffer(rawPayload)) {
-        payload = JSON.parse(rawPayload.toString('utf8'));
-      } else if (typeof rawPayload === 'string') {
-        payload = JSON.parse(rawPayload);
-      } else {
-        payload = rawPayload || {};
-      }
-    } catch {
-      throw new Error('Invalid M-Pesa callback JSON payload');
-    }
-
+  verifyWebhook(payload) {
     const callback = payload.Body?.stkCallback || payload;
-    if (!callback || typeof callback !== 'object') {
-      throw new Error('Malformed M-Pesa callback payload structure');
-    }
-
     const resultCode = callback.ResultCode;
     const isSuccess = resultCode === 0;
 
     let receiptNumber = null;
     let amount = null;
 
-    if (callback.CallbackMetadata?.Item && Array.isArray(callback.CallbackMetadata.Item)) {
+    if (callback.CallbackMetadata?.Item) {
       for (const item of callback.CallbackMetadata.Item) {
         if (item.Name === 'MpesaReceiptNumber') receiptNumber = item.Value;
         if (item.Name === 'Amount') amount = item.Value;
