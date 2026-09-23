@@ -8,7 +8,8 @@ const isTestEnv = process.env.NODE_ENV === 'test';
 const redisClient = new Redis(redisUrl, {
   // BullMQ workers require this to be null for blocking Redis commands.
   maxRetriesPerRequest: null,
-  connectTimeout: isTestEnv ? 500 : 1500,
+  connectTimeout: isTestEnv ? 500 : 3000,
+  keepAlive: 30000,
   // Keep command queuing enabled so BullMQ can tolerate brief Redis startup/reconnect windows.
   enableOfflineQueue: true,
   enableReadyCheck: true,

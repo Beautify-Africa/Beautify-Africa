@@ -1,4 +1,5 @@
 // services/adminCustomerService.js
+const { Op } = require('sequelize');
 const User = require('../models/User');
 const { Order, OrderItem, OrderShippingAddress } = require('../models/Order');
 const Newsletter = require('../models/Newsletter');
@@ -80,22 +81,37 @@ async function fetchAdminCustomerDetail(identifier) {
     });
   }
 
-  const allOrders = await Order.findAll({
-    include: [
-      { model: OrderShippingAddress, as: 'shippingAddress' },
-      { model: OrderItem, as: 'orderItems' },
-    ],
-    order: [['createdAt', 'DESC']],
-  });
+  const searchEmails = [normalized];
+  if (user?.email) {
+    searchEmails.push(normalizeEmail(user.email));
+  }
+  const uniqueEmails = [...new Set(searchEmails.filter(Boolean))];
 
-  const matchingOrders = allOrders.filter((ord) => {
-    if (user && ord.userId === user.id) return true;
-    const shippingEmail = normalizeEmail(ord.shippingAddress?.email);
-    if (shippingEmail && (shippingEmail === normalized || (user && shippingEmail === normalizeEmail(user.email)))) {
-      return true;
-    }
-    return false;
+  const shippingMatches = await OrderShippingAddress.findAll({
+    where: {
+      email: { [Op.in]: uniqueEmails },
+    },
+    attributes: ['orderId'],
+    raw: true,
   });
+  const emailOrderIds = shippingMatches.map((sa) => sa.orderId).filter(Boolean);
+
+  const orConditions = [
+    ...(user ? [{ userId: user.id }] : []),
+    ...(emailOrderIds.length > 0 ? [{ id: { [Op.in]: emailOrderIds } }] : []),
+  ];
+
+  const matchingOrders =
+    orConditions.length > 0
+      ? await Order.findAll({
+          where: { [Op.or]: orConditions },
+          include: [
+            { model: OrderShippingAddress, as: 'shippingAddress' },
+            { model: OrderItem, as: 'orderItems' },
+          ],
+          order: [['createdAt', 'DESC']],
+        })
+      : [];
 
   const customerEmail = user ? user.email : normalized;
   const newsletterEntry = await Newsletter.findOne({

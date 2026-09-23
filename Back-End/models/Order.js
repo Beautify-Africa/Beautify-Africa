@@ -75,7 +75,11 @@ OrderShippingAddress.init(
     modelName: 'OrderShippingAddress',
     tableName: 'order_shipping_addresses',
     timestamps: false,
-    indexes: [{ fields: ['orderId'] }, { fields: ['email'] }],
+    indexes: [
+      { fields: ['orderId'] },
+      { fields: ['email'] },
+      { fields: ['email', 'orderId'] },
+    ],
   }
 );
 
@@ -220,6 +224,9 @@ Order.init(
       { fields: ['fulfillmentStatus'] },
       { fields: ['isPaid'] },
       { fields: ['trackingNumber'] },
+      { fields: ['userId', 'createdAt'] },
+      { fields: ['fulfillmentStatus', 'isPaid', 'createdAt'] },
+      { fields: ['isPaid', 'createdAt'] },
     ],
   }
 );

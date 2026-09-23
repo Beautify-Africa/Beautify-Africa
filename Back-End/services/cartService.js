@@ -1,4 +1,5 @@
 // services/cartService.js
+const { Op } = require('sequelize');
 const { Cart, CartItem } = require('../models/Cart');
 const { Product } = require('../models/Product');
 
@@ -111,21 +112,38 @@ async function removeCartItemByProductId(cart, productId) {
 }
 
 async function syncLocalCartItems(cart, localItems) {
-  for (const localItem of localItems) {
-    const productId = resolveIncomingProductId(localItem);
-    if (!productId) continue;
+  if (!Array.isArray(localItems) || localItems.length === 0) return;
 
-    const { product: dbProduct } = await findInStockProduct(
-      productId,
-      'Product is currently out of stock'
-    );
+  const resolvedItems = localItems
+    .map((item) => {
+      const productId = resolveIncomingProductId(item);
+      return productId ? { productId: String(productId), item } : null;
+    })
+    .filter(Boolean);
+
+  if (resolvedItems.length === 0) return;
+
+  const uniqueProductIds = [...new Set(resolvedItems.map((r) => r.productId))];
+  const dbProducts = await Product.findAll({
+    where: {
+      id: { [Op.in]: uniqueProductIds },
+      inStock: true,
+    },
+    attributes: ['id', 'name', 'price', 'image', 'inStock'],
+    raw: true,
+  });
+
+  const productMap = new Map(dbProducts.map((p) => [String(p.id), { ...p, _id: p.id }]));
+
+  for (const { productId, item } of resolvedItems) {
+    const dbProduct = productMap.get(productId);
     if (!dbProduct) continue;
 
     await addOrMergeCartItem(cart, {
       productId,
       dbProduct,
-      variant: localItem.variant,
-      quantity: localItem.quantity || 1,
+      variant: item.variant,
+      quantity: item.quantity || 1,
     });
   }
 }

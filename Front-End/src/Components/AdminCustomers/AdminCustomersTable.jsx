@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import StatusBadge from '../AdminOrders/StatusBadge';
 
 function getInitials(name = '') {
@@ -30,6 +32,14 @@ export default function AdminCustomersTable({
   onPageChange,
   onInspectCustomer,
 }) {
+  const tableContainerRef = useRef(null);
+  const rowVirtualizer = useVirtualizer({
+    count: customers.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 64,
+    overscan: 5,
+  });
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 p-8">
@@ -55,9 +65,9 @@ export default function AdminCustomersTable({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 shadow-xl backdrop-blur-md">
-      <div className="overflow-x-auto">
+      <div ref={tableContainerRef} className="max-h-[620px] overflow-auto">
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-zinc-800/90 bg-zinc-900/40 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+          <thead className="sticky top-0 z-10 border-b border-zinc-800/90 bg-zinc-900/95 backdrop-blur text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
             <tr>
               <th className="px-6 py-4">Patron</th>
               <th className="px-6 py-4">Account Type</th>
@@ -69,55 +79,75 @@ export default function AdminCustomersTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800/60">
-            {customers.map((c) => (
-              <tr key={c.id} className="transition-colors hover:bg-zinc-800/30">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 font-mono text-[11px] font-bold text-amber-300">
-                      {getInitials(c.name)}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-white">{c.name || 'Anonymous Guest'}</p>
-                      <p className="truncate text-[11px] text-zinc-400">{c.email || 'No email provided'}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-medium ${
-                    c.isRegistered ? 'text-sky-300 bg-sky-500/10' : 'text-zinc-400 bg-zinc-800/60'
-                  }`}>
-                    {c.isRegistered ? 'Registered Member' : 'Guest Buyer'}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <VipBadge tier={c.vipTier || 'bronze'} />
-                </td>
-                <td className="px-6 py-4 font-mono font-semibold text-zinc-200">
-                  {c.ordersCount || 0}
-                </td>
-                <td className="px-6 py-4 font-mono font-semibold text-emerald-400">
-                  ${Number(c.totalSpent || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={c.status || 'active'} />
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button
-                    type="button"
-                    onClick={() => onInspectCustomer(c)}
-                    className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 text-[11px] font-semibold text-zinc-200 transition-colors hover:border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-300"
-                  >
-                    View Profile
-                  </button>
-                </td>
+            {rowVirtualizer.getVirtualItems().length > 0 && rowVirtualizer.getVirtualItems()[0].start > 0 && (
+              <tr>
+                <td colSpan={7} style={{ height: `${rowVirtualizer.getVirtualItems()[0].start}px` }} />
               </tr>
-            ))}
+            )}
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const c = customers[virtualRow.index];
+              if (!c) return null;
+              return (
+                <tr key={c.id} className="transition-colors hover:bg-zinc-800/30">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10 font-mono text-[11px] font-bold text-amber-300">
+                        {getInitials(c.name)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-white">{c.name || 'Anonymous Guest'}</p>
+                        <p className="truncate text-[11px] text-zinc-400">{c.email || 'No email provided'}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-medium ${
+                      c.isRegistered ? 'text-sky-300 bg-sky-500/10' : 'text-zinc-400 bg-zinc-800/60'
+                    }`}>
+                      {c.isRegistered ? 'Registered Member' : 'Guest Buyer'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <VipBadge tier={c.vipTier || 'bronze'} />
+                  </td>
+                  <td className="px-6 py-4 font-mono font-semibold text-zinc-200">
+                    {c.ordersCount || 0}
+                  </td>
+                  <td className="px-6 py-4 font-mono font-semibold text-emerald-400">
+                    ${Number(c.totalSpent || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={c.status || 'active'} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      type="button"
+                      onClick={() => onInspectCustomer(c)}
+                      className="rounded-lg border border-zinc-700 bg-zinc-800/80 px-3 py-1.5 text-[11px] font-semibold text-zinc-200 transition-colors hover:border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-300"
+                    >
+                      View Profile
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+            {rowVirtualizer.getVirtualItems().length > 0 && (
+              (() => {
+                const lastItem = rowVirtualizer.getVirtualItems()[rowVirtualizer.getVirtualItems().length - 1];
+                const bottomSpace = rowVirtualizer.getTotalSize() - lastItem.end;
+                return bottomSpace > 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ height: `${bottomSpace}px` }} />
+                  </tr>
+                ) : null;
+              })()
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination Bar */}
-      {pagination.totalPages > 1 && (
+      {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-zinc-800/80 bg-zinc-900/30 px-6 py-3.5 text-xs text-zinc-400">
           <p>
             Showing <span className="font-semibold text-white">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}

@@ -58,7 +58,7 @@ export async function requestJson(url, options = {}) {
     signal,
     timeoutMs = 15000,
     cache,
-    credentials = 'omit',
+    credentials = 'include',
     fallbackMessage = 'Request failed',
   } = options;
 

@@ -2,6 +2,11 @@
 const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry } = require('../models/Order');
 const WebhookEvent = require('../models/WebhookEvent');
+const {
+  checkOrClaimWebhookEvent,
+  markWebhookProcessed,
+  markWebhookFailed,
+} = require('./webhookDeduplication');
 const { processPurchase } = require('./inventoryService');
 const logger = require('../utils/logger');
 
@@ -115,23 +120,19 @@ class PaymentGatewayService {
       return { success: false, message: 'Missing orderId' };
     }
 
-    // Check WebhookEvent idempotency if eventId is provided
+    // Two-tier deduplication check (Redis + WebhookEvent table) if eventId is provided
     if (eventId) {
       try {
-        const existing = await WebhookEvent.findByPk(eventId);
-        if (existing && existing.status === 'processed') {
+        const dedup = await checkOrClaimWebhookEvent({
+          gateway,
+          eventId,
+          eventType: `${gateway}.payment.success`,
+          payload: paymentDetails || {},
+        });
+        if (dedup.isDuplicate) {
           logger.info({ eventId }, 'Webhook event already processed. Skipping duplicate.');
           return { alreadyProcessed: true, success: true };
         }
-
-        await WebhookEvent.findOrCreate({
-          where: { id: eventId },
-          defaults: {
-            type: `${gateway}.payment.success`,
-            status: 'pending',
-            payload: paymentDetails || {},
-          },
-        });
       } catch (err) {
         logger.warn({ err: err.message }, 'Webhook idempotency lookup warning');
       }
@@ -207,10 +208,11 @@ class PaymentGatewayService {
 
       // Update webhook event status if present
       if (eventId) {
-        await WebhookEvent.update(
-          { status: 'processed', processedAt: new Date() },
-          { where: { id: eventId }, transaction: t }
-        );
+        await markWebhookProcessed({
+          gateway,
+          eventId,
+          transaction: t,
+        });
       }
 
       logger.info(

@@ -6,6 +6,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavbarState } from './hooks/useNavbarState';
+import { usePrefetchShop } from '../../hooks/usePrefetchShop';
 import CustomerProfileMenu from '../Auth/CustomerProfileMenu';
 import AccountAuthDialog from '../Auth/AccountAuthDialog';
 import NavbarBrandLogo from './NavbarBrandLogo';
@@ -18,6 +19,7 @@ const Navbar = ({ onOpenCart }) => {
   const navigate = useNavigate();
   const { cartCount } = useCart();
   const { isAuthenticated, isRestoringSession } = useAuth();
+  const prefetchShop = usePrefetchShop();
 
   const {
     isScrolled,
@@ -136,6 +138,8 @@ const Navbar = ({ onOpenCart }) => {
             {!isShopPage && (
               <Link
                 to="/shop"
+                onMouseEnter={prefetchShop.onMouseEnter}
+                onFocus={prefetchShop.onFocus}
                 className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
               >
                 Shop Now

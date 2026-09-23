@@ -68,6 +68,36 @@ const adminAuthLimiter = rateLimit({
   },
 });
 
+// Password reset request limiter: 5 requests per 15 minutes per IP — blocks email bombing
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeRedisStore('rl:pw-reset:'),
+  passOnStoreError: true,
+  skip: () => isTestEnv,
+  message: {
+    status: 'error',
+    message: 'Too many password reset requests. Please wait 15 minutes before trying again.',
+  },
+});
+
+// Reset password attempt limiter: 5 attempts per 15 minutes — prevents token brute-forcing
+const resetPasswordAttemptLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeRedisStore('rl:pw-attempt:'),
+  passOnStoreError: true,
+  skip: () => isTestEnv,
+  message: {
+    status: 'error',
+    message: 'Too many password reset verification attempts. Access locked for 15 minutes.',
+  },
+});
+
 // Cart limiter: tight 30 requests per IP per minute — blocks bot cart abuse
 const cartLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -160,15 +190,30 @@ async function clearPaymentRateLimit(userId, ip) {
   }
 }
 
+// Search limiter: 60 requests per minute per IP — prevents heavy scraping and search DoS
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 60 : 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeRedisStore('rl:search:'),
+  passOnStoreError: true,
+  skip: () => isTestEnv,
+  message: { status: 'error', message: 'Too many search requests, please slow down.' },
+});
+
 module.exports = {
   rateLimitRedis,
   apiLimiter,
   authLimiter,
   adminAuthLimiter,
+  passwordResetLimiter,
+  resetPasswordAttemptLimiter,
   cartLimiter,
   paymentLimiter,
   paymentVerificationLimiter,
   newsletterLimiter,
+  searchLimiter,
   clearPaymentRateLimit,
   getClientIdentifier,
 };

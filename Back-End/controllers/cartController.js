@@ -256,4 +256,7 @@ module.exports = {
   removeFromCart,
   clearCart,
   syncCart,
+  invalidateCartCache,
+  readCartCache,
+  writeCartCache,
 };
