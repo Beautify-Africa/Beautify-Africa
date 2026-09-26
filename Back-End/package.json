@@ -9,7 +9,7 @@
     "seed": "node scripts/seedProducts.js",
     "migrate": "node scripts/migrate.js",
     "migrate:rollback": "node scripts/rollback.js",
-    "test": "jest",
+    "test": "jest --no-cache --forceExit",
     "test:watch": "jest --watchAll"
   },
   "keywords": [],
