@@ -28,7 +28,7 @@ async function getCsrfToken() {
   return csrfTokenPromise;
 }
 
-export function jsonHeaders(token) {
+export function jsonHeaders() {
   return { 'Content-Type': 'application/json' };
 }
 
@@ -66,7 +66,6 @@ function createTimeoutSignal(signal, timeoutMs) {
 
 export async function requestJson(url, options = {}) {
   const {
-    token,
     method = 'GET',
     body,
     headers = {},
@@ -79,7 +78,7 @@ export async function requestJson(url, options = {}) {
 
   const requestHeaders = {
     ...headers,
-    ...(body !== undefined ? jsonHeaders(token) : {}),
+    ...(body !== undefined ? jsonHeaders() : {}),
   };
 
   const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
