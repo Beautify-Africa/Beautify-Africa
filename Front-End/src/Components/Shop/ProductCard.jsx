@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { HeartIcon, StarIcon } from '../Shared/Icons';
 import { buildResponsiveImageProps } from '../../utils/imageUtils';
 import { useCurrency } from '../../hooks/useCurrency';
@@ -5,7 +6,7 @@ import { useCurrency } from '../../hooks/useCurrency';
 /**
  * Star rating display
  */
-function StarRating({ rating, reviews }) {
+const StarRating = memo(function StarRating({ rating, reviews }) {
   return (
     <div className="flex items-center gap-1">
       {[...Array(5)].map((_, i) => (
@@ -17,12 +18,12 @@ function StarRating({ rating, reviews }) {
       <span className="text-[10px] text-stone-400 ml-1">({reviews})</span>
     </div>
   );
-}
+});
 
 /**
  * Product badges (New, Sale, Sold Out)
  */
-function ProductBadges({ product }) {
+const ProductBadges = memo(function ProductBadges({ product }) {
   const isNewProduct = product.isNewProduct ?? product.isNew;
 
   return (
@@ -44,12 +45,12 @@ function ProductBadges({ product }) {
       )}
     </div>
   );
-}
+});
 
 /**
  * Hover action overlay
  */
-function HoverActions({ product, onAddToCart }) {
+const HoverActions = memo(function HoverActions({ product, onAddToCart }) {
   return (
     <div className="absolute bottom-0 left-0 w-full p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-white/95 backdrop-blur-sm border-t border-stone-100">
       <button
@@ -65,12 +66,12 @@ function HoverActions({ product, onAddToCart }) {
       </button>
     </div>
   );
-}
+});
 
 /**
  * Wishlist button
  */
-function WishlistButton({ productId, isInWishlist, onToggle }) {
+const WishlistButton = memo(function WishlistButton({ productId, isInWishlist, onToggle }) {
   return (
     <button
       type="button"
@@ -88,20 +89,24 @@ function WishlistButton({ productId, isInWishlist, onToggle }) {
       </span>
     </button>
   );
-}
+});
 
 /**
  * ProductCard - Individual product display card
  */
-export default function ProductCard({
+const ProductCard = memo(function ProductCard({
   product,
   isInWishlist,
   onToggleWishlist,
   onAddToCart,
   onProductClick,
+  isAboveFold = false,
 }) {
   const { formatPrice } = useCurrency();
-  const imageProps = buildResponsiveImageProps(product.image);
+  const imageProps = useMemo(
+    () => buildResponsiveImageProps(product.image),
+    [product.image]
+  );
 
   return (
     <article className="group relative flex flex-col" role="listitem">
@@ -114,17 +119,28 @@ export default function ProductCard({
         onKeyDown={(e) => e.key === 'Enter' && onProductClick(product)}
         aria-label={`View details for ${product.name}`}
       >
-        <img
-          src={imageProps.src}
-          srcSet={imageProps.srcSet}
-          sizes={imageProps.sizes}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-          decoding="async"
-          width="400"
-          height="533"
-        />
+        <picture className="w-full h-full block">
+          {imageProps.sources?.map((source) => (
+            <source
+              key={source.type}
+              type={source.type}
+              srcSet={source.srcSet}
+              sizes={imageProps.sizes}
+            />
+          ))}
+          <img
+            src={imageProps.src}
+            srcSet={imageProps.srcSet}
+            sizes={imageProps.sizes}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading={isAboveFold ? 'eager' : 'lazy'}
+            fetchpriority={isAboveFold ? 'high' : 'auto'}
+            decoding="async"
+            width="400"
+            height="533"
+          />
+        </picture>
 
         <ProductBadges product={product} />
         <HoverActions product={product} onAddToCart={onAddToCart} />
@@ -159,4 +175,6 @@ export default function ProductCard({
       </div>
     </article>
   );
-}
+});
+
+export default ProductCard;

@@ -2,6 +2,11 @@
 const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry } = require('../models/Order');
 const WebhookEvent = require('../models/WebhookEvent');
+const {
+  checkOrClaimWebhookEvent,
+  markWebhookProcessed,
+  markWebhookFailed,
+} = require('./webhookDeduplication');
 const { processPurchase } = require('./inventoryService');
 const logger = require('../utils/logger');
 
@@ -16,6 +21,35 @@ const GATEWAY_ADAPTERS = {
 };
 
 class PaymentGatewayService {
+  validatePaymentBinding({ order, gateway, reference, amount, currency, metadata, requireMetadata = false }) {
+    const normalizedGateway = String(gateway || '').toLowerCase();
+    if (order.paymentGateway && String(order.paymentGateway).toLowerCase() !== normalizedGateway) {
+      throw new Error('Payment gateway does not match the order');
+    }
+    if (order.gatewayReference && String(order.gatewayReference) !== String(reference || '')) {
+      throw new Error('Payment reference does not match the order');
+    }
+    if (currency && order.currency && String(currency).toUpperCase() !== String(order.currency).toUpperCase()) {
+      throw new Error('Payment currency does not match the order');
+    }
+    const providerOrderId = metadata?.orderId || metadata?.order_id;
+    if (requireMetadata && String(providerOrderId || '') !== String(order.id)) {
+      throw new Error('Payment metadata does not match the order');
+    }
+    if (amount !== undefined && amount !== null && order.totalPrice !== undefined) {
+      const providerAmountMinor = Math.round(Number(amount) * 100);
+      const expectedAmountMinor = Math.round(Number(order.totalPrice) * 100);
+      const toleranceMinor = Math.max(1, expectedAmountMinor * 0.001);
+      if (
+        Number.isFinite(providerAmountMinor) &&
+        Number.isFinite(expectedAmountMinor) &&
+        Math.abs(providerAmountMinor - expectedAmountMinor) > Math.round(toleranceMinor)
+      ) {
+        throw new Error('Payment amount does not match the order');
+      }
+    }
+  }
+
   /**
    * Resolve gateway adapter by name
    */
@@ -94,6 +128,17 @@ class PaymentGatewayService {
 
     if (verifyResult.success && (orderId || verifyResult.orderId)) {
       const resolvedOrderId = orderId || verifyResult.orderId;
+      const order = await Order.findByPk(resolvedOrderId);
+      if (!order) throw new Error('Order not found');
+      this.validatePaymentBinding({
+        order,
+        gateway,
+        reference,
+        amount: verifyResult.amount,
+        currency: verifyResult.currency,
+        metadata: verifyResult.metadata,
+        requireMetadata: ['stripe', 'paystack'].includes(String(gateway).toLowerCase()),
+      });
       await this.processPaymentSuccess({
         orderId: resolvedOrderId,
         gateway,
@@ -115,23 +160,19 @@ class PaymentGatewayService {
       return { success: false, message: 'Missing orderId' };
     }
 
-    // Check WebhookEvent idempotency if eventId is provided
+    // Two-tier deduplication check (Redis + WebhookEvent table) if eventId is provided
     if (eventId) {
       try {
-        const existing = await WebhookEvent.findByPk(eventId);
-        if (existing && existing.status === 'processed') {
+        const dedup = await checkOrClaimWebhookEvent({
+          gateway,
+          eventId,
+          eventType: `${gateway}.payment.success`,
+          payload: paymentDetails || {},
+        });
+        if (dedup.isDuplicate) {
           logger.info({ eventId }, 'Webhook event already processed. Skipping duplicate.');
           return { alreadyProcessed: true, success: true };
         }
-
-        await WebhookEvent.findOrCreate({
-          where: { id: eventId },
-          defaults: {
-            type: `${gateway}.payment.success`,
-            status: 'pending',
-            payload: paymentDetails || {},
-          },
-        });
       } catch (err) {
         logger.warn({ err: err.message }, 'Webhook idempotency lookup warning');
       }
@@ -153,6 +194,16 @@ class PaymentGatewayService {
         logger.info({ orderId }, 'Order already marked as paid. Skipping re-processing.');
         return { alreadyProcessed: true, order };
       }
+
+      this.validatePaymentBinding({
+        order,
+        gateway,
+        reference,
+        amount,
+        currency: paymentDetails?.currency,
+        metadata: paymentDetails?.metadata,
+        requireMetadata: Boolean(eventId),
+      });
 
       if (!order.orderItems && typeof OrderItem?.findAll === 'function') {
         const [orderItems, shippingAddress] = await Promise.all([
@@ -207,10 +258,11 @@ class PaymentGatewayService {
 
       // Update webhook event status if present
       if (eventId) {
-        await WebhookEvent.update(
-          { status: 'processed', processedAt: new Date() },
-          { where: { id: eventId }, transaction: t }
-        );
+        await markWebhookProcessed({
+          gateway,
+          eventId,
+          transaction: t,
+        });
       }
 
       logger.info(
@@ -228,6 +280,18 @@ class PaymentGatewayService {
   async handleWebhook({ gateway, rawBody, signature, headers }) {
     const adapter = this.getAdapter(gateway);
     const parsedEvent = adapter.verifyWebhook(rawBody, signature, headers);
+
+    // Daraja callbacks do not provide a message signature. Treat them solely as a
+    // notification and confirm the payment state through the authenticated Daraja API.
+    if (String(gateway).toLowerCase() === 'mpesa' && parsedEvent.isSuccessful) {
+      const verifiedPayment = await adapter.verifyTransaction(parsedEvent.reference);
+      if (!verifiedPayment?.success) {
+        throw new Error('M-Pesa payment could not be confirmed with the provider');
+      }
+      parsedEvent.amount = verifiedPayment.amount;
+      parsedEvent.currency = verifiedPayment.currency || 'KES';
+      parsedEvent.data = { ...parsedEvent.data, verifiedByProvider: true };
+    }
 
     if (parsedEvent.isSuccessful && (parsedEvent.orderId || parsedEvent.reference)) {
       let resolvedOrderId = parsedEvent.orderId;
@@ -247,6 +311,8 @@ class PaymentGatewayService {
           gateway,
           reference: parsedEvent.reference,
           amount: parsedEvent.amount,
+          currency: parsedEvent.currency,
+          metadata: parsedEvent.metadata,
           paymentDetails: parsedEvent.data,
           eventId: parsedEvent.eventId,
         });

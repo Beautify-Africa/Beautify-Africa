@@ -38,11 +38,50 @@ function asAtelierNote(value) {
 }
 
 export function normalizeAdminDashboard(payload = {}) {
+  const stats = asArray(payload.stats);
+  const priorityOrders = asArray(
+    payload.priorityOrders && payload.priorityOrders.length > 0
+      ? payload.priorityOrders
+      : payload.priorityQueue
+  );
+
+  const derivedStats =
+    stats.length > 0
+      ? stats
+      : payload.metrics
+        ? [
+            {
+              label: 'Live Order Queue',
+              value: String(payload.metrics.totalOrders ?? 0),
+              note: `${payload.metrics.paidOrders ?? 0} settled payments`,
+              tone: 'stone',
+            },
+            {
+              label: 'Gross Settlement',
+              value: String(payload.metrics.totalRevenue ?? '$0.00'),
+              note: `${payload.metrics.recentRevenue ?? '$0.00'} in last 7d`,
+              tone: 'emerald',
+            },
+            {
+              label: 'Average Basket',
+              value: String(payload.metrics.averageOrderValue ?? '$0.00'),
+              note: 'Per transaction realized',
+              tone: 'amber',
+            },
+            {
+              label: 'Inventory Alerts',
+              value: String(payload.metrics.lowStockItemsCount ?? 0),
+              note: 'SKUs requiring replenishment',
+              tone: Number(payload.metrics.lowStockItemsCount || 0) > 0 ? 'rose' : 'emerald',
+            },
+          ]
+        : [];
+
   return {
     heroBadges: asArray(payload.heroBadges).length > 0 ? payload.heroBadges : FALLBACK_HERO_BADGES,
-    stats: asArray(payload.stats),
+    stats: derivedStats,
     ritualChecklist: asArray(payload.ritualChecklist),
-    priorityOrders: asArray(payload.priorityOrders),
+    priorityOrders,
     lanes: asArray(payload.lanes),
     watchlist: asArray(payload.watchlist),
     regionalPulse: asArray(payload.regionalPulse),

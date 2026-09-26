@@ -10,8 +10,8 @@ import {
 import { DEFAULT_PRODUCT_FILTERS } from './adminProductsWorkspace.constants';
 
 export default function useAdminProductsCatalog() {
-  const { token, isAuthenticated, user } = useAuth();
-  const isAdmin = Boolean(user?.isAdmin);
+  const { token, isAuthenticated, user, isAdmin: authIsAdmin } = useAuth();
+  const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || authIsAdmin);
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 0, totalCount: 0 });

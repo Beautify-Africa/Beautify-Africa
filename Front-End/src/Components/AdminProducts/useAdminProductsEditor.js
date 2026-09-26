@@ -37,7 +37,7 @@ export default function useAdminProductsEditor({
         setIsLoadingVariants(true);
         setVariantError('');
         const data = await getProductVariants(productId, token);
-        setVariants(data.variants || []);
+        setVariants(Array.isArray(data) ? data : data.variants || []);
       } catch (err) {
         console.error('Failed to load variants:', err);
         setVariantError(err.message || 'Failed to load variants');
@@ -67,7 +67,7 @@ export default function useAdminProductsEditor({
         isNewProduct: Boolean(selectedProduct.isNewProduct),
         isBestSeller: Boolean(selectedProduct.isBestSeller),
       });
-      loadVariants(selectedProduct._id);
+      loadVariants(selectedProduct._id || selectedProduct.id);
       return;
     }
 
@@ -123,8 +123,9 @@ export default function useAdminProductsEditor({
       };
 
       try {
-        if (selectedProduct?._id) {
-          await updateAdminProduct(selectedProduct._id, payload, token);
+        const productId = selectedProduct?._id || selectedProduct?.id;
+        if (productId) {
+          await updateAdminProduct(productId, payload, token);
           setSuccessMessage('Product updated successfully.');
         } else {
           await createAdminProduct(payload, token);
@@ -167,11 +168,12 @@ export default function useAdminProductsEditor({
 
   const handleAddVariant = useCallback(
     async (variantData) => {
-      if (!token || !selectedProduct?._id) return;
+      const productId = selectedProduct?._id || selectedProduct?.id;
+      if (!token || !productId) return;
       try {
         setVariantError('');
-        await addProductVariant(selectedProduct._id, variantData, token);
-        await loadVariants(selectedProduct._id);
+        await addProductVariant(productId, variantData, token);
+        await loadVariants(productId);
         closeAddVariantModal();
         setSuccessMessage('Variant added successfully.');
       } catch (err) {
@@ -183,11 +185,13 @@ export default function useAdminProductsEditor({
 
   const handleUpdateVariant = useCallback(
     async (variantData) => {
-      if (!token || !selectedProduct?._id || !selectedVariant?._id) return;
+      const productId = selectedProduct?._id || selectedProduct?.id;
+      const variantId = selectedVariant?._id || selectedVariant?.id;
+      if (!token || !productId || !variantId) return;
       try {
         setVariantError('');
-        await updateProductVariant(selectedProduct._id, selectedVariant._id, variantData, token);
-        await loadVariants(selectedProduct._id);
+        await updateProductVariant(productId, variantId, variantData, token);
+        await loadVariants(productId);
         closeEditVariantModal();
         setSuccessMessage('Variant updated successfully.');
       } catch (err) {
@@ -206,11 +210,13 @@ export default function useAdminProductsEditor({
 
   const handleDeleteVariant = useCallback(
     async (variantToDelete) => {
-      if (!token || !selectedProduct?._id || !variantToDelete?._id) return;
+      const productId = selectedProduct?._id || selectedProduct?.id;
+      const variantId = variantToDelete?._id || variantToDelete?.id;
+      if (!token || !productId || !variantId) return;
       try {
         setVariantError('');
-        await deleteProductVariant(selectedProduct._id, variantToDelete._id, token);
-        await loadVariants(selectedProduct._id);
+        await deleteProductVariant(productId, variantId, token);
+        await loadVariants(productId);
         setSuccessMessage('Variant deleted successfully.');
       } catch (err) {
         setVariantError(err.message || 'Failed to delete variant');
@@ -221,18 +227,20 @@ export default function useAdminProductsEditor({
 
   const handleAdjustStock = useCallback(
     async (quantity, reason, notes) => {
-      if (!token || !selectedProduct?._id || !selectedVariant?._id) return;
+      const productId = selectedProduct?._id || selectedProduct?.id;
+      const variantId = selectedVariant?._id || selectedVariant?.id;
+      if (!token || !productId || !variantId) return;
       try {
         setVariantError('');
         await adjustVariantStock(
-          selectedProduct._id,
-          selectedVariant._id,
+          productId,
+          variantId,
           quantity,
           reason,
           notes,
           token
         );
-        await loadVariants(selectedProduct._id);
+        await loadVariants(productId);
         closeStockAdjustmentModal();
         setSuccessMessage('Stock adjusted successfully.');
       } catch (err) {

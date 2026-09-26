@@ -118,10 +118,15 @@ export function useAdminDashboard(token, enabled) {
     [token]
   );
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     dashboard,
     isLoading,
     error,
+    clearError,
     busyActionKey,
     timelineByOrderId,
     reloadDashboard: loadDashboard,

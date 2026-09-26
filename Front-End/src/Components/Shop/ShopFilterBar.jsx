@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { SearchIcon } from '../Shared/Icons';
 import ShopExpandedFilters from './ShopExpandedFilters';
 import {
@@ -12,7 +12,7 @@ import {
 /**
  * Search bar + inline filter panel + sort dropdown
  */
-export default function ShopFilterBar({
+const ShopFilterBar = memo(function ShopFilterBar({
   searchQuery,
   onSearchChange,
   sortOption,
@@ -168,4 +168,6 @@ export default function ShopFilterBar({
       />
     </div>
   );
-}
+});
+
+export default ShopFilterBar;

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { CloseIcon, TrackingIcon } from './Icons';
+import { usePrefetchShop } from '../../hooks/usePrefetchShop';
 
 export default function NavbarMobileMenu({
   isOpen,
@@ -14,6 +15,8 @@ export default function NavbarMobileMenu({
   isAuthenticated,
   onOpenAuthDialogFromMobileMenu,
 }) {
+  const prefetchShop = usePrefetchShop();
+
   return (
     <div
       id="mobile-menu"
@@ -64,6 +67,8 @@ export default function NavbarMobileMenu({
           <Link
             to="/shop"
             onClick={closeMobileMenu}
+            onMouseEnter={prefetchShop.onMouseEnter}
+            onFocus={prefetchShop.onFocus}
             className="mb-16 bg-stone-900 px-10 py-4 text-[12px] font-bold uppercase tracking-[0.3em] text-white transition-colors hover:bg-amber-900"
           >
             Shop Now
@@ -73,10 +78,10 @@ export default function NavbarMobileMenu({
         <Link
           to="/track-orders"
           onClick={closeMobileMenu}
-          className={`mb-10 inline-flex items-center gap-3 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors ${
+          className={`mb-10 inline-flex items-center gap-3 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.2em] transition-colors rounded-sm shadow-sm ${
             isShopPage
-              ? 'border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white'
-              : 'border border-stone-300 text-stone-700 hover:border-stone-900 hover:text-stone-900'
+              ? 'border border-stone-900 bg-stone-100 text-stone-900 hover:bg-stone-900 hover:text-white'
+              : 'border border-stone-300 bg-stone-100 text-stone-800 hover:border-stone-900 hover:bg-stone-200 hover:text-stone-900'
           }`}
         >
           <TrackingIcon className="h-4 w-4" />
@@ -87,9 +92,9 @@ export default function NavbarMobileMenu({
           <button
             type="button"
             onClick={onOpenAuthDialogFromMobileMenu}
-            className={`px-10 py-4 text-[12px] font-bold uppercase tracking-[0.3em] transition-colors ${
+            className={`px-10 py-4 text-[12px] font-bold uppercase tracking-[0.3em] transition-colors rounded-sm shadow-sm ${
               isShopPage
-                ? 'mb-16 border border-stone-900 text-stone-900 hover:bg-stone-900 hover:text-white'
+                ? 'mb-16 border border-stone-900 bg-stone-100 text-stone-900 hover:bg-stone-900 hover:text-white'
                 : 'mb-16 bg-stone-900 text-white hover:bg-amber-900'
             }`}
           >

@@ -2,9 +2,15 @@
 const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress } = require('../models/Order');
 const WebhookEvent = require('../models/WebhookEvent');
+const {
+  checkOrClaimWebhookEvent,
+  markWebhookProcessed,
+  markWebhookFailed,
+} = require('../services/webhookDeduplication');
 const { createPaymentIntent, constructWebhookEvent } = require('../services/stripeService');
 const { buildVerifiedOrderItems, calculateOrderTotals } = require('../services/orderService');
 const { processPurchase } = require('../services/inventoryService');
+const paymentGatewayService = require('../services/paymentGatewayService');
 
 // @desc    Validate cart + Create Order + Create Stripe Payment Intent
 // @route   POST /api/stripe/create-payment-intent
@@ -133,23 +139,19 @@ const handleStripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // Enforce strict event idempotency
+  // Enforce strict event idempotency via two-tier deduplication (Redis + DB)
   if (event.id) {
     try {
-      const existing = await WebhookEvent.findByPk(event.id);
-      if (existing && existing.status === 'processed') {
+      const dedup = await checkOrClaimWebhookEvent({
+        gateway: 'stripe',
+        eventId: event.id,
+        eventType: event.type,
+        payload: event,
+      });
+      if (dedup.isDuplicate) {
         console.log(`Stripe webhook event ${event.id} already processed. Skipping duplicate.`);
         return res.status(200).json({ received: true, alreadyProcessed: true });
       }
-
-      await WebhookEvent.findOrCreate({
-        where: { id: event.id },
-        defaults: {
-          type: event.type,
-          status: 'pending',
-          payload: event,
-        },
-      });
     } catch (idempotencyErr) {
       console.warn('Webhook idempotency lookup warning:', idempotencyErr.message);
     }
@@ -168,7 +170,24 @@ const handleStripeWebhook = async (req, res) => {
             lock: t.LOCK.UPDATE,
           });
 
-          if (order && !order.isPaid) {
+          if (!order) {
+            throw new Error('Order not found for Stripe payment');
+          }
+
+          paymentGatewayService.validatePaymentBinding({
+            order,
+            gateway: 'stripe',
+            reference: paymentIntent.id,
+            amount:
+              paymentIntent.amount_received === undefined
+                ? undefined
+                : paymentIntent.amount_received / 100,
+            currency: paymentIntent.currency?.toUpperCase(),
+            metadata: paymentIntent.metadata,
+            requireMetadata: true,
+          });
+
+          if (!order.isPaid) {
             order.isPaid = true;
             order.paidAt = new Date();
             order.fulfillmentStatus = 'processing';
@@ -198,19 +217,21 @@ const handleStripeWebhook = async (req, res) => {
           }
 
           if (event.id) {
-            await WebhookEvent.update(
-              { status: 'processed', processedAt: new Date() },
-              { where: { id: event.id }, transaction: t }
-            );
+            await markWebhookProcessed({
+              gateway: 'stripe',
+              eventId: event.id,
+              transaction: t,
+            });
           }
         });
       } catch (err) {
         console.error('Failed to process payment_intent.succeeded webhook transaction:', err);
         if (event.id) {
-          await WebhookEvent.update(
-            { status: 'failed', errorMessage: err.message },
-            { where: { id: event.id } }
-          ).catch(() => {});
+          await markWebhookFailed({
+            gateway: 'stripe',
+            eventId: event.id,
+            errorMessage: err.message,
+          });
         }
         return res.status(500).json({ status: 'error', message: 'Webhook processing failed' });
       }

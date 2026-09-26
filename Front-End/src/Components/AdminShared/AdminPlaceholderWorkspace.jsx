@@ -6,9 +6,9 @@ import { useAuth } from '../../hooks/useAuth';
 
 function WorkspaceLoading() {
   return (
-    <section className="rounded-[2rem] border border-stone-200 bg-white px-8 py-16 text-center shadow-[0_18px_44px_rgba(28,25,23,0.08)]">
-      <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
+    <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 px-8 py-16 text-center shadow-xl">
+      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
+      <p className="mt-4 text-xs font-bold uppercase tracking-wider text-zinc-400">
         Loading workspace...
       </p>
     </section>
@@ -22,8 +22,8 @@ export default function AdminPlaceholderWorkspace({
   path,
   plannedItems = [],
 }) {
-  const { user, isAuthenticated, isRestoringSession } = useAuth();
-  const isAdmin = Boolean(user?.isAdmin);
+  const { user, isAuthenticated, isRestoringSession, isAdmin: authIsAdmin } = useAuth();
+  const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin' || authIsAdmin);
 
   return (
     <>
@@ -38,25 +38,29 @@ export default function AdminPlaceholderWorkspace({
         ) : !isAuthenticated || !isAdmin ? (
           <RestrictedState isAuthenticated={isAuthenticated} />
         ) : (
-          <section className="rounded-[2rem] border border-stone-200 bg-[linear-gradient(135deg,#fffefb,#f5ede4)] p-8 shadow-[0_20px_55px_rgba(28,25,23,0.08)]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-stone-400">
-              Phase 1 structure
-            </p>
-            <h2 className="mt-3 font-serif text-4xl text-stone-900">
-              This workspace is reserved and ready for the next phase.
+          <section className="rounded-2xl border border-zinc-800/90 bg-gradient-to-br from-[#0E131F] via-[#121828] to-[#0A0E18] p-6 sm:p-8 shadow-xl">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-400">
+                Roadmap Architecture
+              </span>
+              <span className="text-[10px] font-mono text-zinc-500">STAGE 2 READY</span>
+            </div>
+
+            <h2 className="mt-3 text-xl sm:text-2xl font-bold tracking-tight text-white">
+              {title} Infrastructure Reserved
             </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-stone-600">
-              We now have a shared admin shell and route structure in place, so this section can
-              grow into a proper module without reworking navigation later.
+            <p className="mt-2 max-w-3xl text-xs sm:text-sm leading-relaxed text-zinc-400">
+              This corporate module is pre-wired to the enterprise navigation mesh, permission model, and audit framework.
             </p>
 
-            <div className="mt-8 grid gap-4 lg:grid-cols-2">
+            <div className="mt-6 grid gap-3 lg:grid-cols-2">
               {plannedItems.map((item) => (
                 <div
                   key={item}
-                  className="rounded-[1.4rem] border border-stone-200 bg-white px-5 py-4 shadow-sm"
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-xs text-zinc-300 flex items-start gap-3"
                 >
-                  <p className="text-sm leading-relaxed text-stone-700">{item}</p>
+                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+                  <span className="leading-relaxed">{item}</span>
                 </div>
               ))}
             </div>

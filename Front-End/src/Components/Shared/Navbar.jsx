@@ -6,6 +6,7 @@ import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useCart } from '../../hooks/useCart';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavbarState } from './hooks/useNavbarState';
+import { usePrefetchShop } from '../../hooks/usePrefetchShop';
 import CustomerProfileMenu from '../Auth/CustomerProfileMenu';
 import AccountAuthDialog from '../Auth/AccountAuthDialog';
 import NavbarBrandLogo from './NavbarBrandLogo';
@@ -18,6 +19,7 @@ const Navbar = ({ onOpenCart }) => {
   const navigate = useNavigate();
   const { cartCount } = useCart();
   const { isAuthenticated, isRestoringSession } = useAuth();
+  const prefetchShop = usePrefetchShop();
 
   const {
     isScrolled,
@@ -78,10 +80,10 @@ const Navbar = ({ onOpenCart }) => {
 
             <Link
               to="/track-orders"
-              className={`group inline-flex items-center gap-2 rounded-full border px-3 py-2 transition-colors ${
+              className={`group inline-flex items-center gap-2 rounded-full border px-3.5 py-2 transition-colors shadow-sm ${
                 isTrackOrdersPage
-                  ? 'border-amber-300 bg-amber-50 text-amber-900'
-                  : 'border-stone-200 text-stone-700 hover:border-stone-900 hover:text-stone-900'
+                  ? 'border-amber-300 bg-amber-100 text-amber-950 font-medium'
+                  : 'border-stone-200 bg-stone-100/90 text-stone-800 hover:border-stone-300 hover:bg-stone-200/90 hover:text-stone-900'
               }`}
               aria-label="Track your order"
             >
@@ -116,7 +118,7 @@ const Navbar = ({ onOpenCart }) => {
               <button
                 type="button"
                 onClick={openAuthDialog}
-                className="rounded-sm border border-stone-900 bg-stone-900 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:border-amber-900 hover:bg-amber-900"
+                className="rounded-sm border border-stone-900 bg-stone-900 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:border-amber-900 hover:bg-amber-900 shadow-sm"
               >
                 Sign In
               </button>
@@ -126,7 +128,7 @@ const Navbar = ({ onOpenCart }) => {
               <button
                 type="button"
                 onClick={openAuthDialog}
-                className="hidden lg:block rounded-sm border border-stone-900 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-amber-900 hover:bg-amber-900 hover:text-white"
+                className="hidden lg:block rounded-sm border border-stone-300 bg-stone-100 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-stone-900 hover:bg-stone-900 hover:text-white shadow-sm"
               >
                 Sign In
               </button>
@@ -136,6 +138,8 @@ const Navbar = ({ onOpenCart }) => {
             {!isShopPage && (
               <Link
                 to="/shop"
+                onMouseEnter={prefetchShop.onMouseEnter}
+                onFocus={prefetchShop.onFocus}
                 className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
               >
                 Shop Now

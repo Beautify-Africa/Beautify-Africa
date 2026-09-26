@@ -75,10 +75,18 @@ const cancelOrderSchema = z
   .optional()
   .default({});
 
+const getMyOrdersQuerySchema = z
+  .object({
+    page: z.union([z.string().regex(/^\d+$/), z.number().int().positive()]).optional(),
+    limit: z.union([z.string().regex(/^\d+$/), z.number().int().positive()]).optional(),
+  })
+  .passthrough();
+
 module.exports = {
   orderItemSchema,
   shippingAddressSchema,
   createOrderSchema,
   orderIdParamSchema,
   cancelOrderSchema,
+  getMyOrdersQuerySchema,
 };

@@ -79,16 +79,9 @@ export function CartProvider({ children }) {
       const productId = product?._id || product?.id || product?.product;
       if (!productId || quantity < 1) return;
 
-      if (isAuthenticated && token) {
-        const payload = buildServerCartPayload(product, quantity);
+      const newItem = mapProductToCartItem(product, quantity);
 
-        addToCartApi(token, payload)
-          .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
-          .catch((error) => console.error('Add to cart API error:', error));
-
-        return;
-      }
-
+      // 1. Instant Optimistic Update (0ms perceived latency for the user)
       setCartItems((prev) => {
         const existingItem = prev.find((item) => item.id === productId);
         if (existingItem) {
@@ -96,59 +89,97 @@ export function CartProvider({ children }) {
             item.id === productId ? { ...item, quantity: item.quantity + quantity } : item
           );
         }
-        return [...prev, mapProductToCartItem(product, quantity)];
+        return [...prev, newItem];
       });
+
+      // 2. Background Sync if authenticated
+      if (isAuthenticated && token) {
+        const payload = buildServerCartPayload(product, quantity);
+
+        addToCartApi(token, payload)
+          .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+          .catch((error) => {
+            console.error('Add to cart API error:', error);
+            // Revert state if server rejects
+            setCartItems((prev) => {
+              const existingItem = prev.find((item) => item.id === productId);
+              if (!existingItem) return prev;
+              if (existingItem.quantity <= quantity) {
+                return prev.filter((item) => item.id !== productId);
+              }
+              return prev.map((item) =>
+                item.id === productId ? { ...item, quantity: item.quantity - quantity } : item
+              );
+            });
+          });
+      }
     },
     [isAuthenticated, token]
   );
 
   const updateQuantity = useCallback(
     (id, quantity) => {
+      // 1. Instant Optimistic Update
+      setCartItems((prev) => {
+        if (quantity < 1) return prev.filter((item) => item.id !== id);
+        return prev.map((item) => (item.id === id ? { ...item, quantity } : item));
+      });
+
+      // 2. Background Sync if authenticated
       if (isAuthenticated && token) {
         const request =
           quantity < 1 ? removeCartItemApi(token, id) : updateCartQtyApi(token, id, quantity);
 
         request
           .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
-          .catch((error) => console.error('Update cart API error:', error));
-
-        return;
+          .catch((error) => {
+            console.error('Update cart API error:', error);
+            // Re-fetch authoritative cart on error
+            fetchCart(token)
+              .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+              .catch(() => {});
+          });
       }
-
-      setCartItems((prev) => {
-        if (quantity < 1) return prev.filter((item) => item.id !== id);
-        return prev.map((item) => (item.id === id ? { ...item, quantity } : item));
-      });
     },
     [isAuthenticated, token]
   );
 
   const removeItem = useCallback(
     (id) => {
+      // 1. Instant Optimistic Update
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
+
+      // 2. Background Sync if authenticated
       if (isAuthenticated && token) {
         removeCartItemApi(token, id)
           .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
-          .catch((error) => console.error('Remove cart item API error:', error));
-
-        return;
+          .catch((error) => {
+            console.error('Remove cart item API error:', error);
+            fetchCart(token)
+              .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+              .catch(() => {});
+          });
       }
-
-      setCartItems((prev) => prev.filter((item) => item.id !== id));
     },
     [isAuthenticated, token]
   );
 
   const clearCart = useCallback(() => {
+    // 1. Instant Optimistic Update
+    setCartItems([]);
+    clearStoredCartItems();
+
+    // 2. Background Sync if authenticated
     if (isAuthenticated && token) {
       clearCartApi(token)
         .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
-        .catch((error) => console.error('Clear cart API error:', error));
-
-      return;
+        .catch((error) => {
+          console.error('Clear cart API error:', error);
+          fetchCart(token)
+            .then((serverCart) => setCartItems(mapServerCartItems(serverCart)))
+            .catch(() => {});
+        });
     }
-
-    setCartItems([]);
-    clearStoredCartItems();
   }, [isAuthenticated, token]);
 
   const cartCount = useMemo(

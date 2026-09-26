@@ -9,59 +9,56 @@ import {
   logoutUser,
 } from '../services/authApi';
 import { AuthContext } from './auth-context';
+import { COOKIE_SESSION_ACTIVE } from '../services/apiConfig';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isRestoringSession, setIsRestoringSession] = useState(() =>
-    Boolean(localStorage.getItem('token'))
-  );
+  const [isRestoringSession, setIsRestoringSession] = useState(true);
 
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
+  // On mount, restore session via secure HttpOnly cookie (no localStorage used)
   useEffect(() => {
-    if (!token) {
-      setUser(null);
-      setIsRestoringSession(false);
-      return;
-    }
-
     const controller = new AbortController();
     setIsRestoringSession(true);
 
-    fetchMe(token, { signal: controller.signal })
-      .then((data) => setUser(data.user))
+    fetchMe(null, { signal: controller.signal })
+      .then((data) => {
+        if (data?.user) {
+          setUser(data.user);
+          setToken(COOKIE_SESSION_ACTIVE);
+        } else {
+          setUser(null);
+          setToken(null);
+        }
+      })
       .catch(() => {
         if (controller.signal.aborted) {
           return;
         }
-
         setUser(null);
         setToken(null);
-        localStorage.removeItem('token');
       })
       .finally(() => {
-        if (controller.signal.aborted) {
-          return;
+        if (!controller.signal.aborted) {
+          setIsRestoringSession(false);
         }
-
-        setIsRestoringSession(false);
       });
 
     return () => controller.abort();
-  }, [token]);
+  }, []);
 
   const register = async (userData) => {
     setLoading(true);
     clearError();
     try {
       const data = await registerUser(userData);
-      setToken(data.token);
-      localStorage.setItem('token', data.token);
+      setToken(data.user ? COOKIE_SESSION_ACTIVE : null);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -78,8 +75,10 @@ export function AuthProvider({ children }) {
     clearError();
     try {
       const data = await loginUser(userData);
-      setToken(data.token);
-      localStorage.setItem('token', data.token);
+      if (data?.require2FA) {
+        return data;
+      }
+      setToken(data.user ? COOKIE_SESSION_ACTIVE : null);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -96,8 +95,10 @@ export function AuthProvider({ children }) {
     clearError();
     try {
       const data = await loginAdminUser(userData);
-      setToken(data.token);
-      localStorage.setItem('token', data.token);
+      if (data?.require2FA) {
+        return data;
+      }
+      setToken(data.user ? COOKIE_SESSION_ACTIVE : null);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -113,9 +114,9 @@ export function AuthProvider({ children }) {
     setLoading(true);
     clearError();
     try {
-      if (!token) throw new Error('Not authenticated');
-      const data = await updateUser(userData, token);
-      setUser(data.user); // Dynamically update the global state
+      if (!user) throw new Error('Not authenticated');
+      const data = await updateUser(userData);
+      setUser(data.user);
       return data;
     } catch (err) {
       setError(err.message);
@@ -131,13 +132,10 @@ export function AuthProvider({ children }) {
     setToken(null);
     setIsRestoringSession(false);
     clearError();
-    localStorage.removeItem('token');
-    if (activeToken) {
-      logoutUser(activeToken).catch(() => {});
-    }
+    logoutUser(activeToken).catch(() => {});
   };
 
-  const isAuthenticated = Boolean(user && token);
+  const isAuthenticated = Boolean(user);
   const isAdmin = Boolean(user?.isAdmin || user?.role === 'admin');
 
   return (

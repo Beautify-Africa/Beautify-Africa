@@ -9,12 +9,13 @@ import StockAdjustmentModal from './StockAdjustmentModal';
 import useAdminProductsWorkspace from './useAdminProductsWorkspace';
 import AdminProductsCatalogPanel from './AdminProductsCatalogPanel';
 import AdminProductsEditorPanel from './AdminProductsEditorPanel';
+import { useAuth } from '../../hooks/useAuth';
 
 function WorkspaceLoading() {
   return (
-    <section className="rounded-[2rem] border border-stone-200 bg-white px-8 py-16 text-center shadow-[0_18px_44px_rgba(28,25,23,0.08)]">
-      <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-      <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
+    <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 px-8 py-16 text-center shadow-xl">
+      <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
+      <p className="mt-4 text-xs font-bold uppercase tracking-wider text-zinc-400">
         Loading product studio...
       </p>
     </section>
@@ -22,10 +23,15 @@ function WorkspaceLoading() {
 }
 
 export default function AdminProductsWorkspace() {
+  const auth = useAuth();
+  const workspace = useAdminProductsWorkspace();
+
+  const isRestoringSession = workspace.isRestoringSession ?? auth.isRestoringSession;
+  const isAuthenticated = workspace.isAuthenticated ?? auth.isAuthenticated;
+  const isAdmin =
+    workspace.isAdmin ?? Boolean(auth.user?.isAdmin || auth.user?.role === 'admin' || auth.isAdmin);
+
   const {
-    isAuthenticated,
-    isRestoringSession,
-    isAdmin,
     products,
     pagination,
     activeProductFilters,
@@ -93,13 +99,12 @@ export default function AdminProductsWorkspace() {
         title="Product Studio"
         description="Shared catalog workspace for inventory checks, product editing, merchandising, and media operations."
         headerContent={
-          <div className="rounded-[1.4rem] border border-stone-200 bg-[#fffdf9] px-4 py-4 shadow-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
-              Phase 1 gain
+          <div className="rounded-xl border border-zinc-800/90 bg-zinc-900/60 px-4 py-3 shadow-inner">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">
+              Catalog Master
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-stone-600">
-              Product filters now persist between sessions, and archive actions are routed through a
-              safer confirmation step.
+            <p className="mt-1 text-xs leading-relaxed text-zinc-300">
+              Live SKU editing, variant matrix management, batch exports, and media synchronization.
             </p>
           </div>
         }

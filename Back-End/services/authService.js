@@ -42,14 +42,23 @@ function isConfiguredAdminDashboardCredential(email, password) {
   return isEmailMatch && isPasswordMatch;
 }
 
+function isSoleOwnerEmail(email = '') {
+  const normalized = normalizeEmail(email);
+  const primaryAdmin = getPrimaryConfiguredAdminEmail();
+  return Boolean(primaryAdmin && timingSafeStringEqual(normalized, primaryAdmin));
+}
+
 function isAdminUser(userDoc) {
   if (!userDoc) return false;
   const normalizedEmail = normalizeEmail(userDoc.email || '');
-  return (
-    Boolean(userDoc.isAdmin) ||
-    userDoc.role === 'admin' ||
-    getConfiguredAdminEmails().includes(normalizedEmail)
-  );
+  const configuredEmails = getConfiguredAdminEmails();
+
+  // If server has configured admin emails, strictly require the email to be in the whitelist
+  if (configuredEmails.length > 0) {
+    return configuredEmails.includes(normalizedEmail);
+  }
+
+  return Boolean(userDoc.isAdmin) || userDoc.role === 'admin';
 }
 
 function sanitizeUser(userDoc) {
@@ -61,6 +70,7 @@ function sanitizeUser(userDoc) {
     role,
     createdAt: userDoc.createdAt,
     isAdmin: role === 'admin' || isAdminUser(userDoc),
+    twoFactorEnabled: Boolean(userDoc.twoFactorEnabled),
   };
 }
 
@@ -74,9 +84,35 @@ function validatePasswordStrength(password = '') {
   return { isValid: true };
 }
 
-function signToken(userId) {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+function signToken(userOrId, options = {}) {
+  const userId =
+    typeof userOrId === 'object' && userOrId !== null
+      ? userOrId.id || userOrId._id
+      : userOrId;
+  const tokenVersion =
+    options.tokenVersion !== undefined
+      ? options.tokenVersion
+      : typeof userOrId === 'object' && userOrId !== null
+        ? userOrId.tokenVersion || 0
+        : 0;
+
+  const payload = {
+    id: userId,
+    sub: String(userId),
+    tokenVersion,
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    algorithm: 'HS256',
+    expiresIn: options.expiresIn || process.env.JWT_EXPIRES_IN || '7d',
+  });
+}
+
+function verifyToken(token) {
+  if (!token || typeof token !== 'string') {
+    throw new Error('Token is required');
+  }
+  return jwt.verify(token, process.env.JWT_SECRET, {
+    algorithms: ['HS256'],
   });
 }
 
@@ -141,6 +177,7 @@ module.exports = {
   getPrimaryConfiguredAdminEmail,
   getConfiguredAdminDashboardPassword,
   isConfiguredAdminDashboardCredential,
+  isSoleOwnerEmail,
   isAdminUser,
   hashPasswordResetToken,
   hashJwtToken,
@@ -151,5 +188,6 @@ module.exports = {
   sanitizeUser,
   validatePasswordStrength,
   signToken,
+  verifyToken,
   getAuthErrorResponse,
 };

@@ -12,6 +12,7 @@ describe('ProtectedRoute Component', () => {
       <MemoryRouter initialEntries={initialEntries}>
         <Routes>
           <Route path="/" element={<div>Public Home Page</div>} />
+          <Route path="/admin/login" element={<div>Admin Login Portal</div>} />
           <Route path="/protected" element={ui} />
         </Routes>
       </MemoryRouter>
@@ -35,7 +36,7 @@ describe('ProtectedRoute Component', () => {
     expect(screen.queryByText('Top Secret Content')).not.toBeInTheDocument();
   });
 
-  it('redirects unauthenticated users to home page', () => {
+  it('redirects unauthenticated users to home page for standard routes', () => {
     vi.spyOn(authHook, 'useAuth').mockReturnValue({
       isAuthenticated: false,
       isRestoringSession: false,
@@ -52,7 +53,24 @@ describe('ProtectedRoute Component', () => {
     expect(screen.queryByText('Top Secret Content')).not.toBeInTheDocument();
   });
 
-  it('redirects non-admin users when adminOnly is required', () => {
+  it('redirects unauthenticated users to admin login portal when adminOnly is required', () => {
+    vi.spyOn(authHook, 'useAuth').mockReturnValue({
+      isAuthenticated: false,
+      isRestoringSession: false,
+      user: null,
+    });
+
+    renderWithRouter(
+      <ProtectedRoute adminOnly>
+        <div>Admin Dashboard</div>
+      </ProtectedRoute>
+    );
+
+    expect(screen.getByText('Admin Login Portal')).toBeInTheDocument();
+    expect(screen.queryByText('Admin Dashboard')).not.toBeInTheDocument();
+  });
+
+  it('redirects non-admin users to admin login portal when adminOnly is required', () => {
     vi.spyOn(authHook, 'useAuth').mockReturnValue({
       isAuthenticated: true,
       isRestoringSession: false,
@@ -65,7 +83,7 @@ describe('ProtectedRoute Component', () => {
       </ProtectedRoute>
     );
 
-    expect(screen.getByText('Public Home Page')).toBeInTheDocument();
+    expect(screen.getByText('Admin Login Portal')).toBeInTheDocument();
     expect(screen.queryByText('Admin Dashboard')).not.toBeInTheDocument();
   });
 

@@ -5,25 +5,25 @@ import AdminFlashNotice from '../AdminShared/AdminFlashNotice';
 
 function StatCard({ label, value, unit = '', color = 'stone' }) {
   const bgColor = {
-    stone: 'bg-stone-50 border-stone-200',
-    green: 'bg-green-50 border-green-200',
-    amber: 'bg-amber-50 border-amber-200',
-    red: 'bg-red-50 border-red-200',
+    stone: 'bg-zinc-900/60 border-zinc-800/80',
+    green: 'bg-emerald-500/10 border-emerald-500/30',
+    amber: 'bg-amber-500/10 border-amber-500/30',
+    red: 'bg-rose-500/10 border-rose-500/30',
   }[color];
 
   const valueColor = {
-    stone: 'text-stone-600',
-    green: 'text-green-600',
-    amber: 'text-amber-600',
-    red: 'text-red-600',
+    stone: 'text-zinc-100',
+    green: 'text-emerald-400',
+    amber: 'text-amber-300',
+    red: 'text-rose-400',
   }[color];
 
   return (
-    <div className={`rounded-lg border ${bgColor} p-6`}>
-      <p className="text-xs font-bold uppercase tracking-widest text-stone-500">{label}</p>
-      <p className={`mt-3 text-3xl font-bold ${valueColor}`}>
+    <div className={`rounded-xl border ${bgColor} p-4 sm:p-5 backdrop-blur-sm shadow-md`}>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{label}</p>
+      <p className={`mt-2 font-mono font-bold text-2xl sm:text-3xl tabular-nums ${valueColor}`}>
         {typeof value === 'number' ? value.toLocaleString() : value}
-        {unit && <span className="text-lg ml-1">{unit}</span>}
+        {unit && <span className="text-xs ml-1 font-sans text-zinc-400">{unit}</span>}
       </p>
     </div>
   );
@@ -57,20 +57,20 @@ export default function InventoryDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-2 border-stone-300 border-t-stone-900" />
+      <div className="flex justify-center items-center h-48">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-zinc-700 border-t-amber-500" />
       </div>
     );
   }
 
   if (error) {
-    return <AdminFlashNotice type="error" message={error} onDismiss={() => setError('')} />;
+    return <AdminFlashNotice tone="error" message={error} onDismiss={() => setError('')} />;
   }
 
   if (!dashboardData) {
     return (
       <div className="text-center py-8">
-        <p className="text-stone-600">No inventory data available</p>
+        <p className="text-zinc-500 text-xs">No inventory data available</p>
       </div>
     );
   }
@@ -79,10 +79,9 @@ export default function InventoryDashboard() {
   const lowStockColor = data.lowStockItemsCount > 0 ? 'red' : 'green';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-stone-900 mb-4">Inventory Overview</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <StatCard label="Total Products" value={data.totalProducts || 0} />
           <StatCard label="Total Variants" value={data.totalVariants || 0} />
           <StatCard label="Total Stock" value={data.totalStock || 0} unit="units" color="green" />
@@ -96,31 +95,30 @@ export default function InventoryDashboard() {
       </div>
 
       {/* Variant Stock Breakdown */}
-      <div className="rounded-lg border border-stone-200 bg-white p-6">
-        <h3 className="font-semibold text-stone-900 mb-4">Stock Breakdown</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
-            <span className="text-sm text-stone-600">Variant Stock</span>
-            <span className="text-lg font-bold text-stone-900">{data.variantStock || 0} units</span>
+      <div className="rounded-xl border border-zinc-800/90 bg-zinc-900/60 p-5">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-3">Stock Breakdown</h3>
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80 text-xs">
+            <span className="text-zinc-400">Variant Stock</span>
+            <span className="font-mono font-bold text-white tabular-nums">{data.variantStock || 0} units</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-stone-600">Main Stock</span>
-            <span className="text-lg font-bold text-stone-900">{data.mainStock || 0} units</span>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-zinc-400">Main SKU Stock</span>
+            <span className="font-mono font-bold text-white tabular-nums">{data.mainStock || 0} units</span>
           </div>
         </div>
         {data.totalStock > 0 && (
           <div className="mt-4">
-            <div className="w-full bg-stone-200 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-stone-900 h-full"
+                className="bg-gradient-to-r from-amber-500 to-emerald-400 h-full rounded-full"
                 style={{
                   width: `${((data.variantStock || 0) / (data.totalStock || 1)) * 100}%`,
                 }}
               />
             </div>
-            <p className="mt-2 text-xs text-stone-500">
-              {(((data.variantStock || 0) / (data.totalStock || 1)) * 100).toFixed(1)}% variant
-              stock
+            <p className="mt-1.5 text-[11px] font-mono text-zinc-500 text-right">
+              {(((data.variantStock || 0) / (data.totalStock || 1)) * 100).toFixed(1)}% in active variants
             </p>
           </div>
         )}
@@ -128,13 +126,13 @@ export default function InventoryDashboard() {
 
       {/* Status Distribution */}
       {data.statusDistribution && (
-        <div className="rounded-lg border border-stone-200 bg-white p-6">
-          <h3 className="font-semibold text-stone-900 mb-4">Product Status Distribution</h3>
-          <div className="space-y-2">
+        <div className="rounded-xl border border-zinc-800/90 bg-zinc-900/60 p-5">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-3">Catalog Status Distribution</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Object.entries(data.statusDistribution).map(([status, count]) => (
-              <div key={status} className="flex items-center justify-between">
-                <span className="text-sm text-stone-600 capitalize">{status || 'Unknown'}</span>
-                <span className="text-sm font-semibold text-stone-900">{count}</span>
+              <div key={status} className="rounded-lg border border-zinc-800/80 bg-zinc-900/80 p-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 capitalize">{status || 'Standard'}</span>
+                <p className="mt-1 font-mono font-bold text-lg text-white tabular-nums">{count}</p>
               </div>
             ))}
           </div>
@@ -142,8 +140,8 @@ export default function InventoryDashboard() {
       )}
 
       {/* Last Updated */}
-      <div className="text-xs text-stone-500 text-right">
-        Last updated: {data.lastUpdated ? new Date(data.lastUpdated).toLocaleString() : 'N/A'}
+      <div className="text-[11px] font-mono text-zinc-500 text-right">
+        Last synced: {data.lastUpdated ? new Date(data.lastUpdated).toLocaleString() : 'N/A'}
       </div>
     </div>
   );

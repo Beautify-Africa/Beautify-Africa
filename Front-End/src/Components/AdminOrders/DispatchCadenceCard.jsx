@@ -2,17 +2,17 @@ import StatusBadge from './StatusBadge';
 
 export default function DispatchCadenceCard({ label, time, note, tone }) {
   return (
-    <article className="rounded-[1.4rem] border border-stone-200/80 bg-[#fffdf9] p-4 shadow-[0_10px_20px_rgba(28,25,23,0.05)]">
+    <article className="rounded-xl border border-zinc-800/90 bg-[#0E131F]/90 p-4 shadow-lg backdrop-blur-md">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-400">
             {label}
           </p>
-          <p className="mt-2 font-serif text-2xl text-stone-900">{time}</p>
+          <p className="mt-1.5 font-mono font-bold text-xl text-white tabular-nums">{time}</p>
         </div>
         <StatusBadge tone={tone}>Live</StatusBadge>
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-stone-500">{note}</p>
+      <p className="mt-3 text-xs leading-relaxed text-zinc-400">{note}</p>
     </article>
   );
 }

@@ -1,9 +1,11 @@
 // controllers/orderController.js
 const { sequelize } = require('../config/db');
 const { Order, OrderItem, OrderShippingAddress, AdminTimelineEntry } = require('../models/Order');
-const { Product, ProductVariant } = require('../models/Product');
 const { buildVerifiedOrderItems, calculateOrderTotals } = require('../services/orderService');
-const { processPurchase, processReturn } = require('../services/inventoryService');
+const { processPurchase } = require('../services/inventoryService');
+const { cancelOrder } = require('./orderCancellationController');
+const { invalidateCartCache } = require('./cartController');
+const { bumpProductCacheVersion } = require('./productController.cache');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -123,6 +125,13 @@ const addOrderItems = async (req, res) => {
       });
     });
 
+    // Invalidate user cart in Redis and bump product catalog version
+    const authUserId = req.user ? req.user.id || req.user._id : null;
+    if (authUserId) {
+      invalidateCartCache(authUserId).catch(() => {});
+    }
+    bumpProductCacheVersion().catch(() => {});
+
     res.status(201).json({ status: 'success', data: createdOrder });
   } catch (error) {
     console.error('addOrderItems error:', error);
@@ -149,17 +158,35 @@ const getMyOrders = async (req, res) => {
     }
 
     const userId = req.user.id || req.user._id;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const offset = (page - 1) * limit;
 
-    const orders = await Order.findAll({
+    const { count, rows: orders } = await Order.findAndCountAll({
       where: { userId },
       include: [
         { model: OrderItem, as: 'orderItems' },
         { model: OrderShippingAddress, as: 'shippingAddress' },
       ],
       order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
     });
 
-    res.status(200).json({ status: 'success', data: orders });
+    const totalPages = count > 0 ? Math.ceil(count / limit) : 0;
+
+    res.status(200).json({
+      status: 'success',
+      count: orders.length,
+      totalCount: count,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1 && totalPages > 0,
+      data: orders,
+    });
   } catch (error) {
     console.error('getMyOrders error:', error);
     res.status(500).json({
@@ -171,7 +198,7 @@ const getMyOrders = async (req, res) => {
 
 // @desc    Get single order by ID
 // @route   GET /api/orders/:id
-// @access  Public (Guest with email verification) or Private (User or Admin)
+// @access  Private (owner or administrator)
 const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -187,30 +214,12 @@ const getOrderById = async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'Order not found' });
     }
 
-    // Access control:
-    // If authenticated: user must be admin or order owner
-    // If guest: allow if email query matches shipping address email
-    if (req.user) {
-      const isOwner = order.userId === (req.user.id || req.user._id);
-      const isAdmin = Boolean(req.user.isAdmin);
-      if (!isOwner && !isAdmin) {
-        return res
-          .status(403)
-          .json({ status: 'error', message: 'Not authorized to view this order' });
-      }
-    } else {
-      const emailQuery = String(req.query.email || '')
-        .toLowerCase()
-        .trim();
-      const shippingEmail = String(order.shippingAddress?.email || '')
-        .toLowerCase()
-        .trim();
-      if (!emailQuery || emailQuery !== shippingEmail) {
-        return res.status(403).json({
-          status: 'error',
-          message: 'Authentication or order email required to view order',
-        });
-      }
+    const isOwner = order.userId === (req.user.id || req.user._id);
+    const isAdmin = Boolean(req.user.isAdmin);
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ status: 'error', message: 'Not authorized to view this order' });
     }
 
     res.status(200).json({ status: 'success', data: order });
@@ -219,94 +228,6 @@ const getOrderById = async (req, res) => {
     res
       .status(500)
       .json({ status: 'error', message: 'An unexpected error occurred while fetching the order.' });
-  }
-};
-
-// @desc    Cancel order and restock inventory
-// @route   PUT /api/orders/:id/cancel
-// @access  Private (Owner or Admin)
-const cancelOrder = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { reason = 'Cancelled by customer' } = req.body;
-
-    const order = await Order.findByPk(id, {
-      include: [{ model: OrderItem, as: 'orderItems' }],
-    });
-
-    if (!order) {
-      return res.status(404).json({ status: 'error', message: 'Order not found' });
-    }
-
-    const isOwner = order.userId === (req.user.id || req.user._id);
-    const isAdmin = Boolean(req.user.isAdmin);
-
-    if (!isOwner && !isAdmin) {
-      return res
-        .status(403)
-        .json({ status: 'error', message: 'Not authorized to cancel this order' });
-    }
-
-    if (['delivered', 'cancelled', 'refunded'].includes(order.fulfillmentStatus)) {
-      return res.status(400).json({
-        status: 'error',
-        message: `Order cannot be cancelled in status: ${order.fulfillmentStatus}`,
-      });
-    }
-
-    await sequelize.transaction(async (t) => {
-      // Re-fetch with lock
-      const lockedOrder = await Order.findByPk(id, {
-        include: [{ model: OrderItem, as: 'orderItems' }],
-        transaction: t,
-        lock: t.LOCK.UPDATE,
-      });
-
-      // If order was paid or immediate purchase, restore inventory
-      if (lockedOrder.isPaid || lockedOrder.paymentMethod !== 'Stripe') {
-        for (const item of lockedOrder.orderItems || []) {
-          if (item.productId) {
-            await processReturn(
-              item.productId,
-              item.variantId || null,
-              item.qty,
-              lockedOrder.id,
-              reason,
-              req.user?.id || req.user?._id,
-              { transaction: t }
-            );
-          }
-        }
-      }
-
-      lockedOrder.fulfillmentStatus = 'cancelled';
-      await lockedOrder.save({ transaction: t });
-
-      await AdminTimelineEntry.create(
-        {
-          orderId: lockedOrder.id,
-          type: 'action',
-          action: 'Order Cancelled',
-          note: reason,
-          adminName: isAdmin ? req.user.name || 'Admin' : 'Customer',
-          adminEmail: req.user.email || '',
-        },
-        { transaction: t }
-      );
-    });
-
-    const updatedOrder = await Order.findByPk(id, {
-      include: [
-        { model: OrderItem, as: 'orderItems' },
-        { model: OrderShippingAddress, as: 'shippingAddress' },
-        { model: AdminTimelineEntry, as: 'adminTimeline' },
-      ],
-    });
-
-    res.status(200).json({ status: 'success', data: updatedOrder });
-  } catch (error) {
-    console.error('cancelOrder error:', error);
-    res.status(500).json({ status: 'error', message: error.message || 'Failed to cancel order.' });
   }
 };
 

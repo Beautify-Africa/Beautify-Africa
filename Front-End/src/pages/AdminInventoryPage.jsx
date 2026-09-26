@@ -8,36 +8,47 @@ export default function AdminInventoryPage() {
   return (
     <>
       <Helmet>
-        <title>Inventory Management - Admin</title>
+        <title>Inventory Management | Beautify Africa Admin</title>
       </Helmet>
       <Seo
         title="Inventory Management"
         description="Monitor and manage product inventory levels, variants, and stock alerts."
         robots="noindex, nofollow"
       />
-      <AdminShell>
-        <section className="rounded-[2rem] border border-stone-200 bg-white px-8 py-8 shadow-[0_18px_44px_rgba(28,25,23,0.08)]">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-stone-900">Inventory Management</h1>
-            <p className="mt-2 text-sm text-stone-600">
-              Monitor stock levels, track variants, and manage low-stock alerts.
-            </p>
-          </div>
-
-          <div className="space-y-12">
-            {/* Overview */}
-            <div>
-              <h2 className="text-lg font-semibold text-stone-900 mb-6">Overview</h2>
-              <InventoryDashboard />
+      <AdminShell
+        sectionLabel="Inventory"
+        title="Inventory Command"
+        description="Real-time warehouse stock tracking, SKU variant replenishment, and automated reorder triggers."
+      >
+        <div className="space-y-6">
+          <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 sm:p-6 shadow-xl backdrop-blur-md">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80 mb-5">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-zinc-400">
+                  Stock Overview
+                </p>
+                <h2 className="mt-1 text-lg font-bold text-white tracking-tight">Warehouse Telemetry</h2>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                Synchronized
+              </span>
             </div>
+            <InventoryDashboard />
+          </section>
 
-            {/* Low Stock Items */}
-            <div className="pt-6 border-t border-stone-200">
-              <h2 className="text-lg font-semibold text-stone-900 mb-6">Low Stock Items</h2>
-              <LowStockDashboard />
+          <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 sm:p-6 shadow-xl backdrop-blur-md">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80 mb-5">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-amber-400">
+                  Replenishment Alerts
+                </p>
+                <h2 className="mt-1 text-lg font-bold text-white tracking-tight">Critical Low Stock Items</h2>
+              </div>
+              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
             </div>
-          </div>
-        </section>
+            <LowStockDashboard />
+          </section>
+        </div>
       </AdminShell>
     </>
   );

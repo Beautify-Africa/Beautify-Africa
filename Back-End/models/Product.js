@@ -43,7 +43,12 @@ ProductVariant.init(
     tableName: 'product_variants',
     timestamps: true,
     paranoid: true,
-    indexes: [{ fields: ['productId'] }, { fields: ['sku'] }],
+    indexes: [
+      { fields: ['productId'] },
+      { fields: ['sku'] },
+      { fields: ['productId', 'inStock'] },
+      { fields: ['productId', 'stockQuantity'] },
+    ],
   }
 );
 
@@ -71,7 +76,11 @@ ProductReview.init(
     modelName: 'ProductReview',
     tableName: 'product_reviews',
     timestamps: true,
-    indexes: [{ fields: ['productId'] }, { fields: ['userId'] }],
+    indexes: [
+      { fields: ['productId'] },
+      { fields: ['userId'] },
+      { fields: ['productId', 'createdAt'] },
+    ],
   }
 );
 
@@ -157,6 +166,12 @@ Product.init(
       { fields: ['status'] },
       { fields: ['price'] },
       { fields: ['createdAt'] },
+      { fields: ['name'] },
+      { fields: ['isArchived', 'category'] },
+      { fields: ['isArchived', 'brand'] },
+      { fields: ['isArchived', 'inStock'] },
+      { fields: ['isArchived', 'createdAt'] },
+      { fields: ['isArchived', 'price'] },
     ],
     hooks: {
       beforeSave: (product) => {
@@ -170,10 +185,14 @@ Product.init(
         }
 
         // Sync status and isArchived
-        if (product.status === 'archived') {
+        if (product.changed('isArchived') && !product.changed('status')) {
+          product.status = product.isArchived ? 'archived' : 'published';
+        } else if (product.status === 'archived') {
           product.isArchived = true;
-        } else {
+        } else if (product.changed('status')) {
           product.isArchived = false;
+        } else {
+          product.isArchived = Boolean(product.isArchived);
         }
 
         // inStock is computed from stockQuantity (variants are handled at service level)

@@ -1,26 +1,34 @@
 import FadeIn from '../Shared/FadeIn';
 import StatusBadge from './StatusBadge';
 
-export default function AdminHeroSection({ heroBadges, ritualChecklist }) {
+export default function AdminHeroSection({ heroBadges = [], ritualChecklist = [] }) {
+  const safeBadges = Array.isArray(heroBadges) ? heroBadges : [];
   const checklist =
-    ritualChecklist.length > 0 ? ritualChecklist : ['No urgent tasks are currently queued.'];
+    Array.isArray(ritualChecklist) && ritualChecklist.length > 0
+      ? ritualChecklist
+      : ['No urgent tasks are currently queued.'];
 
   return (
-    <FadeIn className="mt-10">
-      <section className="relative overflow-hidden rounded-[2.25rem] border border-stone-200/80 bg-[linear-gradient(135deg,#fffefb_0%,#f4ede4_55%,#efe5da_100%)] px-8 py-10 shadow-[0_28px_70px_rgba(28,25,23,0.10)]">
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(180,83,9,0.12),_transparent_58%)]" />
-        <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.85fr)]">
+    <FadeIn className="mt-2">
+      <section className="relative overflow-hidden rounded-2xl border border-zinc-800/90 bg-gradient-to-br from-[#0E131F] via-[#121828] to-[#0A0E18] p-6 sm:p-8 shadow-xl">
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(245,158,11,0.06),_transparent_70%)]" />
+        
+        <div className="relative grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.9fr)]">
           <div>
-            <StatusBadge tone="amber">Fulfillment command view</StatusBadge>
-            <h1 className="mt-6 max-w-3xl font-serif text-5xl leading-tight text-stone-900 md:text-6xl">
-              Shape the order flow with the same polish your clients feel in the storefront.
+            <div className="flex items-center gap-2">
+              <StatusBadge tone="amber">Fulfillment Command</StatusBadge>
+              <span className="text-[11px] text-zinc-500 font-mono">ID: OPS-DISPATCH-LIVE</span>
+            </div>
+
+            <h1 className="mt-4 text-2xl sm:text-3xl font-bold leading-snug tracking-tight text-white">
+              Precision Fulfillment &amp; Operations Center
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-stone-600">
-              This admin space keeps dispatch priorities, regional signals, and customer touchpoints
-              in one place.
+            <p className="mt-2.5 max-w-2xl text-xs sm:text-sm leading-relaxed text-zinc-400">
+              Synchronize dispatch priorities, cross-regional logistics, and customer touchpoints in real time with enterprise-grade reliability.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              {heroBadges.map((badge, idx) => (
+
+            <div className="mt-6 flex flex-wrap gap-2.5">
+              {safeBadges.map((badge, idx) => (
                 <StatusBadge key={`${badge.label}-${idx}`} tone={badge.tone}>
                   {badge.label}
                 </StatusBadge>
@@ -28,19 +36,26 @@ export default function AdminHeroSection({ heroBadges, ritualChecklist }) {
             </div>
           </div>
 
-          <div className="rounded-[1.8rem] border border-white/80 bg-white/85 p-6 shadow-[0_18px_45px_rgba(28,25,23,0.08)] backdrop-blur-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-stone-400">
-              Operations ritual
-            </p>
-            <h2 className="mt-3 font-serif text-3xl text-stone-900">Current dispatch wave</h2>
-            <div className="mt-6 space-y-3">
+          <div className="rounded-xl border border-zinc-800/90 bg-zinc-900/60 p-5 backdrop-blur-md">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800/80">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-zinc-400">
+                Operations Ritual
+              </p>
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+            </div>
+
+            <h2 className="mt-3 text-sm font-bold uppercase tracking-wider text-white">
+              Current Dispatch Wave
+            </h2>
+
+            <div className="mt-4 space-y-2.5">
               {checklist.map((item, idx) => (
                 <div
                   key={`ritual-${idx}`}
-                  className="flex items-start gap-3 rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-3"
+                  className="flex items-start gap-2.5 rounded-lg border border-zinc-800/80 bg-zinc-900/80 px-3 py-2.5 text-xs text-zinc-300"
                 >
-                  <span className="mt-1 h-2.5 w-2.5 rounded-full bg-amber-500" aria-hidden="true" />
-                  <p className="text-sm leading-relaxed text-stone-600">{item}</p>
+                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-amber-400" aria-hidden="true" />
+                  <span className="leading-relaxed">{item}</span>
                 </div>
               ))}
             </div>

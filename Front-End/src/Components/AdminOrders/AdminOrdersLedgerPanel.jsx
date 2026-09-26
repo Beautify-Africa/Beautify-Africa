@@ -1,10 +1,12 @@
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import ActionButton from './ActionButton';
 import StatusBadge from './StatusBadge';
 
 export default function AdminOrdersLedgerPanel({
-  filters,
-  orders,
-  pagination,
+  filters = {},
+  orders = [],
+  pagination = {},
   isLoading,
   error,
   busyActionKey,
@@ -14,206 +16,249 @@ export default function AdminOrdersLedgerPanel({
   onOrderAction,
   onOpenOrderDetail,
 }) {
-  const canGoPrevious = (pagination.page || 1) > 1;
-  const canGoNext = (pagination.page || 1) < (pagination.totalPages || 1);
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safePagination = pagination && typeof pagination === 'object' ? pagination : {};
+  const safeFilters = filters && typeof filters === 'object' ? filters : {};
+  const canGoPrevious = (safePagination.page || 1) > 1;
+  const canGoNext = (safePagination.page || 1) < (safePagination.totalPages || 1);
+
+  const tableContainerRef = useRef(null);
+  const rowVirtualizer = useVirtualizer({
+    count: safeOrders.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 72,
+    overscan: 5,
+  });
 
   return (
-    <section className="rounded-[2rem] border border-stone-200/80 bg-white p-6 shadow-[0_20px_55px_rgba(28,25,23,0.08)] md:p-7">
-      <div className="flex flex-col gap-4 border-b border-stone-100 pb-5 xl:flex-row xl:items-end xl:justify-between">
+    <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 sm:p-6 shadow-xl backdrop-blur-md">
+      <div className="flex flex-col gap-3 border-b border-zinc-800/80 pb-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-stone-400">
-            Order ledger
-          </p>
-          <h2 className="mt-3 font-serif text-4xl text-stone-900">
-            All admin orders in one operational view
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-zinc-400">
+              Operations Ledger
+            </span>
+            <span className="text-[10px] font-mono text-zinc-500">LIVE SYNC</span>
+          </div>
+          <h2 className="mt-1 text-xl sm:text-2xl font-bold tracking-tight text-white">
+            Comprehensive Order Registry
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-500">
-            Search the queue, narrow by state, and keep action buttons close to the data that
-            matters.
+          <p className="mt-1 text-xs text-zinc-400 max-w-2xl leading-relaxed">
+            Query transactions, filter by fulfillment state, inspect order timelines, and trigger manual dispatch events.
           </p>
         </div>
 
         <button
           type="button"
           onClick={onRefresh}
-          className="rounded-full bg-stone-900 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white"
+          className="self-start xl:self-auto rounded-xl border border-zinc-700/80 bg-zinc-800/70 px-4 py-2 text-xs font-semibold text-zinc-200 transition-colors hover:border-zinc-500 hover:text-white flex items-center gap-1.5"
         >
-          Refresh ledger
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh Registry
         </button>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,0.7fr))]">
+      <div className="mt-4 grid gap-2.5 md:grid-cols-2 xl:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,0.7fr))]">
         <input
           type="text"
-          value={filters.search}
+          value={safeFilters.search || ''}
           onChange={(event) => onFilterChange('search', event.target.value)}
-          placeholder="Search customer, city, country, or item"
-          className="rounded-2xl border border-stone-200 px-4 py-3 text-sm"
+          placeholder="Search customer, city, country, or SKU..."
+          className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
         />
         <select
-          value={filters.status}
+          value={safeFilters.status || 'all'}
           onChange={(event) => onFilterChange('status', event.target.value)}
-          className="rounded-2xl border border-stone-200 px-4 py-3 text-sm"
+          className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500/50"
         >
-          <option value="all">All statuses</option>
+          <option value="all">All Statuses</option>
           <option value="processing">Processing</option>
           <option value="packed">Packed</option>
           <option value="shipped">Shipped</option>
           <option value="delivered">Delivered</option>
         </select>
         <select
-          value={filters.payment}
+          value={safeFilters.payment || 'all'}
           onChange={(event) => onFilterChange('payment', event.target.value)}
-          className="rounded-2xl border border-stone-200 px-4 py-3 text-sm"
+          className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500/50"
         >
-          <option value="all">All payments</option>
+          <option value="all">All Payments</option>
           <option value="paid">Paid</option>
-          <option value="unpaid">Awaiting payment</option>
+          <option value="unpaid">Awaiting Payment</option>
         </select>
         <input
           type="text"
-          value={filters.country}
+          value={safeFilters.country || ''}
           onChange={(event) => onFilterChange('country', event.target.value)}
-          placeholder="Country"
-          className="rounded-2xl border border-stone-200 px-4 py-3 text-sm"
+          placeholder="Filter country..."
+          className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
         />
         <select
-          value={filters.sort}
+          value={safeFilters.sort || 'newest'}
           onChange={(event) => onFilterChange('sort', event.target.value)}
-          className="rounded-2xl border border-stone-200 px-4 py-3 text-sm"
+          className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500/50"
         >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="total_high">Highest total</option>
-          <option value="total_low">Lowest total</option>
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="total_high">Highest Value</option>
+          <option value="total_low">Lowest Value</option>
         </select>
       </div>
 
       {error ? (
-        <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs text-rose-300">
           {error}
         </div>
       ) : null}
 
-      <div className="mt-5 overflow-x-auto rounded-[1.6rem] border border-stone-200">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-stone-50 text-[11px] uppercase tracking-[0.18em] text-stone-500">
+      <div ref={tableContainerRef} className="mt-4 max-h-[620px] overflow-auto rounded-xl border border-zinc-800/90">
+        <table className="min-w-full text-left text-xs">
+          <thead className="sticky top-0 z-10 bg-zinc-900/95 backdrop-blur text-[10px] uppercase font-bold tracking-wider text-zinc-400 border-b border-zinc-800">
             <tr>
-              <th className="px-4 py-3">Order</th>
-              <th className="px-4 py-3">Region</th>
+              <th className="px-4 py-3">Order &amp; Customer</th>
+              <th className="px-4 py-3">Destination</th>
               <th className="px-4 py-3">Value</th>
               <th className="px-4 py-3">Payment</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Placed</th>
+              <th className="px-4 py-3">Timestamp</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100 bg-white">
+          <tbody className="divide-y divide-zinc-800/60 bg-[#0E131F]/40">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-stone-500">
-                  Loading orders...
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-500">
+                  <div className="mx-auto h-6 w-6 border-2 border-zinc-700 border-t-amber-500 rounded-full animate-spin mb-2" />
+                  Streaming orders from registry...
                 </td>
               </tr>
-            ) : orders.length === 0 ? (
+            ) : safeOrders.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-stone-500">
-                  No orders matched the current filters.
+                <td colSpan={7} className="px-4 py-10 text-center text-zinc-500">
+                  No orders matched the current criteria.
                 </td>
               </tr>
             ) : (
-              orders.map((order) => (
-                <tr key={order.id} className="align-top">
-                  <td className="px-4 py-4">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                      {order.reference}
-                    </p>
-                    <p className="mt-2 font-semibold text-stone-900">{order.customer}</p>
-                    <p className="mt-1 text-xs text-stone-500">
-                      {order.email || 'No customer email available'}
-                    </p>
-                    <p className="mt-1 text-xs text-stone-500">
-                      {order.itemCount} item(s) / {order.lane}
-                    </p>
-                  </td>
-                  <td className="px-4 py-4 text-stone-600">
-                    <p>{order.city}</p>
-                    <p className="mt-1 text-xs text-stone-500">{order.country}</p>
-                  </td>
-                  <td className="px-4 py-4">
-                    <p className="font-semibold text-stone-900">{order.total}</p>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`rounded-full border px-3 py-1 text-xs ${
-                        order.isPaid
-                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
-                          : 'border-amber-300 bg-amber-50 text-amber-700'
-                      }`}
-                    >
-                      {order.paymentLabel}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <StatusBadge tone={order.statusTone}>{order.status}</StatusBadge>
-                    <p className="mt-2 text-xs uppercase tracking-[0.14em] text-stone-400">
-                      {order.fulfillmentLabel}
-                    </p>
-                  </td>
-                  <td className="px-4 py-4 text-stone-600">{order.placedAtLabel}</td>
-                  <td className="px-4 py-4">
-                    <div className="flex min-w-[220px] flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onOpenOrderDetail(order.id)}
-                        className="rounded-full border border-stone-300 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-700 transition-colors hover:border-stone-900 hover:text-stone-900"
-                      >
-                        Detail
-                      </button>
-                      {order.availableActions?.length > 0 ? (
-                        order.availableActions.map((action) => (
-                          <ActionButton
-                            key={`${order.id}:${action.type}`}
-                            action={action}
-                            isBusy={busyActionKey === `${order.id}:${action.type}`}
-                            onClick={() => onOrderAction(order.id, action.type)}
-                          />
-                        ))
-                      ) : (
-                        <span className="self-center text-xs font-medium uppercase tracking-[0.14em] text-stone-400">
-                          No actions
+              <>
+                {rowVirtualizer.getVirtualItems().length > 0 && rowVirtualizer.getVirtualItems()[0].start > 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ height: `${rowVirtualizer.getVirtualItems()[0].start}px` }} />
+                  </tr>
+                )}
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const order = safeOrders[virtualRow.index];
+                  if (!order) return null;
+                  return (
+                    <tr key={order.id} className="align-top hover:bg-zinc-800/30 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <span className="font-mono text-amber-400 font-bold tracking-wider text-xs">
+                          {order.reference}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        <p className="mt-1 font-bold text-white text-sm tracking-tight">{order.customer}</p>
+                        <p className="mt-0.5 text-xs text-zinc-400 truncate max-w-xs">
+                          {order.email || 'No customer email'}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-zinc-500 font-mono">
+                          {order.itemCount} items &bull; {order.lane}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-300">
+                        <p className="font-medium text-white">{order.city}</p>
+                        <p className="text-[11px] text-zinc-500">{order.country}</p>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span className="font-mono font-bold text-white text-sm tabular-nums">
+                          {order.total}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span
+                          className={`inline-block rounded-md border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase font-mono ${
+                            order.isPaid
+                              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                              : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+                          }`}
+                        >
+                          {order.paymentLabel}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <StatusBadge tone={order.statusTone}>{order.status}</StatusBadge>
+                        <p className="mt-1 text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
+                          {order.fulfillmentLabel}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-400 text-[11px] font-mono whitespace-nowrap">
+                        {order.placedAtLabel}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex min-w-[200px] flex-wrap gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => onOpenOrderDetail(order.id)}
+                            className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
+                          >
+                            Detail
+                          </button>
+                          {order.availableActions?.length > 0 ? (
+                            order.availableActions.map((action) => (
+                              <ActionButton
+                                key={`${order.id}:${action.type}`}
+                                action={action}
+                                isBusy={busyActionKey === `${order.id}:${action.type}`}
+                                onClick={() => onOrderAction(order.id, action.type)}
+                              />
+                            ))
+                          ) : (
+                            <span className="self-center text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
+                              No actions
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {rowVirtualizer.getVirtualItems().length > 0 && (
+                  (() => {
+                    const lastItem = rowVirtualizer.getVirtualItems()[rowVirtualizer.getVirtualItems().length - 1];
+                    const bottomSpace = rowVirtualizer.getTotalSize() - lastItem.end;
+                    return bottomSpace > 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ height: `${bottomSpace}px` }} />
+                      </tr>
+                    ) : null;
+                  })()
+                )}
+              </>
             )}
           </tbody>
         </table>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
-        <p>
-          {pagination.totalCount || 0} order(s) / page {pagination.page || 1} of{' '}
-          {Math.max(1, pagination.totalPages || 1)}
+      <div className="mt-4 flex flex-col gap-2.5 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+        <p className="font-mono text-zinc-500">
+          Showing {safeOrders.length} of {safePagination.totalCount || 0} order(s) &bull; Page{' '}
+          {safePagination.page || 1} of {Math.max(1, safePagination.totalPages || 1)}
         </p>
         <div className="flex items-center gap-2">
           <button
             type="button"
             disabled={!canGoPrevious}
-            onClick={() => onPageChange((pagination.page || 1) - 1)}
-            className="rounded-full border border-stone-300 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => onPageChange((safePagination.page || 1) - 1)}
+            className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Previous
+            &larr; Previous
           </button>
           <button
             type="button"
             disabled={!canGoNext}
-            onClick={() => onPageChange((pagination.page || 1) + 1)}
-            className="rounded-full border border-stone-300 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => onPageChange((safePagination.page || 1) + 1)}
+            className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Next
+            Next &rarr;
           </button>
         </div>
       </div>

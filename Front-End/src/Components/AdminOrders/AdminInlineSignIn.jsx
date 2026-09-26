@@ -1,34 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import FloatingLabelInput from '../Shared/FloatingLabelInput';
 
 export default function AdminInlineSignIn() {
   const { adminLogin, loading, error, clearError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const emailField = useMemo(
-    () => ({
-      id: 'admin-login-email',
-      type: 'email',
-      label: 'Email Address',
-      placeholder: 'Email',
-      autoComplete: 'email',
-    }),
-    []
-  );
-
-  const passwordField = useMemo(
-    () => ({
-      id: 'admin-login-password',
-      type: 'password',
-      label: 'Password',
-      placeholder: 'Password',
-      autoComplete: 'current-password',
-      minLength: 8,
-    }),
-    []
-  );
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     clearError();
@@ -39,33 +16,71 @@ export default function AdminInlineSignIn() {
     event.preventDefault();
 
     try {
-      await adminLogin({ email, password });
+      await adminLogin({ email: email.trim(), password });
     } catch {
       // Auth context handles inline error messaging.
     }
   }
 
   return (
-    <div className="mx-auto mt-8 max-w-md rounded-[1.5rem] border border-stone-200/80 bg-white/90 p-6 text-left shadow-[0_14px_38px_rgba(28,25,23,0.08)]">
-      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">
-        Admin Sign In
-      </p>
-      <h2 className="mt-2 font-serif text-2xl text-stone-900">Access Operations Console</h2>
+    <div className="mx-auto mt-6 max-w-sm rounded-xl border border-zinc-800/90 bg-zinc-900/80 p-5 text-left">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+          Owner Sign In
+        </p>
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+      </div>
 
-      <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
-        <FloatingLabelInput
-          field={emailField}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <FloatingLabelInput
-          field={passwordField}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      <form className="mt-4 space-y-3.5" onSubmit={handleSubmit}>
+        <div>
+          <label
+            htmlFor="inline-admin-email"
+            className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-1"
+          >
+            System Owner Email
+          </label>
+          <input
+            id="inline-admin-email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="owner@beautifyafrica.app"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
+          />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label
+              htmlFor="inline-admin-password"
+              className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400"
+            >
+              Master Password
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-[9px] uppercase tracking-wider text-zinc-500 hover:text-zinc-300"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <input
+            id="inline-admin-password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••••••"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 font-mono"
+          />
+        </div>
 
         {error ? (
-          <p className="rounded-sm border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-300">
             {error}
           </p>
         ) : null}
@@ -73,9 +88,9 @@ export default function AdminInlineSignIn() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-sm bg-stone-900 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white transition-colors hover:bg-amber-900 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full rounded-lg bg-amber-500 py-2.5 text-xs font-bold uppercase tracking-wider text-zinc-950 hover:bg-amber-400 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Verifying...' : 'Authorize Access'}
         </button>
       </form>
     </div>

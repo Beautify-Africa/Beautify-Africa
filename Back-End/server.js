@@ -1,26 +1,25 @@
 // server.js
-
-// --- Built-in ---
 const path = require('path');
-
-// --- Third-party ---
-const express = require('express');
 const dotenv = require('dotenv');
+
+dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
+
+const express = require('express');
 const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
 const swaggerUi = require('swagger-ui-express');
 
-// --- Local ---
 const { connectDB, sequelize } = require('./config/db');
-const redisClient = require('./config/redis');
+require('./models'); // Ensure all cross-model associations are registered
 const logger = require('./utils/logger');
 const requestIdMiddleware = require('./middlewares/requestId');
 const { apiLimiter, authLimiter, cartLimiter } = require('./middlewares/rateLimiters');
+const { createCorsOptions } = require('./config/corsConfig');
 
 if (process.env.NODE_ENV !== 'test') {
-  require('./workers/emailWorker'); // Boot background job pipeline outside of tests
-  require('./workers/inventoryNotificationWorker'); // Boot inventory notification worker
+  require('./workers/emailWorker');
+  require('./workers/inventoryNotificationWorker');
 }
 const { buildOpenApiSpec } = require('./docs/openapi');
 const {
@@ -41,9 +40,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const currencyRoutes = require('./routes/currencyRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
-
-// Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
+const healthRoutes = require('./routes/healthRoutes');
 
 const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
@@ -55,168 +52,48 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 
-// Assign correlation IDs and initialize request logger immediately
 app.use(requestIdMiddleware);
-
-// 1. HTTP Security Headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
-app.use(compression({ threshold: 1024 }));
-
-// Use Express' simple query parser so querystrings stay flat strings/arrays.
-app.set('query parser', 'simple');
-
-// 2. Trust Proxy (Required for Render/Cloud load balancers for rate limiting to work)
-app.set('trust proxy', 1);
-
-// 3. Rate Limiting — Redis-backed so counters survive container restarts (imported from middlewares/rateLimiters)
-
-function normalizeOrigin(value = '') {
-  return String(value).trim().replace(/\/+$/, '').toLowerCase();
-}
-
-// 4. CORS - Strict project domain matching
 app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-
-      const normalizedOrigin = normalizeOrigin(origin);
-      const envOrigins = process.env.CLIENT_URL
-        ? process.env.CLIENT_URL.split(',')
-            .map((u) => normalizeOrigin(u))
-            .filter(Boolean)
-        : [];
-      const localOrigins = [
-        'http://localhost:5173',
-        'http://localhost:4173',
-        'http://localhost:4174',
-        'http://localhost:4175',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:4173',
-        'http://127.0.0.1:4174',
-        'https://www.beautifyafrica.app',
-        'https://beautifyafrica.app',
-        'https://beautify-africa.vercel.app',
-      ].map((u) => normalizeOrigin(u));
-
-      // Match exact configured origins or project-specific Vercel preview domains
-      const isProjectVercelOrigin =
-        /^https:\/\/(beautify-africa|beautifyafrica)[a-z0-9-]*\.vercel\.app$/.test(
-          normalizedOrigin
-        );
-
-      if (
-        envOrigins.includes(normalizedOrigin) ||
-        localOrigins.includes(normalizedOrigin) ||
-        isProjectVercelOrigin
-      ) {
-        callback(null, true);
-      } else {
-        console.warn(`CORS blocked unauthorized origin: ${origin}`);
-        callback(null, false);
+  compression({
+    threshold: 1024,
+    level: 6,
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
       }
+      return compression.filter(req, res);
     },
-    credentials: true,
   })
 );
+app.set('query parser', 'simple');
+app.set('trust proxy', 1);
 
-// 5. HTTP Request Logging (dev only — morgan is not needed in production)
+app.use(cors(createCorsOptions()));
+
 if (process.env.NODE_ENV !== 'production') {
   const morgan = require('morgan');
   app.use(morgan('dev'));
 }
 
-// 6. Mount Stripe and multi-gateway Payment routes before global body parsing
-// Webhooks demand raw stream requests (unparsed JSON)
+// Mount payment webhooks before global body parsers
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// 7. Body Parser (explicit, configurable size limits)
 app.use(createJsonBodyParser());
 app.use(createUrlEncodedBodyParser());
-
-// 8. Strip Mongo operator-style keys & Prototype Pollution from mutable request payloads.
 app.use(sanitizeRequest);
-
-// --- Utility Routes ---
 
 app.get('/', setPrivateNoStore, (req, res) => {
   res.send('E-commerce API is running...');
 });
 
-// --- Health Check Endpoints ---
-
-// 1. Liveness probe (cheap process responsiveness check)
-app.get('/health/live', setPrivateNoStore, (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// 2. Readiness probe (dependency connectivity check: DB & Redis)
-app.get('/health/ready', setPrivateNoStore, async (req, res) => {
-  const checks = {
-    database: 'down',
-    redis: 'down',
-  };
-
-  let isReady = true;
-
-  try {
-    await sequelize.authenticate();
-    checks.database = 'up';
-  } catch (err) {
-    checks.database = 'down';
-    isReady = false;
-    (req.log || logger).warn({ err: err.message }, 'Readiness check: database unreachable');
-  }
-
-  try {
-    if (redisClient && redisClient.status === 'ready') {
-      checks.redis = 'up';
-    } else if (redisClient) {
-      const pong = await redisClient.ping();
-      checks.redis = pong === 'PONG' ? 'up' : 'down';
-      if (checks.redis !== 'up') isReady = false;
-    } else {
-      checks.redis = 'not_configured';
-    }
-  } catch (err) {
-    checks.redis = 'down';
-    isReady = false;
-    (req.log || logger).warn({ err: err.message }, 'Readiness check: redis unreachable');
-  }
-
-  const statusCode = isReady ? 200 : 503;
-  res.status(statusCode).json({
-    status: isReady ? 'ready' : 'degraded',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    checks,
-  });
-});
-
-// 3. Legacy /health endpoint preserved for backward compatibility
-app.get('/health', setPrivateNoStore, async (req, res) => {
-  let isDbConnected = false;
-  try {
-    await sequelize.authenticate();
-    isDbConnected = true;
-  } catch {
-    isDbConnected = false;
-  }
-
-  res.status(isDbConnected ? 200 : 503).json({
-    status: isDbConnected ? 'ok' : 'degraded',
-    database: isDbConnected ? 'connected' : 'disconnected',
-  });
-});
+// Health checks
+app.use('/health', healthRoutes);
 
 app.get('/api/openapi.json', setPublicCache(300, 900), (req, res) => {
   res.status(200).json(buildOpenApiSpec(req));
@@ -233,8 +110,7 @@ app.use(
   })
 );
 
-// --- API Routes ---
-
+// API Routes
 app.use('/api/products', apiLimiter, productRoutes);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/orders', apiLimiter, orderRoutes);
@@ -245,10 +121,8 @@ app.use('/api/admin', apiLimiter, adminRoutes);
 app.use('/api/upload', apiLimiter, uploadRoutes);
 app.use('/api/currency', apiLimiter, currencyRoutes);
 
-// Surface oversized payloads with a stable API error response.
 app.use(handleBodySizeLimitError);
 
-// Centralized JSON 404 handler
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
@@ -256,7 +130,6 @@ app.use((req, res) => {
   });
 });
 
-// Centralized Global Error Handler
 app.use((err, req, res, next) => {
   const reqLogger = req.log || logger;
   reqLogger.error(err, 'Unhandled Application Error');
@@ -272,8 +145,6 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV !== 'production' && err.stack ? { stack: err.stack } : {}),
   });
 });
-
-// --- Server Startup ---
 
 const PORT = process.env.PORT || 5000;
 let server;

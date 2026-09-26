@@ -2,6 +2,7 @@ import { useState, useCallback, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import AppLink from './Components/Shared/AppLink';
 import ProtectedRoute from './Components/Shared/ProtectedRoute';
 import ErrorBoundary from './Components/Shared/ErrorBoundary';
@@ -16,6 +17,7 @@ const NewsletterUnsubscribeRequestPage = lazy(
   () => import('./pages/NewsletterUnsubscribeRequestPage')
 );
 const NewsletterUnsubscribePage = lazy(() => import('./pages/NewsletterUnsubscribePage'));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
 const AdminOrdersPage = lazy(() => import('./pages/AdminOrdersPage'));
 const AdminProductsPage = lazy(() => import('./pages/AdminProductsPage'));
 const AdminInventoryPage = lazy(() => import('./pages/AdminInventoryPage'));
@@ -71,6 +73,7 @@ function App() {
                 element={<NewsletterUnsubscribeRequestPage />}
               />
               <Route path="/newsletter/unsubscribe" element={<NewsletterUnsubscribePage />} />
+              <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<Navigate to="/admin/orders" replace />} />
               <Route
                 path="/admin/orders"
@@ -136,6 +139,7 @@ function App() {
           {/* Global modals & notifications */}
           <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
           <Toaster position="top-right" richColors closeButton />
+          <SpeedInsights />
         </BrowserRouter>
       </ErrorBoundary>
     </HelmetProvider>

@@ -75,7 +75,11 @@ OrderShippingAddress.init(
     modelName: 'OrderShippingAddress',
     tableName: 'order_shipping_addresses',
     timestamps: false,
-    indexes: [{ fields: ['orderId'] }, { fields: ['email'] }],
+    indexes: [
+      { fields: ['orderId'] },
+      { fields: ['email'] },
+      { fields: ['email', 'orderId'] },
+    ],
   }
 );
 
@@ -220,11 +224,20 @@ Order.init(
       { fields: ['fulfillmentStatus'] },
       { fields: ['isPaid'] },
       { fields: ['trackingNumber'] },
+      { fields: ['userId', 'createdAt'] },
+      { fields: ['fulfillmentStatus', 'isPaid', 'createdAt'] },
+      { fields: ['isPaid', 'createdAt'] },
     ],
   }
 );
 
 // Associations
+const User = require('./User');
+if (!Order.associations?.user && typeof User?.hasMany === 'function' && User.prototype instanceof Model) {
+  Order.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'SET NULL' });
+  User.hasMany(Order, { foreignKey: 'userId', as: 'orders', onDelete: 'SET NULL' });
+}
+
 Order.hasMany(OrderItem, { foreignKey: 'orderId', as: 'orderItems', onDelete: 'CASCADE' });
 OrderItem.belongsTo(Order, { foreignKey: 'orderId' });
 

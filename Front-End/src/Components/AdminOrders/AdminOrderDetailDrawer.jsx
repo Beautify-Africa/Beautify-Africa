@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import ActionButton from './ActionButton';
 import StatusBadge from './StatusBadge';
+import AdminShippingProgressTimeline from './AdminShippingProgressTimeline';
+import OrderDetailCustomerAndShipping from './OrderDetailCustomerAndShipping';
+import OrderDetailFinancials from './OrderDetailFinancials';
+import OrderDetailItems from './OrderDetailItems';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 function DetailSection({ eyebrow, title, children }) {
   return (
-    <section className="rounded-[1.5rem] border border-stone-200 bg-white px-5 py-5 shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">{eyebrow}</p>
-      <h3 className="mt-2 font-serif text-2xl text-stone-900">{title}</h3>
-      <div className="mt-4">{children}</div>
+    <section className="rounded-xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 shadow-md">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">{eyebrow}</p>
+      <h3 className="mt-1 text-base font-bold text-white tracking-tight">{title}</h3>
+      <div className="mt-3.5">{children}</div>
     </section>
   );
 }
@@ -17,9 +21,9 @@ function DrawerLoading() {
   return (
     <div className="flex h-full items-center justify-center px-8 py-16 text-center">
       <div>
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-stone-900" />
-        <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.28em] text-stone-500">
-          Loading order detail...
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-500" />
+        <p className="mt-4 text-xs font-bold uppercase tracking-wider text-zinc-400">
+          Loading order details...
         </p>
       </div>
     </div>
@@ -86,33 +90,33 @@ export default function AdminOrderDetailDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-[130] flex justify-end bg-stone-950/45" onClick={onClose}>
+    <div className="fixed inset-0 z-[130] flex justify-end bg-black/75 backdrop-blur-sm" onClick={onClose}>
       <aside
         ref={focusTrapRef}
         role="dialog"
         aria-modal="true"
         aria-label="Order detail"
-        className="flex h-full w-full max-w-[44rem] flex-col overflow-hidden bg-[#f7f2ea] shadow-[-20px_0_60px_rgba(28,25,23,0.22)]"
+        className="flex h-full w-full max-w-[44rem] flex-col overflow-hidden bg-[#0A0E17] text-zinc-100 border-l border-zinc-800 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-stone-200 bg-white/85 px-6 py-5 backdrop-blur-sm">
+        <div className="flex items-start justify-between gap-4 border-b border-zinc-800/90 bg-[#0E131F] px-6 py-5">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-stone-400">
-              {activeOrder?.reference || 'Order detail'}
-            </p>
-            <h2 className="mt-2 font-serif text-3xl text-stone-900">
+            <span className="font-mono text-xs font-bold tracking-wider text-amber-400">
+              {activeOrder?.reference || 'Order Inspection'}
+            </span>
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-white">
               {activeOrder?.customer?.name || 'Loading order'}
             </h2>
             {activeOrder ? (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
                 <StatusBadge tone={activeOrder.statusTone}>{activeOrder.status}</StatusBadge>
                 <StatusBadge tone={activeOrder.isPaid ? 'emerald' : 'amber'}>
                   {activeOrder.paymentLabel}
                 </StatusBadge>
                 {activeOrder.customer?.isGuest ? (
-                  <StatusBadge tone="stone">Guest checkout</StatusBadge>
+                  <StatusBadge tone="stone">Guest Checkout</StatusBadge>
                 ) : (
-                  <StatusBadge tone="stone">Registered account</StatusBadge>
+                  <StatusBadge tone="stone">Registered Customer</StatusBadge>
                 )}
               </div>
             ) : null}
@@ -121,9 +125,9 @@ export default function AdminOrderDetailDrawer({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-stone-300 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-stone-700"
+            className="rounded-lg border border-zinc-700/80 bg-zinc-800/70 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:border-zinc-500 hover:text-white transition-colors"
           >
-            Close
+            Close &times;
           </button>
         </div>
 
@@ -131,242 +135,127 @@ export default function AdminOrderDetailDrawer({
           <DrawerLoading />
         ) : error ? (
           <div className="px-6 py-8">
-            <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50 px-5 py-5 text-sm text-rose-700">
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-5 text-xs text-rose-300">
               <p>{error}</p>
               <button
                 type="button"
                 onClick={onRetry}
-                className="mt-4 rounded-full border border-rose-300 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-rose-700"
+                className="mt-3 rounded-lg border border-rose-500/40 px-3 py-1.5 text-xs font-semibold text-rose-200 hover:bg-rose-500/20"
               >
-                Retry detail load
+                Retry Load
               </button>
             </div>
           </div>
         ) : activeOrder ? (
           <>
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="space-y-5">
-                <DetailSection eyebrow="Workflow" title="Next steps and activity">
-                  <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Next milestone
-                      </p>
-                      <p className="mt-2 text-sm leading-relaxed text-stone-700">
-                        {activeOrder.eta}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Timestamps
-                      </p>
-                      <p className="mt-2 text-sm text-stone-700">
-                        Placed: {activeOrder.placedAtLabel}
-                      </p>
-                      <p className="mt-1 text-sm text-stone-700">
-                        Updated: {activeOrder.updatedAtLabel || 'Not yet available'}
-                      </p>
-                      <p className="mt-1 text-sm text-stone-700">
-                        Paid: {activeOrder.paidAtLabel || 'Not yet paid'}
-                      </p>
-                      <p className="mt-1 text-sm text-stone-700">
-                        Delivered: {activeOrder.deliveredAtLabel || 'Not delivered'}
-                      </p>
-                    </div>
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+              <DetailSection eyebrow="Workflow" title="Fulfillment Status &amp; Timeline">
+                <div className="mb-3.5">
+                  <AdminShippingProgressTimeline order={activeOrder} />
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 text-xs">
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      Next Milestone
+                    </p>
+                    <p className="mt-1 text-zinc-200 leading-relaxed font-medium">
+                      {activeOrder.eta}
+                    </p>
                   </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {actions.length > 0 ? (
-                      actions.map((action) => (
-                        <ActionButton
-                          key={`${activeOrder.id}:${action.type}`}
-                          action={action}
-                          isBusy={busyActionKey === `${activeOrder.id}:${action.type}`}
-                          onClick={() => onOrderAction(activeOrder.id, action.type)}
-                        />
-                      ))
-                    ) : (
-                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">
-                        No manual actions available
-                      </p>
-                    )}
+                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5 font-mono text-[11px] space-y-1">
+                    <p className="text-[10px] font-sans font-bold uppercase tracking-wider text-zinc-400 mb-1.5">
+                      Audit Timestamps
+                    </p>
+                    <p className="text-zinc-300">Placed: {activeOrder.placedAtLabel}</p>
+                    <p className="text-zinc-400">Updated: {activeOrder.updatedAtLabel || 'Pending'}</p>
+                    <p className="text-zinc-400">Paid: {activeOrder.paidAtLabel || 'Unpaid'}</p>
+                    <p className="text-zinc-400">Delivered: {activeOrder.deliveredAtLabel || 'In progress'}</p>
                   </div>
-                </DetailSection>
+                </div>
 
-                <DetailSection eyebrow="Customer" title="Customer and shipping context">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Customer
-                      </p>
-                      <p className="mt-2 font-medium text-stone-900">{activeOrder.customer.name}</p>
-                      <p className="mt-1">
-                        {activeOrder.customer.shippingEmail || 'No shipping email'}
-                      </p>
-                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Account
-                      </p>
-                      <p className="mt-2">
-                        {activeOrder.customer.accountEmail || 'Guest checkout'}
-                      </p>
-                      {activeOrder.customer.accountCreatedAtLabel ? (
-                        <p className="mt-1 text-stone-500">
-                          Customer since {activeOrder.customer.accountCreatedAtLabel}
-                        </p>
-                      ) : null}
-                    </div>
+                <div className="mt-3.5 flex flex-wrap gap-2">
+                  {actions.length > 0 ? (
+                    actions.map((action) => (
+                      <ActionButton
+                        key={`${activeOrder.id}:${action.type}`}
+                        action={action}
+                        isBusy={busyActionKey === `${activeOrder.id}:${action.type}`}
+                        onClick={() => onOrderAction(activeOrder.id, action.type)}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      No manual actions available
+                    </p>
+                  )}
+                </div>
+              </DetailSection>
 
-                    <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Shipping address
-                      </p>
-                      <p className="mt-2 font-medium text-stone-900">
-                        {activeOrder.shippingAddress.firstName}{' '}
-                        {activeOrder.shippingAddress.lastName}
-                      </p>
-                      <p className="mt-1">{activeOrder.shippingAddress.address}</p>
-                      <p className="mt-1">
-                        {activeOrder.shippingAddress.city}, {activeOrder.shippingAddress.zip}
-                      </p>
-                      <p className="mt-1">{activeOrder.shippingAddress.country}</p>
-                      <p className="mt-3 text-stone-500">{activeOrder.shippingAddress.email}</p>
-                    </div>
-                  </div>
-                </DetailSection>
+              <DetailSection eyebrow="Customer" title="Identity &amp; Shipping Destination">
+                <OrderDetailCustomerAndShipping activeOrder={activeOrder} />
+              </DetailSection>
 
-                <DetailSection eyebrow="Payment" title="Payment and totals snapshot">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Payment method
-                      </p>
-                      <p className="mt-2 font-medium text-stone-900">
-                        {activeOrder.payment.method}
-                      </p>
-                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Gateway status
-                      </p>
-                      <p className="mt-2">{activeOrder.payment.resultStatus || 'Pending'}</p>
-                      <p className="mt-1 text-stone-500">
-                        {activeOrder.payment.emailAddress || 'No gateway email'}
-                      </p>
-                      <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-400">
-                        Stripe intent
-                      </p>
-                      <p className="mt-2 break-all text-xs text-stone-500">
-                        {activeOrder.payment.stripePaymentIntentId || 'Not available'}
-                      </p>
-                    </div>
+              <DetailSection eyebrow="Financials" title="Payment Clearance &amp; Ledger">
+                <OrderDetailFinancials activeOrder={activeOrder} />
+              </DetailSection>
 
-                    <div className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4 text-sm text-stone-700">
-                      <div className="flex items-center justify-between">
-                        <span>Items</span>
-                        <span>{activeOrder.totals.items}</span>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span>Shipping</span>
-                        <span>{activeOrder.totals.shipping}</span>
-                      </div>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span>Tax</span>
-                        <span>{activeOrder.totals.tax}</span>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between border-t border-stone-200 pt-4 font-semibold text-stone-900">
-                        <span>Total</span>
-                        <span>{activeOrder.totals.total}</span>
-                      </div>
-                    </div>
-                  </div>
-                </DetailSection>
+              <DetailSection eyebrow="Inventory" title="Manifest Items">
+                <OrderDetailItems items={activeOrder.items} />
+              </DetailSection>
 
-                <DetailSection eyebrow="Items" title="Order contents">
-                  <div className="space-y-3">
-                    {activeOrder.items.map((item, index) => (
+              <DetailSection eyebrow="Operator Shift" title="Internal Communication Note">
+                <textarea
+                  value={noteText}
+                  onChange={(event) => setNoteText(event.target.value)}
+                  rows={3}
+                  placeholder="Record fulfillment exceptions, customer requests, or courier details..."
+                  className="w-full rounded-xl border border-zinc-700/80 bg-zinc-900/90 p-3 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
+                />
+                <div className="mt-2.5">
+                  <button
+                    type="button"
+                    disabled={noteBusy || !noteText.trim()}
+                    onClick={handleAddNote}
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-950 hover:bg-amber-400 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {noteBusy ? 'Recording Note...' : 'Record Note to Order'}
+                  </button>
+                </div>
+              </DetailSection>
+
+              <DetailSection eyebrow="Audit Trail" title="Complete Historical Timeline">
+                {timeline.length > 0 ? (
+                  <div className="space-y-2">
+                    {timeline.map((entry, index) => (
                       <div
-                        key={`${item.productId || item.name}-${index}`}
-                        className="flex items-start gap-4 rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4"
+                        key={`${activeOrder.id}-detail-timeline-${index}`}
+                        className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3 text-xs"
                       >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="h-16 w-16 rounded-xl border border-stone-200 object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-stone-200 bg-stone-100 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500">
-                            No image
-                          </div>
-                        )}
-
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-stone-900">{item.name}</p>
-                          <p className="mt-1 text-sm text-stone-500">
-                            {item.productBrand || 'Unknown brand'} /{' '}
-                            {item.productCategory || 'Uncategorized'}
+                        <p className="font-semibold text-zinc-200 uppercase text-[10px] tracking-wider">
+                          {entry.type === 'note'
+                            ? 'Operator Internal Note'
+                            : String(entry.action || 'action').replace(/_/g, ' ')}
+                        </p>
+                        {entry.note ? (
+                          <p className="mt-1 text-xs text-zinc-300 leading-relaxed">
+                            {entry.note}
                           </p>
-                          <p className="mt-2 text-sm text-stone-600">
-                            Qty {item.qty} / Unit {item.unitPrice} / Line {item.lineTotal}
-                          </p>
-                        </div>
+                        ) : null}
+                        <p className="mt-1.5 text-[10px] font-mono text-zinc-500">
+                          {entry.adminName || 'Admin'} &bull; {entry.createdAtLabel || entry.createdAt}
+                        </p>
                       </div>
                     ))}
                   </div>
-                </DetailSection>
-
-                <DetailSection eyebrow="Internal note" title="Shift handoff">
-                  <textarea
-                    value={noteText}
-                    onChange={(event) => setNoteText(event.target.value)}
-                    rows={4}
-                    placeholder="Add customer, courier, or fulfillment context for the next operator..."
-                    className="w-full rounded-2xl border border-stone-200 bg-[#fffdf9] px-4 py-3 text-sm text-stone-700 focus:border-stone-500 focus:outline-none"
-                  />
-                  <div className="mt-3">
-                    <button
-                      type="button"
-                      disabled={noteBusy || !noteText.trim()}
-                      onClick={handleAddNote}
-                      className="rounded-full bg-stone-900 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {noteBusy ? 'Saving...' : 'Save internal note'}
-                    </button>
-                  </div>
-                </DetailSection>
-
-                <DetailSection eyebrow="Timeline" title="Admin activity trail">
-                  {timeline.length > 0 ? (
-                    <div className="space-y-3">
-                      {timeline.map((entry, index) => (
-                        <div
-                          key={`${activeOrder.id}-detail-timeline-${index}`}
-                          className="rounded-2xl border border-stone-100 bg-[#fffdf9] px-4 py-4"
-                        >
-                          <p className="font-medium text-stone-900">
-                            {entry.type === 'note'
-                              ? 'Internal note'
-                              : String(entry.action || 'action').replace(/_/g, ' ')}
-                          </p>
-                          {entry.note ? (
-                            <p className="mt-2 text-sm leading-relaxed text-stone-700">
-                              {entry.note}
-                            </p>
-                          ) : null}
-                          <p className="mt-2 text-xs text-stone-500">
-                            {entry.adminName || 'Admin'} / {entry.createdAtLabel || entry.createdAt}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-stone-500">No timeline events recorded yet.</p>
-                  )}
-                </DetailSection>
-              </div>
+                ) : (
+                  <p className="text-xs text-zinc-500">No timeline events recorded yet.</p>
+                )}
+              </DetailSection>
             </div>
           </>
         ) : (
-          <div className="px-6 py-8 text-sm text-stone-500">
+          <div className="px-6 py-8 text-xs text-zinc-500">
             No order detail is currently available.
           </div>
         )}

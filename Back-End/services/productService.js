@@ -29,10 +29,11 @@ function escapeRegex(str) {
 }
 
 function readFirstString(value) {
+  if (typeof value === 'number') return String(value);
   if (typeof value === 'string') return value.trim();
   if (Array.isArray(value)) {
-    const firstString = value.find((entry) => typeof entry === 'string');
-    return typeof firstString === 'string' ? firstString.trim() : '';
+    const firstEntry = value.find((entry) => typeof entry === 'string' || typeof entry === 'number');
+    return firstEntry !== undefined ? String(firstEntry).trim() : '';
   }
   return '';
 }
@@ -73,6 +74,33 @@ function normalizeProductIds(rawIds = []) {
   return [...new Set(rawIds.filter((id) => UUID_REGEX.test(String(id))).map((id) => String(id)))];
 }
 
+function decodeCursor(cursorString) {
+  if (!cursorString || typeof cursorString !== 'string') return null;
+  try {
+    const decoded = Buffer.from(cursorString, 'base64').toString('utf8');
+    const parsed = JSON.parse(decoded);
+    if (parsed && parsed.createdAt && parsed.id) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function encodeCursor(product) {
+  if (!product || !product.createdAt || !product.id) return null;
+  try {
+    const payload = JSON.stringify({
+      createdAt: product.createdAt,
+      id: product.id,
+    });
+    return Buffer.from(payload).toString('base64');
+  } catch {
+    return null;
+  }
+}
+
 function buildProductFilter(query = {}) {
   const category = readFirstString(query.category);
   const subcategory = readFirstString(query.subcategory);
@@ -84,6 +112,7 @@ function buildProductFilter(query = {}) {
   const q = readFirstString(query.q);
   const rawIds = readStringList(query.ids);
   const ids = normalizeProductIds(rawIds);
+  const cursor = decodeCursor(readFirstString(query.cursor));
 
   const where = {};
 
@@ -132,6 +161,21 @@ function buildProductFilter(query = {}) {
     ];
   }
 
+  if (cursor) {
+    where[Op.and] = [
+      ...(where[Op.and] || []),
+      {
+        [Op.or]: [
+          { createdAt: { [Op.lt]: new Date(cursor.createdAt) } },
+          {
+            createdAt: new Date(cursor.createdAt),
+            id: { [Op.lt]: cursor.id },
+          },
+        ],
+      },
+    ];
+  }
+
   return where;
 }
 
@@ -165,6 +209,7 @@ function buildProductSortOption(sort) {
 }
 
 function buildProductPagination(query = {}) {
+  const cursor = decodeCursor(readFirstString(query.cursor));
   const parsedPage = Number.parseInt(readFirstString(query.page), 10);
   const parsedLimit = Number.parseInt(readFirstString(query.limit), 10);
 
@@ -174,7 +219,9 @@ function buildProductPagination(query = {}) {
       ? Math.min(parsedLimit, MAX_PRODUCT_LIMIT)
       : DEFAULT_PRODUCT_LIMIT;
 
-  return { page, limit, skip: (page - 1) * limit };
+  const skip = cursor ? 0 : (page - 1) * limit;
+
+  return { page, limit, skip, isCursor: Boolean(cursor) };
 }
 
 function buildCatalogCategories(categoryRows = []) {
@@ -267,4 +314,6 @@ module.exports = {
   buildReviewFromUser,
   updateReviewAggregates,
   findProductByIdOrSlug,
+  encodeCursor,
+  decodeCursor,
 };

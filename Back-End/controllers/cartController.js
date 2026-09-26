@@ -95,13 +95,13 @@ const addToCart = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    const { product: dbProduct, error: productError } = await findInStockProduct(
-      productId,
-      'Product is fully out of stock'
-    );
+    // Execute product lookup and cart retrieval concurrently for maximum throughput
+    const [productResult, cart] = await Promise.all([
+      findInStockProduct(productId, 'Product is fully out of stock'),
+      findOrCreateCart(userId),
+    ]);
+    const { product: dbProduct, error: productError } = productResult;
     if (productError) return sendServiceError(res, productError);
-
-    const cart = await findOrCreateCart(userId);
 
     await addOrMergeCartItem(cart, {
       productId,
@@ -256,4 +256,7 @@ module.exports = {
   removeFromCart,
   clearCart,
   syncCart,
+  invalidateCartCache,
+  readCartCache,
+  writeCartCache,
 };
