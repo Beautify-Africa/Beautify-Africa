@@ -65,13 +65,34 @@ function validateEnvironmentSecrets(options = {}) {
   // 4. Payment Gateway Secrets (in production)
   if (isProd) {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
-    if (stripeKey && stripeKey.includes('replace_with')) {
-      errors.push('STRIPE_SECRET_KEY contains placeholder text in production.');
+    const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!stripeKey || stripeKey.includes('replace_with')) {
+      errors.push('STRIPE_SECRET_KEY is required and must not be a placeholder in production.');
+    }
+    if (!stripeWebhookSecret || stripeWebhookSecret.includes('replace_with')) {
+      errors.push('STRIPE_WEBHOOK_SECRET is required and must not be a placeholder in production.');
     }
 
-    const paystackKey = process.env.PAYSTACK_SECRET_KEY;
-    if (paystackKey && paystackKey.includes('replace_with')) {
-      errors.push('PAYSTACK_SECRET_KEY contains placeholder text in production.');
+    const enabledGateways = String(process.env.ENABLED_PAYMENT_GATEWAYS || 'stripe')
+      .split(',')
+      .map((gateway) => gateway.trim().toLowerCase());
+    if (enabledGateways.includes('paystack')) {
+      const paystackKey = process.env.PAYSTACK_SECRET_KEY;
+      if (!paystackKey || paystackKey.includes('replace_with')) {
+        errors.push('PAYSTACK_SECRET_KEY is required for the enabled Paystack gateway.');
+      }
+    }
+    if (enabledGateways.includes('mpesa')) {
+      for (const name of ['MPESA_CONSUMER_KEY', 'MPESA_CONSUMER_SECRET', 'MPESA_SHORTCODE', 'MPESA_PASSKEY', 'MPESA_CALLBACK_URL']) {
+        const value = process.env[name];
+        if (!value || value.includes('replace_with') || value.includes('your_')) {
+          errors.push(`${name} is required for the enabled M-Pesa gateway.`);
+        }
+      }
+    }
+    const totpKey = process.env.TOTP_ENCRYPTION_KEY;
+    if (!totpKey || totpKey.length < 43 || totpKey.includes('replace_with')) {
+      errors.push('TOTP_ENCRYPTION_KEY must be a 32-byte base64 or 64-character hex key in production.');
     }
   }
 

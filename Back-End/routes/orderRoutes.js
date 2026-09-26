@@ -22,7 +22,7 @@ router.use(setPrivateNoStore);
 
 router.post('/', optionalProtect, idempotency, validateBody(createOrderSchema), addOrderItems);
 router.get('/myorders', protect, validateQuery(getMyOrdersQuerySchema), getMyOrders);
-router.get('/:id', optionalProtect, validateParams(orderIdParamSchema), getOrderById);
+router.get('/:id', protect, validateParams(orderIdParamSchema), getOrderById);
 router.put(
   '/:id/cancel',
   protect,

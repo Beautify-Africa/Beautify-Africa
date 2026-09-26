@@ -162,10 +162,7 @@ export async function exportAdminProducts(query = {}, token, requestOptions = {}
   const search = params.toString();
   const response = await fetch(`${API_URL}/admin/products/export${search ? `?${search}` : ''}`, {
     ...requestOptions,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(requestOptions.headers || {}),
-    },
+    credentials: 'include',
   });
 
   if (!response.ok) {

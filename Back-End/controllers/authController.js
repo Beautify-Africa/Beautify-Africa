@@ -25,6 +25,21 @@ const {
   isTotpCodeReplayed,
   markTotpCodeUsed,
 } = require('../services/totpService');
+const {
+  encryptTotpSecret,
+  decryptTotpSecret,
+  isEncryptedTotpSecret,
+} = require('../services/totpSecretCipher');
+
+async function getUserTotpSecret(user) {
+  const secret = decryptTotpSecret(user.twoFactorSecret);
+  // Gradually migrate existing plaintext values when their owner next authenticates.
+  if (secret && !isEncryptedTotpSecret(user.twoFactorSecret)) {
+    user.twoFactorSecret = encryptTotpSecret(secret);
+    await user.save();
+  }
+  return secret;
+}
 
 // Pre-computed bcrypt cost 12 hash of a 32-char high-entropy string to normalize timing and block email enumeration
 const DUMMY_BCRYPT_HASH =
@@ -102,7 +117,7 @@ async function register(req, res) {
     const user = await User.create({ name: name.trim(), email: normalizedEmail, password });
     const token = signToken(user);
     setAuthCookie(res, token);
-    return res.status(201).json({ status: 'success', token, user: sanitizeUser(user) });
+    return res.status(201).json({ status: 'success', user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
   }
@@ -158,7 +173,7 @@ async function login(req, res) {
       }
 
       const isTotpValid = verifyTotpCode({
-        secret: user.twoFactorSecret,
+        secret: await getUserTotpSecret(user),
         code: twoFactorCode,
       });
 
@@ -190,7 +205,7 @@ async function login(req, res) {
     const token = signToken(user);
     setAuthCookie(res, token);
     await clearPaymentRateLimit(user.id, req.ip);
-    return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
+    return res.status(200).json({ status: 'success', user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
   }
@@ -265,7 +280,7 @@ async function adminDashboardLogin(req, res) {
         }
 
         const isTotpValid = verifyTotpCode({
-          secret: user.twoFactorSecret,
+          secret: await getUserTotpSecret(user),
           code: twoFactorCode,
         });
 
@@ -298,7 +313,7 @@ async function adminDashboardLogin(req, res) {
     }
     const token = signToken(user);
     setAuthCookie(res, token);
-    return res.status(200).json({ status: 'success', token, user: sanitizeUser(user) });
+    return res.status(200).json({ status: 'success', user: sanitizeUser(user) });
   } catch (error) {
     return handleAuthError(res, error);
   }
@@ -317,7 +332,7 @@ async function setupTwoFactor(req, res) {
     });
     const { plainCodes, hashedCodes } = generateRecoveryCodes(8);
 
-    user.twoFactorSecret = secret;
+    user.twoFactorSecret = encryptTotpSecret(secret);
     user.twoFactorRecoveryCodes = hashedCodes;
     await user.save();
 
@@ -347,7 +362,7 @@ async function enableTwoFactor(req, res) {
       });
     }
 
-    const isValid = verifyTotpCode({ secret: user.twoFactorSecret, code });
+    const isValid = verifyTotpCode({ secret: await getUserTotpSecret(user), code });
     if (!isValid) {
       return res.status(400).json({
         status: 'error',
@@ -385,16 +400,28 @@ async function disableTwoFactor(req, res) {
       return res.status(401).json({ status: 'error', message: 'Invalid password' });
     }
 
+    if (user.twoFactorEnabled && !code) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'A current two-factor code or recovery code is required to disable 2FA',
+      });
+    }
+
     if (user.twoFactorEnabled && code) {
-      const isValid = verifyTotpCode({ secret: user.twoFactorSecret, code });
-      if (!isValid) {
+      const isValid = verifyTotpCode({ secret: await getUserTotpSecret(user), code });
+      const recoveryCheck = isValid
+        ? { isValid: true, remainingCodes: user.twoFactorRecoveryCodes }
+        : verifyAndConsumeRecoveryCode(user.twoFactorRecoveryCodes, code);
+      if (!recoveryCheck.isValid) {
         return res.status(400).json({ status: 'error', message: 'Invalid authentication code' });
       }
+      if (!isValid) user.twoFactorRecoveryCodes = recoveryCheck.remainingCodes;
     }
 
     user.twoFactorEnabled = false;
     user.twoFactorSecret = null;
     user.twoFactorRecoveryCodes = [];
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
 
     return res.status(200).json({
@@ -420,7 +447,6 @@ async function revokeAllSessions(req, res) {
 
     return res.status(200).json({
       status: 'success',
-      token,
       message: 'All other active sessions have been invalidated.',
     });
   } catch (error) {

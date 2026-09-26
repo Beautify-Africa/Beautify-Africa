@@ -10,6 +10,7 @@ const {
 const { createPaymentIntent, constructWebhookEvent } = require('../services/stripeService');
 const { buildVerifiedOrderItems, calculateOrderTotals } = require('../services/orderService');
 const { processPurchase } = require('../services/inventoryService');
+const paymentGatewayService = require('../services/paymentGatewayService');
 
 // @desc    Validate cart + Create Order + Create Stripe Payment Intent
 // @route   POST /api/stripe/create-payment-intent
@@ -169,7 +170,24 @@ const handleStripeWebhook = async (req, res) => {
             lock: t.LOCK.UPDATE,
           });
 
-          if (order && !order.isPaid) {
+          if (!order) {
+            throw new Error('Order not found for Stripe payment');
+          }
+
+          paymentGatewayService.validatePaymentBinding({
+            order,
+            gateway: 'stripe',
+            reference: paymentIntent.id,
+            amount:
+              paymentIntent.amount_received === undefined
+                ? undefined
+                : paymentIntent.amount_received / 100,
+            currency: paymentIntent.currency?.toUpperCase(),
+            metadata: paymentIntent.metadata,
+            requireMetadata: true,
+          });
+
+          if (!order.isPaid) {
             order.isPaid = true;
             order.paidAt = new Date();
             order.fulfillmentStatus = 'processing';

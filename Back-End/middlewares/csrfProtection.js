@@ -67,20 +67,18 @@ function csrfProtection(req, res, next) {
     }
   }
 
-  // 6. Double submit CSRF token check if CSRF token header or cookie is present
+  // 6. Cookie-authenticated mutations require the double-submit token pair
   const csrfHeader = req.headers['x-csrf-token'] || req.headers['csrf-token'];
   const cookies = req.headers.cookie || '';
   const csrfCookieMatch = cookies.match(/(?:^|;\s*)_csrf=([^;]+)/);
   const csrfCookie = csrfCookieMatch ? decodeURIComponent(csrfCookieMatch[1]) : null;
 
-  if (csrfCookie) {
-    if (!csrfHeader || csrfHeader !== csrfCookie) {
-      return res.status(403).json({
-        status: 'error',
-        code: 'CSRF_TOKEN_MISMATCH',
-        message: 'CSRF token mismatch or missing token header.',
-      });
-    }
+  if (!csrfCookie || !csrfHeader || csrfHeader !== csrfCookie) {
+    return res.status(403).json({
+      status: 'error',
+      code: 'CSRF_TOKEN_MISMATCH',
+      message: 'CSRF token mismatch or missing token header.',
+    });
   }
 
   next();

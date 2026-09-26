@@ -47,7 +47,6 @@ export async function submitPasswordReset(payload) {
 }
 
 export async function logoutUser(token) {
-  if (!token) return { status: 'success' };
   return requestJson(`${API_URL}/auth/logout`, {
     method: 'POST',
     token,

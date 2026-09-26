@@ -198,7 +198,7 @@ const getMyOrders = async (req, res) => {
 
 // @desc    Get single order by ID
 // @route   GET /api/orders/:id
-// @access  Public (Guest with email verification) or Private (User or Admin)
+// @access  Private (owner or administrator)
 const getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -214,27 +214,12 @@ const getOrderById = async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'Order not found' });
     }
 
-    if (req.user) {
-      const isOwner = order.userId === (req.user.id || req.user._id);
-      const isAdmin = Boolean(req.user.isAdmin);
-      if (!isOwner && !isAdmin) {
-        return res
-          .status(403)
-          .json({ status: 'error', message: 'Not authorized to view this order' });
-      }
-    } else {
-      const emailQuery = String(req.query.email || '')
-        .toLowerCase()
-        .trim();
-      const shippingEmail = String(order.shippingAddress?.email || '')
-        .toLowerCase()
-        .trim();
-      if (!emailQuery || emailQuery !== shippingEmail) {
-        return res.status(403).json({
-          status: 'error',
-          message: 'Authentication or order email required to view order',
-        });
-      }
+    const isOwner = order.userId === (req.user.id || req.user._id);
+    const isAdmin = Boolean(req.user.isAdmin);
+    if (!isOwner && !isAdmin) {
+      return res
+        .status(403)
+        .json({ status: 'error', message: 'Not authorized to view this order' });
     }
 
     res.status(200).json({ status: 'success', data: order });

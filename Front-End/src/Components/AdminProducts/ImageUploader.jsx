@@ -36,7 +36,6 @@ export default function ImageUploader() {
       const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });

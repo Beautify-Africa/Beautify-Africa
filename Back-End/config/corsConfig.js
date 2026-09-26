@@ -31,19 +31,20 @@ function isOriginAllowed(origin) {
     'https://beautify-africa.vercel.app',
     'https://beautify-africa.com',
     'https://www.beautify-africa.com',
+    'https://beautify-africa-preview.vercel.app',
   ].map((u) => normalizeOrigin(u));
 
-  const isProjectVercelOrigin =
-    /^https:\/\/(beautify-africa|beautifyafrica)[a-z0-9-]*\.vercel\.app$/.test(
-      normalizedOrigin
-    );
+  const previewOrigins = (process.env.VERCEL_PREVIEW_ORIGINS || '')
+    .split(',')
+    .map((u) => normalizeOrigin(u))
+    .filter(Boolean);
 
   // In production, strictly reject localhost origins unless explicitly in CLIENT_URL
   if (isProd) {
     return (
       envOrigins.includes(normalizedOrigin) ||
       prodOrigins.includes(normalizedOrigin) ||
-      isProjectVercelOrigin
+      previewOrigins.includes(normalizedOrigin)
     );
   }
 
@@ -52,7 +53,7 @@ function isOriginAllowed(origin) {
     envOrigins.includes(normalizedOrigin) ||
     localOrigins.includes(normalizedOrigin) ||
     prodOrigins.includes(normalizedOrigin) ||
-    isProjectVercelOrigin
+    previewOrigins.includes(normalizedOrigin)
   );
 }
 
