@@ -2,9 +2,9 @@ import ActionButton from './ActionButton';
 import StatusBadge from './StatusBadge';
 
 export default function AdminOrdersLedgerPanel({
-  filters,
-  orders,
-  pagination,
+  filters = {},
+  orders = [],
+  pagination = {},
   isLoading,
   error,
   busyActionKey,
@@ -14,8 +14,11 @@ export default function AdminOrdersLedgerPanel({
   onOrderAction,
   onOpenOrderDetail,
 }) {
-  const canGoPrevious = (pagination.page || 1) > 1;
-  const canGoNext = (pagination.page || 1) < (pagination.totalPages || 1);
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safePagination = pagination && typeof pagination === 'object' ? pagination : {};
+  const safeFilters = filters && typeof filters === 'object' ? filters : {};
+  const canGoPrevious = (safePagination.page || 1) > 1;
+  const canGoNext = (safePagination.page || 1) < (safePagination.totalPages || 1);
 
   return (
     <section className="rounded-2xl border border-zinc-800/90 bg-[#0E131F]/90 p-5 sm:p-6 shadow-xl backdrop-blur-md">
@@ -50,13 +53,13 @@ export default function AdminOrdersLedgerPanel({
       <div className="mt-4 grid gap-2.5 md:grid-cols-2 xl:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,0.7fr))]">
         <input
           type="text"
-          value={filters.search}
+          value={safeFilters.search || ''}
           onChange={(event) => onFilterChange('search', event.target.value)}
           placeholder="Search customer, city, country, or SKU..."
           className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
         />
         <select
-          value={filters.status}
+          value={safeFilters.status || 'all'}
           onChange={(event) => onFilterChange('status', event.target.value)}
           className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500/50"
         >
@@ -67,7 +70,7 @@ export default function AdminOrdersLedgerPanel({
           <option value="delivered">Delivered</option>
         </select>
         <select
-          value={filters.payment}
+          value={safeFilters.payment || 'all'}
           onChange={(event) => onFilterChange('payment', event.target.value)}
           className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500/50"
         >
@@ -77,13 +80,13 @@ export default function AdminOrdersLedgerPanel({
         </select>
         <input
           type="text"
-          value={filters.country}
+          value={safeFilters.country || ''}
           onChange={(event) => onFilterChange('country', event.target.value)}
           placeholder="Filter country..."
           className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
         />
         <select
-          value={filters.sort}
+          value={safeFilters.sort || 'newest'}
           onChange={(event) => onFilterChange('sort', event.target.value)}
           className="rounded-xl border border-zinc-700/80 bg-zinc-900/90 px-3.5 py-2 text-xs text-zinc-100 focus:outline-none focus:border-amber-500/50"
         >
@@ -121,14 +124,14 @@ export default function AdminOrdersLedgerPanel({
                   Streaming orders from registry...
                 </td>
               </tr>
-            ) : orders.length === 0 ? (
+            ) : safeOrders.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-zinc-500">
                   No orders matched the current criteria.
                 </td>
               </tr>
             ) : (
-              orders.map((order) => (
+              safeOrders.map((order) => (
                 <tr key={order.id} className="align-top hover:bg-zinc-800/30 transition-colors">
                   <td className="px-4 py-3.5">
                     <span className="font-mono text-amber-400 font-bold tracking-wider text-xs">
@@ -205,14 +208,14 @@ export default function AdminOrdersLedgerPanel({
 
       <div className="mt-4 flex flex-col gap-2.5 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
         <p className="font-mono text-zinc-500">
-          Showing {orders.length} of {pagination.totalCount || 0} order(s) &bull; Page {pagination.page || 1} of{' '}
-          {Math.max(1, pagination.totalPages || 1)}
+          Showing {safeOrders.length} of {safePagination.totalCount || 0} order(s) &bull; Page{' '}
+          {safePagination.page || 1} of {Math.max(1, safePagination.totalPages || 1)}
         </p>
         <div className="flex items-center gap-2">
           <button
             type="button"
             disabled={!canGoPrevious}
-            onClick={() => onPageChange((pagination.page || 1) - 1)}
+            onClick={() => onPageChange((safePagination.page || 1) - 1)}
             className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-40"
           >
             &larr; Previous
@@ -220,7 +223,7 @@ export default function AdminOrdersLedgerPanel({
           <button
             type="button"
             disabled={!canGoNext}
-            onClick={() => onPageChange((pagination.page || 1) + 1)}
+            onClick={() => onPageChange((safePagination.page || 1) + 1)}
             className="rounded-lg border border-zinc-700/80 bg-zinc-800/60 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition-colors hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next &rarr;

@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import ActionButton from './ActionButton';
 import StatusBadge from './StatusBadge';
 import AdminShippingProgressTimeline from './AdminShippingProgressTimeline';
+import OrderDetailCustomerAndShipping from './OrderDetailCustomerAndShipping';
+import OrderDetailFinancials from './OrderDetailFinancials';
+import OrderDetailItems from './OrderDetailItems';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 function DetailSection({ eyebrow, title, children }) {
@@ -190,117 +193,15 @@ export default function AdminOrderDetailDrawer({
               </DetailSection>
 
               <DetailSection eyebrow="Customer" title="Identity &amp; Shipping Destination">
-                <div className="grid gap-3 md:grid-cols-2 text-xs">
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Customer Profile
-                    </p>
-                    <p className="mt-1 font-bold text-white text-sm">{activeOrder.customer.name}</p>
-                    <p className="mt-0.5 text-zinc-400 font-mono">
-                      {activeOrder.customer.shippingEmail || 'No shipping email'}
-                    </p>
-                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Account Status
-                    </p>
-                    <p className="mt-0.5 text-zinc-300">
-                      {activeOrder.customer.accountEmail || 'Guest Account'}
-                    </p>
-                    {activeOrder.customer.accountCreatedAtLabel ? (
-                      <p className="mt-1 text-[11px] text-zinc-500">
-                        Customer since {activeOrder.customer.accountCreatedAtLabel}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Delivery Address
-                    </p>
-                    <p className="mt-1 font-bold text-white">
-                      {activeOrder.shippingAddress.firstName} {activeOrder.shippingAddress.lastName}
-                    </p>
-                    <p className="mt-0.5 text-zinc-300">{activeOrder.shippingAddress.address}</p>
-                    <p className="text-zinc-300">
-                      {activeOrder.shippingAddress.city}, {activeOrder.shippingAddress.zip}
-                    </p>
-                    <p className="text-zinc-400 font-semibold">{activeOrder.shippingAddress.country}</p>
-                    <p className="mt-2 text-[11px] font-mono text-zinc-500">{activeOrder.shippingAddress.email}</p>
-                  </div>
-                </div>
+                <OrderDetailCustomerAndShipping activeOrder={activeOrder} />
               </DetailSection>
 
               <DetailSection eyebrow="Financials" title="Payment Clearance &amp; Ledger">
-                <div className="grid gap-3 md:grid-cols-2 text-xs">
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Payment Method
-                    </p>
-                    <p className="mt-1 font-bold text-white">{activeOrder.payment.method}</p>
-                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Gateway Confirmation
-                    </p>
-                    <p className="mt-0.5 text-zinc-300">{activeOrder.payment.resultStatus || 'Pending'}</p>
-                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Intent Reference
-                    </p>
-                    <p className="mt-0.5 break-all text-[11px] font-mono text-zinc-500">
-                      {activeOrder.payment.stripePaymentIntentId || 'None'}
-                    </p>
-                  </div>
-
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3.5 font-mono text-xs">
-                    <div className="flex items-center justify-between text-zinc-400">
-                      <span>Items Subtotal</span>
-                      <span className="text-zinc-200">{activeOrder.totals.items}</span>
-                    </div>
-                    <div className="mt-1.5 flex items-center justify-between text-zinc-400">
-                      <span>Shipping Fee</span>
-                      <span className="text-zinc-200">{activeOrder.totals.shipping}</span>
-                    </div>
-                    <div className="mt-1.5 flex items-center justify-between text-zinc-400">
-                      <span>VAT / Duties</span>
-                      <span className="text-zinc-200">{activeOrder.totals.tax}</span>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-zinc-800 pt-3 font-bold text-sm text-white">
-                      <span>Final Captured Total</span>
-                      <span className="text-amber-400 tabular-nums">{activeOrder.totals.total}</span>
-                    </div>
-                  </div>
-                </div>
+                <OrderDetailFinancials activeOrder={activeOrder} />
               </DetailSection>
 
               <DetailSection eyebrow="Inventory" title="Manifest Items">
-                <div className="space-y-2.5">
-                  {activeOrder.items.map((item, index) => (
-                    <div
-                      key={`${item.productId || item.name}-${index}`}
-                      className="flex items-start gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-3"
-                    >
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="h-14 w-14 rounded-lg border border-zinc-700 object-cover shrink-0"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-800/60 text-[9px] font-bold uppercase text-zinc-500 shrink-0">
-                          No Img
-                        </div>
-                      )}
-
-                      <div className="min-w-0 flex-1 text-xs">
-                        <p className="font-bold text-white tracking-tight">{item.name}</p>
-                        <p className="text-[11px] text-zinc-400">
-                          {item.productBrand || 'Beautify Africa'} &bull; {item.productCategory || 'Beauty'}
-                        </p>
-                        <p className="mt-1 text-[11px] font-mono text-zinc-300">
-                          Qty: {item.qty} &bull; Unit: {item.unitPrice} &bull; Line Total: {item.lineTotal}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <OrderDetailItems items={activeOrder.items} />
               </DetailSection>
 
               <DetailSection eyebrow="Operator Shift" title="Internal Communication Note">

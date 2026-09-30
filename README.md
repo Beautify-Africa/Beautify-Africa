@@ -12,7 +12,7 @@ An enterprise-grade, high-performance e-commerce platform dedicated to African-i
 
 Beautify Africa is structured as an **npm workspaces monorepo** separating presentation and server concerns while maintaining shared code standards, linting, and formatting.
 
-```
+```text
 Beautify-Africa/
 ├── Back-End/                       # Express 5 & Sequelize REST API
 │   ├── config/                     # Database, Redis, Migrator, BullMQ
@@ -127,9 +127,11 @@ The easiest way to boot the full production stack including database and cache:
    ```
 
 5. **Start Frontend & Backend Concurrently**:
+
    ```bash
    npm run dev
    ```
+
    - Frontend runs at: `http://localhost:5173`
    - Backend runs at: `http://localhost:5000`
 
@@ -181,7 +183,7 @@ The easiest way to boot the full production stack including database and cache:
 
 ## 🧪 Testing Architecture
 
-```
+```text
 Tests (119 Total)
 ├── Backend Jest (86 Tests)
 │   ├── Authentication & Role Access Control
@@ -203,6 +205,21 @@ Tests (119 Total)
     ├── Sliding Cart Drawer Interaction & Keyboard Traps
     └── Admin Route Guard Redirection
 ```
+
+---
+
+## 🏛 Code Maintainability & Architectural Decision Records (ADRs)
+
+Beautify Africa enforces high maintainability standards across all layers:
+
+- **300 LOC Ceiling**: All application components, controllers, services, and utilities are strictly partitioned to <= 300 lines of code.
+- **Single Responsibility Principle (SRP)**: Each module owns one clearly defined business or presentational concern.
+- **Architectural Decision Records (ADRs)**: Critical design decisions and system rationales are documented in [`docs/adr/`](docs/adr/README.md):
+  - [ADR-0001: Code Maintainability and 300 LOC File Boundary](docs/adr/0001-code-maintainability-and-300-loc-boundary.md)
+  - [ADR-0002: Modular Admin Dashboard Architecture](docs/adr/0002-modular-admin-dashboard-architecture.md)
+  - [ADR-0003: Dual-Layer Cart Latency Optimization](docs/adr/0003-dual-layer-cart-latency-optimization.md)
+  - [ADR-0004: Real-Time Fulfillment Synchronization](docs/adr/0004-realtime-fulfillment-synchronization.md)
+- **Automated Formatting**: Monorepo-wide code style is enforced via `.prettierrc`.
 
 ---
 

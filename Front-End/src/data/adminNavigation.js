@@ -22,7 +22,6 @@ export const ADMIN_NAV_ITEMS = [
     href: '/admin/customers',
     description: 'Customer profiles, support, and audience data.',
     icon: 'customers',
-    isSoon: true,
   },
   {
     label: 'Analytics',
