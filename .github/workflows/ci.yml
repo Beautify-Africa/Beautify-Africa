@@ -26,7 +26,7 @@ jobs:
           gitleaks version
 
       - name: Run Gitleaks detect
-        run: gitleaks detect --source . --verbose --redact --exit-code 1
+        run: gitleaks detect --source . --gitleaks-ignore-path .gitleaksignore --verbose --redact --exit-code 1
 
   backend-tests:
     name: Back-End Tests & Automations

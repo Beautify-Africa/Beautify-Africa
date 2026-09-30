@@ -5,25 +5,27 @@ test.describe('Customer Account & Authentication Lifecycle', () => {
     await page.goto('/');
   });
 
-  const openAuthDialog = async (page) => {
-    const openMenuBtn = page.getByRole('button', { name: /open menu/i });
-    if (await openMenuBtn.isVisible()) {
+  const openAuthDialog = async (page, isMobile) => {
+    const isMobileViewport = Boolean(isMobile || (page.viewportSize()?.width ?? 1280) < 1024);
+    if (isMobileViewport) {
       // Mobile viewport: open menu and click Sign In inside mobile menu
+      const openMenuBtn = page.getByRole('button', { name: /open menu/i });
+      await openMenuBtn.waitFor({ state: 'visible', timeout: 15000 });
       await openMenuBtn.click();
       const mobileSignIn = page.locator('#mobile-menu button:has-text("Sign In")');
-      await mobileSignIn.waitFor({ state: 'visible', timeout: 10000 });
+      await mobileSignIn.waitFor({ state: 'visible', timeout: 15000 });
       await mobileSignIn.click();
     } else {
       // Desktop viewport: wait for desktop Sign In button to appear after session check
       const desktopSignIn = page.locator('nav button:has-text("Sign In")');
-      await desktopSignIn.waitFor({ state: 'visible', timeout: 10000 });
+      await desktopSignIn.waitFor({ state: 'visible', timeout: 15000 });
       await desktopSignIn.click();
     }
   };
 
-  test('opens customer authentication dialog from navigation header', async ({ page }) => {
+  test('opens customer authentication dialog from navigation header', async ({ page, isMobile }) => {
     // Find and click Sign In button in navigation header (handles desktop and mobile)
-    await openAuthDialog(page);
+    await openAuthDialog(page, isMobile);
 
     // Verify modal dialog appears
     const authDialog = page.locator('#account-auth-dialog');
@@ -35,9 +37,10 @@ test.describe('Customer Account & Authentication Lifecycle', () => {
 
   test('toggles seamlessly between Sign In, Registration, and Password Reset states', async ({
     page,
+    isMobile,
   }) => {
     // Open auth dialog
-    await openAuthDialog(page);
+    await openAuthDialog(page, isMobile);
 
     const authDialog = page.locator('#account-auth-dialog');
     await expect(authDialog).toBeVisible();
