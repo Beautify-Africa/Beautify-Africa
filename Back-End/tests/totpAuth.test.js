@@ -37,6 +37,7 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'totp-auth-test-secret-key-32chars';
+    process.env.TOTP_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     process.env.ADMIN_EMAILS = ADMIN_EMAIL;
     process.env.ADMIN_DASHBOARD_PASSWORD = ADMIN_PASSWORD;
   });
@@ -148,7 +149,7 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
       expect(response.body.secret).toBeTruthy();
       expect(response.body.otpAuthUrl).toContain('otpauth://totp/');
       expect(response.body.recoveryCodes).toHaveLength(8);
-      expect(mockUser.twoFactorSecret).toBe(response.body.secret);
+      expect(mockUser.twoFactorSecret).not.toBe(response.body.secret);
       expect(mockUser.save).toHaveBeenCalled();
     });
 
@@ -247,7 +248,7 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
 
       expect(successResponse.status).toBe(200);
       expect(successResponse.body.status).toBe('success');
-      expect(successResponse.body.token).toBeTruthy();
+      expect(successResponse.body.token).toBeUndefined();
     });
 
     test('Admin login succeeds with emergency recovery code', async () => {
@@ -281,7 +282,7 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
-      expect(response.body.token).toBeTruthy();
+      expect(response.body.token).toBeUndefined();
       expect(mockAdmin.twoFactorRecoveryCodes).toHaveLength(1);
     });
 
@@ -292,7 +293,7 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
         name: 'Test User',
         email: 'user@beautifyafrica.app',
         twoFactorEnabled: true,
-        twoFactorSecret: 'SECRET123',
+        twoFactorSecret: generateTotpSecret(20),
         twoFactorRecoveryCodes: ['hashed'],
         comparePassword: jest.fn().mockImplementation(async (pw) => pw === 'CorrectPassword123!'),
         save: jest.fn().mockResolvedValue(true),
@@ -315,7 +316,10 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
       const successResponse = await request(app)
         .post('/api/auth/2fa/disable')
         .set('Authorization', `Bearer ${token}`)
-        .send({ password: 'CorrectPassword123!' });
+        .send({
+          password: 'CorrectPassword123!',
+          code: generateTotpCode(mockUser.twoFactorSecret),
+        });
 
       expect(successResponse.status).toBe(200);
       expect(successResponse.body.status).toBe('success');
@@ -357,6 +361,10 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
 
       expect(oldResponse.status).toBe(401);
       expect(oldResponse.body.message).toMatch(/revoked/i);
+      expect(User.findByPk).toHaveBeenCalledWith(
+        USER_ID,
+        expect.objectContaining({ attributes: expect.arrayContaining(['tokenVersion']) })
+      );
 
       // Current token must succeed with 200
       const currentResponse = await request(app)
@@ -368,7 +376,7 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
       expect(currentResponse.body.user.email).toBe(mockUser.email);
     });
 
-    test('POST /api/auth/revoke-all-sessions increments tokenVersion and returns new token', async () => {
+    test('POST /api/auth/revoke-all-sessions increments tokenVersion without returning a token', async () => {
       const mockUser = {
         id: USER_ID,
         _id: USER_ID,
@@ -393,12 +401,8 @@ describe('Two-Factor Authentication (TOTP) & Session Revocation Suite', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('success');
-      expect(response.body.token).toBeTruthy();
+      expect(response.body.token).toBeUndefined();
       expect(mockUser.tokenVersion).toBe(2);
-
-      // Verify the new token has tokenVersion: 2
-      const decoded = jwt.decode(response.body.token);
-      expect(decoded.tokenVersion).toBe(2);
     });
   });
 });

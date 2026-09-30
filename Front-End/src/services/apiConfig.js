@@ -5,16 +5,31 @@ export const API_URL = normalizedApiUrl.endsWith('/api')
   ? normalizedApiUrl
   : `${normalizedApiUrl}/api`;
 
-export function jsonHeaders(token) {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
+export const COOKIE_SESSION_ACTIVE = 'cookie-session-active';
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+let csrfTokenPromise;
+
+async function getCsrfToken() {
+  if (!csrfTokenPromise) {
+    csrfTokenPromise = fetch(`${API_URL}/csrf-token`, {
+      credentials: 'include',
+      cache: 'no-store',
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('Unable to establish a secure session');
+        return response.json();
+      })
+      .then((data) => data.csrfToken)
+      .catch((error) => {
+        csrfTokenPromise = undefined;
+        throw error;
+      });
   }
+  return csrfTokenPromise;
+}
 
-  return headers;
+export function jsonHeaders() {
+  return { 'Content-Type': 'application/json' };
 }
 
 function createTimeoutSignal(signal, timeoutMs) {
@@ -51,7 +66,6 @@ function createTimeoutSignal(signal, timeoutMs) {
 
 export async function requestJson(url, options = {}) {
   const {
-    token,
     method = 'GET',
     body,
     headers = {},
@@ -64,12 +78,13 @@ export async function requestJson(url, options = {}) {
 
   const requestHeaders = {
     ...headers,
-    ...(body !== undefined
-      ? jsonHeaders(token)
-      : token
-        ? { Authorization: `Bearer ${token}` }
-        : {}),
+    ...(body !== undefined ? jsonHeaders() : {}),
   };
+
+  const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase());
+  if (isMutation) {
+    requestHeaders['X-CSRF-Token'] = await getCsrfToken();
+  }
 
   const requestInit = {
     method,

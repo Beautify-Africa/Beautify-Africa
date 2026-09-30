@@ -22,12 +22,12 @@ function getStripe() {
  * @param {Number} amountInCents - Order total in smallest currency unit (cents)
  * @param {Object} metadata - Useful ID payload (e.g. orderId) to be returned in webhooks
  */
-async function createPaymentIntent(amountInCents, metadata) {
+async function createPaymentIntent(amountInCents, metadata, currency = 'usd') {
   const stripe = getStripe();
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amountInCents,
-    currency: 'usd', // Usually standard for testing
+    currency: String(currency || 'usd').toLowerCase(),
     metadata,
     automatic_payment_methods: {
       enabled: true, // Enables elements in front-end
@@ -35,6 +35,11 @@ async function createPaymentIntent(amountInCents, metadata) {
   });
 
   return paymentIntent;
+}
+
+/** Retrieve the provider-authoritative state of a PaymentIntent. */
+async function retrievePaymentIntent(paymentIntentId) {
+  return getStripe().paymentIntents.retrieve(paymentIntentId);
 }
 
 /**
@@ -51,5 +56,6 @@ function constructWebhookEvent(rawBody, signature, secret) {
 
 module.exports = {
   createPaymentIntent,
+  retrievePaymentIntent,
   constructWebhookEvent,
 };

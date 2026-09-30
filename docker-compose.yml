@@ -11,8 +11,8 @@ services:
     env_file:
       - ./Back-End/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/beautify_africa}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      REDIS_URL: ${REDIS_URL:?REDIS_URL must be set}
       NODE_ENV: production
     restart: unless-stopped
     depends_on:
@@ -43,8 +43,11 @@ services:
   redis:
     image: redis:7-alpine
     container_name: beautify_redis
-    ports:
-      - '6379:6379'
+    # No host port binding — only reachable by backend within internal Docker network
+    user: "999:999"
+    read_only: true
+    tmpfs:
+      - /tmp
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
@@ -58,16 +61,15 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: beautify_postgres
+    # No host port binding — only reachable by backend within internal Docker network
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-beautify_africa}
-    ports:
-      - '5432:5432'
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d beautify_africa']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
       timeout: 3s
       retries: 10

@@ -45,7 +45,11 @@ const dialectOptions = {
     : {
         ssl: {
           require: true,
-          rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true',
+          rejectUnauthorized:
+            process.env.NODE_ENV === 'test'
+              ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
+              : process.env.PG_SSL_REJECT_UNAUTHORIZED !== 'false' ||
+                ['production', 'staging'].includes(process.env.NODE_ENV),
         },
       }),
 };
@@ -157,6 +161,8 @@ sequelize = createSequelizeInstance(true);
 
 const connectDB = async () => {
   const activeUrl = process.env.DATABASE_URL;
+  const env = process.env.NODE_ENV || 'development';
+  const isProdLike = ['production', 'staging'].includes(env);
 
   if (!activeUrl || !isValidUrl(activeUrl)) {
     throw new Error(
@@ -164,46 +170,56 @@ const connectDB = async () => {
     );
   }
 
-  try {
-    try {
-      await sequelize.authenticate();
-    } catch (authError) {
-      // If replica was configured and failed, fallback to standalone primary connection
-      if (rawReadDbUrl || dbReadHost) {
-        console.warn(
-          '[DB] Read replica unreachable or authentication failed. Falling back to primary cluster:',
-          authError.message
-        );
-        sequelize = createSequelizeInstance(false);
-        await sequelize.authenticate();
-      } else {
-        throw authError;
-      }
-    }
-
-    console.log('PostgreSQL Connected (Supabase)');
-
-    // In production and enterprise environments, migrations should be run via 'npm run migrate'.
-    // Runtime sync is only performed if explicitly opted into via DB_SYNC=true.
-    if (process.env.DB_SYNC === 'true') {
-      await sequelize.sync();
-      console.log('Database schema synced via DB_SYNC');
-    }
-
-    return sequelize;
-  } catch (error) {
-    let hint = '';
-
-    if (error.message.includes('authentication') || error.message.includes('password')) {
-      hint = ' Check your DATABASE_URL credentials.';
-    } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-      hint = ' Verify the PostgreSQL host and your network connectivity.';
-    } else if (error.message.includes('SSL')) {
-      hint = ' Check SSL settings for your PostgreSQL provider.';
-    }
-
-    throw new Error(`PostgreSQL connection failed: ${error.message}${hint}`);
+  // --- P0.2 Startup TLS Enforcement ---
+  // In production/staging, rejectUnauthorized must be true. If someone explicitly sets
+  // PG_SSL_REJECT_UNAUTHORIZED=false in a production environment, fail immediately with
+  // a clear message rather than silently accepting unverified certificates.
+  if (isProdLike && !isLocal && process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false') {
+    throw new Error(
+      '[SECURITY] PG_SSL_REJECT_UNAUTHORIZED=false is not permitted in production or staging environments. ' +
+      'Enable TLS certificate verification or use a local DATABASE_URL to bypass SSL for development.'
+    );
   }
+
+  // Log TLS mode at startup (without printing the connection string)
+  if (!isLocal) {
+    const rejectUnauth =
+      env === 'test'
+        ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
+        : process.env.PG_SSL_REJECT_UNAUTHORIZED !== 'false' || isProdLike;
+    console.log(
+      `[DB] TLS mode: SSL required=true, rejectUnauthorized=${rejectUnauth}, env=${env}`
+    );
+  } else {
+    console.log(`[DB] TLS mode: SSL disabled (local connection), env=${env}`);
+  }
+
+  try {
+    await sequelize.authenticate();
+  } catch (authError) {
+    // If replica was configured and failed, fallback to standalone primary connection
+    if (rawReadDbUrl || dbReadHost) {
+      console.warn(
+        '[DB] Read replica unreachable or authentication failed. Falling back to primary cluster:',
+        authError.message
+      );
+      sequelize = createSequelizeInstance(false);
+      await sequelize.authenticate();
+    } else {
+      throw authError;
+    }
+  }
+
+  console.log('PostgreSQL Connected (Supabase)');
+
+  // In production and enterprise environments, migrations should be run via 'npm run migrate'.
+  // Runtime sync is only performed if explicitly opted into via DB_SYNC=true.
+  if (process.env.DB_SYNC === 'true') {
+    await sequelize.sync();
+    console.log('Database schema synced via DB_SYNC');
+  }
+
+  return sequelize;
 };
 
 module.exports = { sequelize, connectDB };

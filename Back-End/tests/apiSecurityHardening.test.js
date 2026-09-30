@@ -226,6 +226,13 @@ describe('API & Backend Security Hardening Suite', () => {
       expect(acceptedRes.status).toBe(200);
       expect(acceptedRes.body.status).toBe('mutated');
     });
+
+    test('rejects state-changing requests when the CSRF cookie is absent', async () => {
+      const res = await request(csrfApp).post('/api/test-mutation').send({});
+
+      expect(res.status).toBe(403);
+      expect(res.body.code).toBe('CSRF_TOKEN_MISMATCH');
+    });
   });
 
   describe('5. File Upload Restrictions', () => {

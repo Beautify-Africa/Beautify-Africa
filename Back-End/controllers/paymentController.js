@@ -6,6 +6,25 @@ const paymentGatewayService = require('../services/paymentGatewayService');
 const currencyService = require('../services/currencyService');
 const logger = require('../utils/logger');
 
+async function findAuthorizedOrder(orderId, user) {
+  const order = await Order.findByPk(orderId, {
+    include: [
+      { model: OrderItem, as: 'orderItems' },
+      { model: OrderShippingAddress, as: 'shippingAddress' },
+    ],
+  });
+
+  if (!order) return { order: null, error: 'ORDER_NOT_FOUND' };
+  if (!user || String(order.userId || '') !== String(user.id || user._id || '')) {
+    return { order: null, error: 'ORDER_ACCESS_DENIED' };
+  }
+  if (order.isPaid || ['cancelled', 'refunded'].includes(order.fulfillmentStatus)) {
+    return { order: null, error: 'ORDER_NOT_PAYABLE' };
+  }
+
+  return { order };
+}
+
 /**
  * Initialize payment across Stripe, Paystack, or M-Pesa.
  * Can accept either an existing orderId or (orderItems + shippingAddress) to create an order atomically.
@@ -26,16 +45,17 @@ const initializePayment = async (req, res) => {
     let targetOrder = null;
 
     if (orderId) {
-      targetOrder = await Order.findByPk(orderId, {
-        include: [
-          { model: OrderItem, as: 'orderItems' },
-          { model: OrderShippingAddress, as: 'shippingAddress' },
-        ],
-      });
-
-      if (!targetOrder) {
-        return res.status(404).json({ status: 'error', message: `Order ${orderId} not found` });
+      const authorizedOrder = await findAuthorizedOrder(orderId, req.user);
+      if (authorizedOrder.error === 'ORDER_NOT_FOUND') {
+        return res.status(404).json({ status: 'error', message: 'Order not found' });
       }
+      if (authorizedOrder.error === 'ORDER_ACCESS_DENIED') {
+        return res.status(403).json({ status: 'error', message: 'Order access denied' });
+      }
+      if (authorizedOrder.error === 'ORDER_NOT_PAYABLE') {
+        return res.status(409).json({ status: 'error', message: 'Order is not payable' });
+      }
+      targetOrder = authorizedOrder.order;
     } else {
       // Validate order items and shipping address if creating order on initialize
       if (!orderItems || orderItems.length === 0) {
@@ -173,6 +193,19 @@ const verifyPayment = async (req, res) => {
   try {
     const { gateway, reference } = req.params;
     const { orderId } = req.query;
+
+    if (orderId) {
+      const authorizedOrder = await findAuthorizedOrder(orderId, req.user);
+      if (authorizedOrder.error === 'ORDER_NOT_FOUND') {
+        return res.status(404).json({ status: 'error', message: 'Order not found' });
+      }
+      if (authorizedOrder.error === 'ORDER_ACCESS_DENIED') {
+        return res.status(403).json({ status: 'error', message: 'Order access denied' });
+      }
+      if (authorizedOrder.error === 'ORDER_NOT_PAYABLE') {
+        return res.status(409).json({ status: '409', message: 'Order is not payable' });
+      }
+    }
 
     const result = await paymentGatewayService.verifyPayment({
       gateway,

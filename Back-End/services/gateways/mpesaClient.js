@@ -25,10 +25,12 @@ class MpesaClient {
 
   isConfigured() {
     return Boolean(
-      this.consumerKey &&
+        this.consumerKey &&
         this.consumerSecret &&
         !this.consumerKey.includes('your-') &&
-        !this.consumerSecret.includes('your-')
+        !this.consumerSecret.includes('your-') &&
+        !this.consumerKey.includes('replace_with') &&
+        !this.consumerSecret.includes('replace_with')
     );
   }
 

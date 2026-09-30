@@ -1,41 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <!-- Rich amber-to-brown gradient for the background -->
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#78350f"/>
-      <stop offset="50%" stop-color="#92400e"/>
-      <stop offset="100%" stop-color="#451a03"/>
-    </linearGradient>
-    <!-- Warm gold shimmer for the letter -->
-    <linearGradient id="letter" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fef3c7"/>
-      <stop offset="35%" stop-color="#fbbf24"/>
-      <stop offset="65%" stop-color="#d97706"/>
-      <stop offset="100%" stop-color="#b45309"/>
-    </linearGradient>
-    <!-- Subtle inner glow -->
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <!--
+    Beautify Africa favicon
+    • Transparent background
+    • Logo fills 95%+ of the canvas (edge to edge with ~10px safe margin)
+    • Brighter brand colour: #c2410c (warm amber-orange) — pops in any tab
+    • Thick strokes for maximum visibility at small sizes
+  -->
 
-  <!-- Background rounded square -->
-  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <g fill="none" stroke="#c2410c" stroke-linecap="round" stroke-linejoin="round">
 
-  <!-- Subtle border highlight -->
-  <rect x="4" y="4" width="504" height="504" rx="92" ry="92" fill="none" stroke="#d97706" stroke-width="2" opacity="0.25"/>
+    <!-- ══════════════════════════════
+         LIPS — spans full width 8→465
+         Upper lip y-centre ~235, lower lip bottom ~420
+    ══════════════════════════════ -->
 
-  <!-- Letter B — elegant serif style -->
-  <text
-    x="256"
-    y="395"
-    text-anchor="middle"
-    font-family="'Playfair Display', 'Georgia', 'Times New Roman', serif"
-    font-weight="700"
-    font-size="420"
-    fill="url(#letter)"
-    filter="url(#glow)"
-    letter-spacing="-10"
-  >B</text>
+    <!-- Upper lip (cupid's bow) -->
+    <path stroke-width="28"
+      d="M 8,238
+         C 38,192 100,172 158,190
+         C 196,203 218,232 240,236
+         C 262,240 286,214 326,200
+         C 370,184 424,196 462,236"/>
+
+    <!-- Lower lip -->
+    <path stroke-width="28"
+      d="M 8,238
+         C 36,302 128,372 240,378
+         C 354,384 440,322 468,250"/>
+
+    <!-- Cupid's bow inner divot -->
+    <path stroke-width="18"
+      d="M 210,198
+         C 222,216 233,228 240,236"/>
+
+    <!-- ══════════════════════════════
+         CURSIVE 'b'
+         Starts at right lip corner (~462, 236).
+         Stem rises to ~y=90, hooks left then descends into a
+         clean, single oval bowl.
+    ══════════════════════════════ -->
+
+    <!-- Stem: rises from lip, loops up-left at top -->
+    <path stroke-width="28"
+      d="M 462,236
+         C 466,206 470,166 464,134
+         C 458,104 442,86 420,84
+         C 396,82 376,100 378,128"/>
+
+    <!-- Bowl: descends from hook and sweeps a clean oval -->
+    <path stroke-width="28"
+      d="M 378,128
+         C 372,156 370,188 382,214
+         C 396,242 424,258 450,248
+         C 478,236 488,204 480,172
+         C 470,136 438,116 404,126
+         C 376,134 360,160 362,188
+         C 364,218 384,242 410,250
+         C 436,258 464,246 474,224"/>
+
+    <!-- ══════════════════════════════
+         SPARKLE — 4-pointed diamond star
+         Centred at (486, 66) — top-right corner
+    ══════════════════════════════ -->
+
+    <!-- Vertical arm -->
+    <line stroke-width="18" x1="486" y1="34"  x2="486" y2="98"/>
+    <!-- Horizontal arm -->
+    <line stroke-width="18" x1="454" y1="66"  x2="492" y2="66"/>
+
+    <!-- The sparkle in the original logo is a 4-point star,
+         NOT an ×. The diagonals are SHORTER, giving a clean diamond cross. -->
+    <line stroke-width="11" x1="464" y1="44"  x2="492" y2="72"/>
+    <line stroke-width="11" x1="492" y1="44"  x2="464" y2="72"/>
+
+  </g>
 </svg>

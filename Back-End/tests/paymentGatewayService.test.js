@@ -154,6 +154,80 @@ describe('Payment Gateway Service Orchestrator', () => {
   });
 
   describe('processPaymentSuccess', () => {
+    it('rejects a payment reference that is not bound to the order', async () => {
+      const mockOrder = {
+        id: 'order-bound',
+        isPaid: false,
+        paymentGateway: 'paystack',
+        gatewayReference: 'pstk_expected',
+        totalPrice: 50,
+        save: jest.fn(),
+      };
+
+      Order.findByPk.mockResolvedValue(mockOrder);
+
+      await expect(
+        paymentGatewayService.processPaymentSuccess({
+          orderId: 'order-bound',
+          gateway: 'paystack',
+          reference: 'pstk_other',
+          amount: 50,
+        })
+      ).rejects.toThrow(/reference does not match/i);
+      expect(mockOrder.save).not.toHaveBeenCalled();
+      expect(processPurchase).not.toHaveBeenCalled();
+    });
+
+    it('rejects a provider amount that does not match the order total', async () => {
+      const mockOrder = {
+        id: 'order-amount',
+        isPaid: false,
+        paymentGateway: 'stripe',
+        gatewayReference: 'pi_expected',
+        totalPrice: 50,
+        save: jest.fn(),
+      };
+
+      Order.findByPk.mockResolvedValue(mockOrder);
+
+      await expect(
+        paymentGatewayService.processPaymentSuccess({
+          orderId: 'order-amount',
+          gateway: 'stripe',
+          reference: 'pi_expected',
+          amount: 500,
+        })
+      ).rejects.toThrow(/amount does not match/i);
+      expect(mockOrder.save).not.toHaveBeenCalled();
+      expect(processPurchase).not.toHaveBeenCalled();
+    });
+
+    it('rejects webhook payment metadata for a different order', async () => {
+      const mockOrder = {
+        id: 'order-metadata',
+        isPaid: false,
+        paymentGateway: 'stripe',
+        gatewayReference: 'pi_metadata',
+        totalPrice: 50,
+        save: jest.fn(),
+      };
+
+      Order.findByPk.mockResolvedValue(mockOrder);
+
+      await expect(
+        paymentGatewayService.processPaymentSuccess({
+          orderId: 'order-metadata',
+          gateway: 'stripe',
+          reference: 'pi_metadata',
+          amount: 50,
+          eventId: 'evt-metadata',
+          paymentDetails: { metadata: { orderId: 'different-order' } },
+        })
+      ).rejects.toThrow(/metadata does not match/i);
+      expect(mockOrder.save).not.toHaveBeenCalled();
+      expect(processPurchase).not.toHaveBeenCalled();
+    });
+
     it('marks order as paid, deducts inventory, and records timeline audit', async () => {
       const mockOrder = {
         id: 'order-789',

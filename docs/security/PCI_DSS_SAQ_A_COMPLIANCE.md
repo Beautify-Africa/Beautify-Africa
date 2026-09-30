@@ -71,8 +71,10 @@ sequenceDiagram
 | Requirement | Description | Beautify Africa Status |
 | :--- | :--- | :--- |
 | **Req 2.2** | System configuration standards developed and followed | Compliant (Containerized & hardened) |
-| **Req 6.3** | Security patches installed within defined timeframe | Compliant (CI automated dependency audits) |
-| **Req 6.4.3** | Manage all payment page scripts to ensure integrity | Compliant (Strict CSP + Subresource Integrity) |
-| **Req 8.2** | User identification and authentication management | Compliant (Argon2/Bcrypt + TOTP 2FA + Token Versioning) |
-| **Req 11.6.1** | Tamper-detection mechanism on payment pages | Compliant (Content Security Policy violation reports) |
+| **Req 6.3** | Security patches installed within defined timeframe | Pending (npm audit not yet wired into CI; manual review required until automated) |
+| **Req 6.4.3** | Manage all payment page scripts to ensure integrity | Partial (Strict CSP deployed; SRI hashes **not** implemented — scripts loaded from trusted CDNs under CSP allowlist) |
+| **Req 8.2** | User identification and authentication management | Compliant (**bcrypt** password hashing + TOTP 2FA + Token Versioning; note: Argon2 is NOT used) |
+| **Req 11.6.1** | Tamper-detection mechanism on payment pages | Partial (CSP enforced; violation **report-uri** endpoint not yet configured — add a `report-uri` directive and log collector before claiming full compliance) |
 | **Req 12.8** | Maintain list of third-party service providers (TPSPs) | Compliant (Stripe, Paystack, Safaricom) |
+
+> **Note:** This document reflects the current implementation state. Claims marked *Partial* or *Pending* must not be used in a formal PCI attestation until the described gaps are resolved and independently verified.

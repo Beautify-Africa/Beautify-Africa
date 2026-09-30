@@ -9,6 +9,7 @@ import {
   logoutUser,
 } from '../services/authApi';
 import { AuthContext } from './auth-context';
+import { COOKIE_SESSION_ACTIVE } from '../services/apiConfig';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -30,9 +31,7 @@ export function AuthProvider({ children }) {
       .then((data) => {
         if (data?.user) {
           setUser(data.user);
-          if (data.token) {
-            setToken(data.token);
-          }
+          setToken(COOKIE_SESSION_ACTIVE);
         } else {
           setUser(null);
           setToken(null);
@@ -59,7 +58,7 @@ export function AuthProvider({ children }) {
     clearError();
     try {
       const data = await registerUser(userData);
-      setToken(data.token || null);
+      setToken(data.user ? COOKIE_SESSION_ACTIVE : null);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -79,7 +78,7 @@ export function AuthProvider({ children }) {
       if (data?.require2FA) {
         return data;
       }
-      setToken(data.token || null);
+      setToken(data.user ? COOKIE_SESSION_ACTIVE : null);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -99,7 +98,7 @@ export function AuthProvider({ children }) {
       if (data?.require2FA) {
         return data;
       }
-      setToken(data.token || null);
+      setToken(data.user ? COOKIE_SESSION_ACTIVE : null);
       setUser(data.user);
       setIsRestoringSession(false);
       return data;
@@ -116,7 +115,7 @@ export function AuthProvider({ children }) {
     clearError();
     try {
       if (!user) throw new Error('Not authenticated');
-      const data = await updateUser(userData, token);
+      const data = await updateUser(userData);
       setUser(data.user);
       return data;
     } catch (err) {

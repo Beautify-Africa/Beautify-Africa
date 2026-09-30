@@ -78,7 +78,7 @@ describe('POST /api/auth/admin-login', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe('success');
-    expect(response.body.token).toBeTruthy();
+    expect(response.body.token).toBeUndefined();
     expect(response.body.user.email).toBe(ADMIN_EMAIL);
     expect(response.body.user.isAdmin).toBe(true);
 

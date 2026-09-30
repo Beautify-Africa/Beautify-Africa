@@ -12,6 +12,10 @@ class MpesaAdapter extends MpesaClient {
     this.name = 'mpesa';
   }
 
+  isMockMode() {
+    return process.env.NODE_ENV === 'test' && process.env.ALLOW_MOCK_PAYMENTS === 'true';
+  }
+
   /**
    * Initiate M-Pesa STK Push prompt directly to customer's handset
    */
@@ -25,7 +29,7 @@ class MpesaAdapter extends MpesaClient {
 
     const amount = Math.max(1, Math.round(Number(order.totalPrice)));
 
-    if (!this.isConfigured()) {
+    if (this.isMockMode()) {
       const checkoutRequestId = `mock_ws_CO_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
       logger.info(
         { orderId: order.id, phone: formattedPhone, amount, checkoutRequestId },
@@ -42,6 +46,10 @@ class MpesaAdapter extends MpesaClient {
         status: 'pending_pin',
         customerMessage: `An M-Pesa prompt for KSh ${amount.toLocaleString()} has been sent to +${formattedPhone}. Please check your phone and enter your M-Pesa PIN.`,
       };
+    }
+
+    if (!this.isConfigured()) {
+      throw new Error('M-Pesa is not configured');
     }
 
     try {
@@ -119,7 +127,7 @@ class MpesaAdapter extends MpesaClient {
    * Query M-Pesa STK Push transaction status from Daraja
    */
   async verifyTransaction(checkoutRequestId) {
-    if (!this.isConfigured() || checkoutRequestId.startsWith('mock_ws_CO_')) {
+    if (this.isMockMode() && checkoutRequestId.startsWith('mock_ws_CO_')) {
       return {
         success: true,
         reference: checkoutRequestId,
@@ -127,6 +135,10 @@ class MpesaAdapter extends MpesaClient {
         status: 'completed',
         receiptNumber: `NL${Date.now().toString().substring(5)}`,
       };
+    }
+
+    if (!this.isConfigured()) {
+      throw new Error('M-Pesa is not configured');
     }
 
     try {

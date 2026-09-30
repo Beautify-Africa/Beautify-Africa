@@ -6,7 +6,8 @@ const { isAdminUser, buildJwtBlacklistKey } = require('../services/authService')
 
 async function findAuthUserById(userId) {
   return User.findByPk(userId, {
-    attributes: ['id', 'name', 'email', 'createdAt', 'isAdmin', 'role'],
+    // tokenVersion is required to enforce password-reset and revoke-all-sessions invalidation.
+    attributes: ['id', 'name', 'email', 'createdAt', 'isAdmin', 'role', 'tokenVersion'],
     raw: true,
   });
 }

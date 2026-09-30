@@ -16,7 +16,15 @@ class PaystackAdapter {
   }
 
   isConfigured() {
-    return Boolean(this.secretKey && !this.secretKey.includes('your-'));
+    return Boolean(
+      this.secretKey &&
+        !this.secretKey.includes('your-') &&
+        !this.secretKey.includes('replace_with')
+    );
+  }
+
+  isMockMode() {
+    return process.env.NODE_ENV === 'test' && process.env.ALLOW_MOCK_PAYMENTS === 'true';
   }
 
   /**
@@ -27,7 +35,7 @@ class PaystackAdapter {
     let chargeCurrency = (currency || 'KES').toUpperCase();
     let amountInSubunits = Math.round(Number(order.totalPrice) * 100);
 
-    if (!this.isConfigured()) {
+    if (this.isMockMode()) {
       logger.info(
         { orderId: order.id, currency: chargeCurrency, reference },
         'Paystack initialized in development/mock mode'
@@ -41,6 +49,10 @@ class PaystackAdapter {
         accessCode: `mock_code_${reference}`,
         status: 'pending',
       };
+    }
+
+    if (!this.isConfigured()) {
+      throw new Error('Paystack is not configured');
     }
 
     try {
@@ -122,7 +134,7 @@ class PaystackAdapter {
    * Verify transaction status with Paystack
    */
   async verifyTransaction(reference) {
-    if (!this.isConfigured() || reference.startsWith('mock_')) {
+    if (this.isMockMode() && reference.startsWith('mock_')) {
       return {
         success: true,
         reference,
@@ -130,6 +142,10 @@ class PaystackAdapter {
         status: 'success',
         amount: null,
       };
+    }
+
+    if (!this.isConfigured()) {
+      throw new Error('Paystack is not configured');
     }
 
     try {
@@ -151,7 +167,9 @@ class PaystackAdapter {
         gateway: 'paystack',
         status: data.data.status,
         amount: data.data.amount / 100,
+        currency: data.data.currency,
         orderId: data.data.metadata?.orderId,
+        metadata: data.data.metadata,
       };
     } catch (err) {
       logger.error({ err: err.message, reference }, 'Paystack verification error');
@@ -185,6 +203,8 @@ class PaystackAdapter {
       if (hashBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hashBuf, sigBuf)) {
         throw new Error('Invalid Paystack webhook signature');
       }
+    } else if (!this.isMockMode()) {
+      throw new Error('Paystack is not configured');
     }
 
     let payload;
@@ -205,6 +225,9 @@ class PaystackAdapter {
       isSuccessful: payload.event === 'charge.success',
       orderId: payload.data?.metadata?.orderId,
       reference: payload.data?.reference,
+      amount: payload.data?.amount === undefined ? undefined : payload.data.amount / 100,
+      currency: payload.data?.currency,
+      metadata: payload.data?.metadata,
     };
   }
 }

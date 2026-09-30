@@ -34,19 +34,17 @@ export async function fetchMyOrders(token, requestOptions = {}) {
 }
 
 /**
- * Fetch single order details by ID (authenticated user or guest with email verification).
+ * Fetch single order details by ID for the authenticated owner or an administrator.
  * @param {string} orderId - The order UUID.
  * @param {string|null} token - Optional JWT token.
- * @param {string|null} guestEmail - Optional email for guest verification.
  */
 export async function fetchOrderById(
   orderId,
   token = null,
-  guestEmail = null,
   requestOptions = {}
 ) {
-  const query = guestEmail ? `?email=${encodeURIComponent(guestEmail)}` : '';
-  const json = await requestJson(`${API_URL}/orders/${orderId}${query}`, {
+  if (!token) throw new Error('Authentication token required to fetch an order.');
+  const json = await requestJson(`${API_URL}/orders/${orderId}`, {
     ...requestOptions,
     token,
     cache: 'no-store',

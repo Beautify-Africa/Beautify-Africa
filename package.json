@@ -43,6 +43,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
+  "overrides": {
+    "vite": "7.3.6"
+  },
   "devDependencies": {
     "concurrently": "^9.1.2",
     "prettier": "^3.5.3",

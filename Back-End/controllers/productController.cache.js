@@ -21,7 +21,15 @@ function normalizeCacheValue(value) {
   return value;
 }
 
+function isRedisReady() {
+  return Boolean(redisClient && redisClient.status === 'ready');
+}
+
 async function getProductCacheVersion() {
+  if (!isRedisReady()) {
+    return null;
+  }
+
   try {
     const existingVersion = await redisClient.get(PRODUCT_CACHE_VERSION_KEY);
     if (existingVersion) {
@@ -46,7 +54,7 @@ async function buildVersionedCacheKey(scope, query = {}) {
 }
 
 async function readCache(key) {
-  if (!key) return null;
+  if (!key || !isRedisReady()) return null;
 
   try {
     const cachedData = await redisClient.get(key);
@@ -58,7 +66,7 @@ async function readCache(key) {
 }
 
 async function writeCache(key, payload, ttlSeconds) {
-  if (!key) return;
+  if (!key || !isRedisReady()) return;
 
   try {
     await redisClient.set(key, JSON.stringify(payload), 'EX', ttlSeconds);
@@ -68,6 +76,8 @@ async function writeCache(key, payload, ttlSeconds) {
 }
 
 async function bumpProductCacheVersion() {
+  if (!isRedisReady()) return;
+
   try {
     await redisClient.incr(PRODUCT_CACHE_VERSION_KEY);
   } catch (error) {
