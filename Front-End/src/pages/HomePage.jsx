@@ -23,10 +23,10 @@ export default function HomePage({ onOpenCart }) {
   return (
     <>
       <Seo
-        title="Beautify Africa | Premium African Beauty & Skincare"
-        description="Discover luxurious African-inspired skincare, makeup, and beauty essentials. Ethically sourced ingredients celebrating the richness of African beauty traditions."
+        title="Beautify Africa | Premium Global Beauty & Cosmetics"
+        description="Discover top global beauty, vibrant makeup, and luxury skincare essentials. Curated for every skin tone, type, and texture with 100% cruelty-free formulas."
         path="/"
-        imageAlt="Beautify Africa - Premium African Beauty Products"
+        imageAlt="Beautify Africa - Premium Global Beauty & Cosmetics Products"
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'Organization',
@@ -34,7 +34,7 @@ export default function HomePage({ onOpenCart }) {
           url: 'https://beautify-africa.com',
           logo: 'https://beautify-africa.com/logo.png',
           description:
-            'Premium African beauty and skincare products with ethically sourced ingredients celebrating African beauty traditions',
+            'World-class cosmetics and premium skincare curated for every shade, tone, and skin type.',
           sameAs: [
             'https://www.instagram.com/beautifyafrica',
             'https://www.tiktok.com/@beautifyafrica',

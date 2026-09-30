@@ -6,8 +6,8 @@
 export const PROMO_BANNERS = [
   {
     id: 1,
-    headline: 'Summer Glow Sale',
-    subtext: 'Up to 40% off on all skincare essentials',
+    headline: 'Global Beauty Favorites',
+    subtext: 'Up to 40% off on all skincare and makeup essentials',
     cta: 'Shop Now',
     ctaLink: '#',
     badge: 'LIMITED TIME',
@@ -19,7 +19,7 @@ export const PROMO_BANNERS = [
   {
     id: 2,
     headline: 'Buy 2, Get 1 Free',
-    subtext: 'Mix & match across our entire makeup collection',
+    subtext: 'Mix & match across our entire makeup and cosmetics range',
     cta: 'Explore Deals',
     ctaLink: '#',
     badge: 'EXCLUSIVE OFFER',
@@ -30,9 +30,9 @@ export const PROMO_BANNERS = [
   },
   {
     id: 3,
-    headline: 'New Arrivals Drop',
-    subtext: 'The Velvet Botanique collection is finally here',
-    cta: 'Discover',
+    headline: 'New Complexion Drop',
+    subtext: 'Over 50 inclusive shades of foundation and concealer have landed',
+    cta: 'Discover Shades',
     ctaLink: '#',
     badge: 'JUST LAUNCHED',
     image:
@@ -42,11 +42,11 @@ export const PROMO_BANNERS = [
   },
   {
     id: 4,
-    headline: 'Free Shipping Weekend',
-    subtext: 'No minimum order — this weekend only',
+    headline: 'Fast Global Shipping',
+    subtext: 'Get your beauty essentials delivered quickly to your doorstep',
     cta: 'Start Shopping',
     ctaLink: '#',
-    badge: 'THIS WEEKEND',
+    badge: 'WORLDWIDE DELIVERY',
     image:
       'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1200&auto=format&fit=crop',
     gradient: 'from-emerald-900 via-stone-900 to-stone-800',

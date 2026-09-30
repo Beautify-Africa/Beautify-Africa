@@ -1,70 +1,71 @@
+import topBrandsImg from '../assets/trust_top_brands.jpg';
+import provenResultsImg from '../assets/trust_proven_results.jpg';
+import skinTonesImg from '../assets/trust_skin_tones.jpg';
+import crueltyFreeImg from '../assets/trust_cruelty_free.jpg';
+import fastShippingImg from '../assets/trust_fast_shipping.jpg';
+import easyReturnsImg from '../assets/trust_easy_returns.jpg';
+import beautySupportImg from '../assets/trust_beauty_support.jpg';
+
 /**
  * Trust/USP section configuration
  * Unique selling propositions and brand values
  */
 
 export const USP_CONTENT = {
-  tagline: 'The Beautify Promise',
-  heading: 'Why Conscious Beauty Matters',
+  tagline: 'Why Choose Beautify',
+  heading: 'The Beauty Experience You Deserve',
   description:
-    'Every product we create is a testament to our unwavering commitment to ethics, efficacy, and elegance.',
+    'From world-renowned brands and inclusive shade ranges to expert support and cruelty-free ethics, discover what makes us your ultimate beauty destination.',
 };
 
 export const TRUST_ITEMS = [
   {
-    id: 'ethically-sourced',
-    label: 'Ethically Sourced',
-    image:
-      'https://images.unsplash.com/photo-1500673922987-e212871fec22?q=80&w=1000&auto=format&fit=crop',
-    desc: 'True luxury respects its roots. We maintain direct partnerships with sustainable growers and certified suppliers across the globe to ensure that every botanical ingredient is harvested with integrity.',
+    id: 'top-global-brands',
+    label: 'Top Global Brands',
+    image: topBrandsImg,
+    desc: 'From everyday makeup to luxury skincare, we bring you the world’s best beauty products all in one place.',
     className: 'md:col-span-2 md:row-span-2',
   },
   {
-    id: 'dermatologist-tested',
-    label: 'Dermatologist Tested',
-    image:
-      'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800&auto=format&fit=crop',
-    desc: 'Every Beautify masterpiece undergoes rigorous clinical assessment and sensitivity testing under strict dermatological supervision.',
+    id: 'proven-results',
+    label: 'Proven Results',
+    image: provenResultsImg,
+    desc: 'We only stock products known for real results, long-lasting wear, and vibrant colors you can count on.',
     className: 'md:col-span-1 md:row-span-2',
   },
   {
-    id: 'cruelty-free',
-    label: 'Cruelty-Free',
-    image:
-      'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=800&auto=format&fit=crop',
-    desc: 'We believe that true beauty should never come at the cost of another living being. Our commitment is absolute.',
+    id: 'every-skin-tone',
+    label: 'For Every Skin Tone',
+    image: skinTonesImg,
+    desc: 'Beauty without boundaries. We offer a massive range of shades and formulas to match every skin type, tone, and texture.',
     className: 'md:col-span-1 md:row-span-1',
   },
   {
-    id: 'vegan-formulation',
-    label: 'Vegan Formulation',
-    image:
-      'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800&auto=format&fit=crop',
-    desc: 'Our formulas are crafted exclusively using high-performance botanical extracts and safe synthetic innovations.',
+    id: 'cruelty-free',
+    label: '100% Cruelty-Free',
+    image: crueltyFreeImg,
+    desc: 'We only partner with brands that love animals as much as we do. Zero animal testing, ever.',
     className: 'md:col-span-1 md:row-span-1',
   },
   {
     id: 'global-shipping',
-    label: 'Global Shipping',
-    image:
-      'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Distance should never be a barrier to elegance. We offer complimentary carbon-neutral shipping worldwide.',
+    label: 'Fast Global Shipping',
+    image: fastShippingImg,
+    desc: 'Get your beauty essentials delivered quickly and securely to your door, no matter where you live.',
     className: 'md:col-span-1 md:row-span-1',
   },
   {
-    id: 'satisfaction-guarantee',
-    label: 'Satisfaction Guarantee',
-    image:
-      'https://images.unsplash.com/photo-1455849318743-b2233052fcff?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Skincare is a personal journey. Experience the Beautify ritual risk-free with our 60-day return policy.',
+    id: 'easy-returns',
+    label: 'Easy Returns',
+    image: easyReturnsImg,
+    desc: 'Didn’t find your perfect match? Send it back hassle-free for a full refund or exchange.',
     className: 'md:col-span-1 md:row-span-1',
   },
   {
-    id: 'support-24-7',
-    label: '24/7 Support',
-    image:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Our team of expert beauty advisors is available around the clock to assist with your ritual and orders.',
+    id: 'beauty-support',
+    label: '24/7 Beauty Support',
+    image: beautySupportImg,
+    desc: 'Need help finding your shade or building a skincare routine? Our beauty experts are ready to help anytime.',
     className: 'md:col-span-2 md:row-span-1',
   },
 ];

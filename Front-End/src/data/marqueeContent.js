@@ -4,7 +4,7 @@
  */
 
 export const MARQUEE_TEXT =
-  'Intentional Beauty. Transparent Science. Unapologetic Luxury. Every drop is a promise kept to your skin. ';
+  'Top Global Brands • Vibrant Long-Lasting Colors • 100% Cruelty-Free • For Every Skin Tone & Texture • Luxury Skincare & Everyday Makeup Essentials • ';
 
 export const MARQUEE_CONFIG = {
   repeatCount: 4, // Times to repeat text in each block

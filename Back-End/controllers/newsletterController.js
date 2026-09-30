@@ -4,6 +4,10 @@ const validator = require('validator');
 const { Op } = require('sequelize');
 const Newsletter = require('../models/Newsletter');
 const sendEmail = require('../utils/sendEmail');
+const {
+  generateWelcomeNewsletterEmail,
+  generateNewsletterUnsubscribeEmail,
+} = require('../services/emailTemplates');
 
 const UNSUBSCRIBE_REQUEST_SUCCESS_MESSAGE =
   'If that email is subscribed, we have sent an unsubscribe link.';
@@ -83,48 +87,18 @@ const subscribeNewsletter = async (req, res) => {
     const newSubscriber = await Newsletter.create({ email: normalizedEmail });
     const manageNewsletterLink = buildNewsletterManageLink();
 
-    // HTML Email Template
-    const emailHtml = `
-      <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; color: #1c1917; padding: 20px; border: 1px solid #e7e5e4;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #451a03; font-size: 28px; font-weight: normal; margin: 0; letter-spacing: 2px;">BEAUTIFY AFRICA</h1>
-          <p style="text-transform: uppercase; letter-spacing: 4px; font-size: 10px; color: #78716c; margin-top: 5px;">Skincare Excellence</p>
-        </div>
-
-        <p style="font-size: 16px; line-height: 1.6; color: #44403c;">Hello,</p>
-
-        <p style="font-size: 16px; line-height: 1.6; color: #44403c;">
-          Thank you for subscribing to the Beautify Africa newsletter! We are thrilled to welcome you to our community.
-        </p>
-
-        <p style="font-size: 16px; line-height: 1.6; color: #44403c;">
-          You are now on the exclusive list to receive our latest product launches, skincare secrets, and VIP promotional offers directly in your inbox.
-        </p>
-
-        <div style="text-align: center; margin: 40px 0;">
-          <a href="${getClientApplicationUrl()}/shop" style="background-color: #1c1917; color: #ffffff; padding: 14px 30px; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; font-weight: bold; display: inline-block;">
-            Shop Collection
-          </a>
-        </div>
-
-        <p style="font-size: 12px; line-height: 1.6; color: #78716c; text-align: center; margin-bottom: 18px;">
-          You can unsubscribe at any time from your newsletter settings.
-        </p>
-
-        <p style="text-align: center; margin: 0 0 20px 0;">
-          <a href="${manageNewsletterLink}" style="font-size: 12px; color: #57534e; text-decoration: underline; letter-spacing: 0.04em; text-transform: uppercase;">Manage newsletter preferences</a>
-        </p>
-
-        <p style="font-size: 14px; color: #78716c; border-top: 1px solid #e7e5e4; padding-top: 20px; text-align: center;">
-          Always authentically African.
-        </p>
-      </div>
-    `;
+    // Luxury HTML Email Template
+    const { html: emailHtml, text: emailText } = generateWelcomeNewsletterEmail({
+      clientUrl: getClientApplicationUrl(),
+      manageNewsletterLink,
+      email: newSubscriber.email,
+    });
 
     try {
       await sendEmail({
         email: newSubscriber.email,
         subject: 'Welcome to the Beautify Africa Newsletter',
+        text: emailText,
         html: emailHtml,
       });
     } catch (emailError) {
@@ -178,27 +152,12 @@ const requestNewsletterUnsubscribe = async (req, res) => {
 
     const unsubscribeLink = buildNewsletterUnsubscribeLink(rawToken);
 
-    const emailText = [
-      'Unsubscribe from Beautify Africa newsletter',
-      '',
-      'We received a request to unsubscribe this email from our newsletter.',
-      'Use the link below to confirm the unsubscribe request:',
+    // Luxury HTML Email Template
+    const { html: emailHtml, text: emailText } = generateNewsletterUnsubscribeEmail({
       unsubscribeLink,
-      '',
-      'If you did not request this, you can ignore this email.',
-    ].join('\n');
-
-    const emailHtml = `
-      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#292524;max-width:620px;margin:0 auto;">
-        <h2 style="font-size:24px;margin-bottom:16px;">Confirm newsletter unsubscribe</h2>
-        <p style="margin-bottom:12px;">We received a request to remove this email from Beautify Africa newsletter updates.</p>
-        <p style="margin-bottom:18px;">Click the button below to confirm. This link expires shortly for your security.</p>
-        <p style="margin:24px 0;">
-          <a href="${unsubscribeLink}" style="display:inline-block;background:#1c1917;color:#ffffff;text-decoration:none;padding:12px 18px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">Confirm Unsubscribe</a>
-        </p>
-        <p style="font-size:13px;color:#57534e;word-break:break-all;">If the button does not work, copy and paste this link into your browser:<br />${unsubscribeLink}</p>
-      </div>
-    `;
+      clientUrl: getClientApplicationUrl(),
+      email: subscriber.email,
+    });
 
     try {
       await sendEmail({
