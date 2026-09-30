@@ -7,10 +7,10 @@ const InteractiveButton = ({ label, primary = false, to, onClick, onMouseEnter, 
   `;
 
   const variantStyles = primary
-    ? 'bg-stone-900 text-white hover:bg-black'
+    ? 'bg-stone-900 text-white hover:text-white'
     : 'bg-transparent text-stone-900 border border-stone-200 hover:border-stone-900';
 
-  const fillStyles = primary ? 'bg-stone-800' : 'bg-stone-50';
+  const fillStyles = primary ? 'bg-black' : 'bg-stone-50';
 
   const content = (
     <>

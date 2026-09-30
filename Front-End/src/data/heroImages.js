@@ -122,10 +122,10 @@ export const HERO_ROTATION_CONFIG = {
 
 /** All editorial copy shown in the hero section */
 export const HERO_COPY = {
-  collectionLabel: 'The Complete African Beauty Collection',
-  headlineParts: ['The', 'Edit.'],
+  collectionLabel: 'Where Beauty Transcends Boundaries',
+  headlineParts: ['Transcend', 'Boundaries.'],
   subtitle:
-    'Discover a complete beauty destination for every ritual, routine, and expression—from complexion-perfecting makeup and hardworking skincare to nourishing haircare, memorable fragrance, bath and body care, nail colour, grooming essentials, wellness favourites, and the tools that bring it all together.',
+    'Discover a thoughtfully curated collection where beauty is designed to elevate your everyday ritual into a personal expression of art and luxury. Designed for those who view self-care as an art form.',
   priceLabel: 'Beauty Finds From',
   priceValue: '$12.00',
   primaryCta: 'Shop the Full Collection',
