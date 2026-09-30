@@ -12,7 +12,7 @@ export const HERO_BACKGROUND = {
   src: heroBg,
   srcSet: `${heroBg} 1600w`,
   sizes: '100vw',
-  alt: 'A curated African beauty collection spanning skincare, makeup, haircare, fragrance, and self-care',
+  alt: 'A curated global beauty collection spanning skincare, makeup, haircare, fragrance, and self-care',
 };
 
 export const HERO_CARDS = [
