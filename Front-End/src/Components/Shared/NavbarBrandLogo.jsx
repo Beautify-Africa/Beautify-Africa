@@ -12,7 +12,7 @@ export default function NavbarBrandLogo({ brandName }) {
         <span className="relative inline-block">
           I
           <span
-            className="absolute -top-1.5 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-amber-400 shadow-[0_0_4px_1px_rgba(251,191,36,0.4)]"
+            className="absolute -top-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-amber-500"
             aria-hidden="true"
           />
         </span>
