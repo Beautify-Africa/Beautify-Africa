@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import { API_URL } from '../../services/apiConfig';
 
 export default function ImageUploader() {
@@ -8,7 +7,6 @@ export default function ImageUploader() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadUrl, setUploadUrl] = useState('');
   const [error, setError] = useState('');
-  const { token } = useAuth();
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -35,8 +33,7 @@ export default function ImageUploader() {
     try {
       const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
-        headers: {
-        },
+        credentials: 'include',
         body: formData,
       });
 
