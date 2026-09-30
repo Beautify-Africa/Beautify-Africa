@@ -50,6 +50,10 @@ const dialectOptions = {
               ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
               : process.env.PG_SSL_REJECT_UNAUTHORIZED !== 'false' ||
                 ['production', 'staging'].includes(process.env.NODE_ENV),
+          ca: process.env.DB_CA_CERT
+              ? process.env.DB_CA_CERT.replace(/\\n/g, '\n')
+              : undefined,
+
         },
       }),
 };
