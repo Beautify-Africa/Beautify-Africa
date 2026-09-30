@@ -130,7 +130,7 @@ const Navbar = ({ onOpenCart }) => {
               <button
                 type="button"
                 onClick={openAuthDialog}
-                className="hidden lg:block rounded-sm border border-stone-300 bg-stone-100 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-stone-900 hover:bg-stone-900 hover:text-white shadow-sm"
+                className="hidden lg:block rounded-sm border border-amber-400 bg-amber-400 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900"
               >
                 Sign In
               </button>
@@ -142,8 +142,7 @@ const Navbar = ({ onOpenCart }) => {
                 to="/shop"
                 onMouseEnter={prefetchShop.onMouseEnter}
                 onFocus={prefetchShop.onFocus}
-                className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
-              >
+                className="hidden lg:block px-6 py-2 border border-amber-400 bg-amber-400 text-stone-900 text-[10px] font-bold uppercase tracking-[0.2em] rounded-sm"              >
                 Shop Now
               </Link>
             )}

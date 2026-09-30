@@ -4,7 +4,8 @@
  */
 
 export const MARQUEE_TEXT =
-  'Intentional Beauty. Transparent Science. Unapologetic Luxury. Every drop is a promise kept to your skin. ';
+  'Beauty for Everyone. Skin, Colour, Hair & More. Shop Every Category. Discover Your Ritual. ';
+
 
 export const MARQUEE_CONFIG = {
   repeatCount: 4, // Times to repeat text in each block

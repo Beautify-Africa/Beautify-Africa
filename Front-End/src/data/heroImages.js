@@ -1,4 +1,4 @@
-import heroBg from '../assets/african_beauty_hero.jpg';
+﻿import heroBg from '../assets/african_beauty_hero.jpg';
 import premiumModel from '../assets/premium_african_model_1775937660048.opt.webp';
 import premiumModelSmall from '../assets/premium_african_model_1775937660048.sm.webp';
 import premiumSerum from '../assets/premium_serum_1775937605848.opt.webp';
@@ -12,7 +12,8 @@ export const HERO_BACKGROUND = {
   src: heroBg,
   srcSet: `${heroBg} 1600w`,
   sizes: '100vw',
-  alt: 'A curated African beauty collection spanning skincare, makeup, haircare, fragrance, and self-care',
+  alt: 'A complete beauty and cosmetics destination — makeup, skincare, haircare, fragrance, and self-care',
+
 };
 
 export const HERO_CARDS = [
@@ -48,7 +49,7 @@ export const HERO_CARDS = [
     sizes: '(max-width: 1023px) 48vw, 340px',
     alt: 'Beauty model showcasing a polished everyday makeup look',
     label: 'Everyday Beauty',
-    sublabel: 'Makeup, skin & hair',
+    sublabel: 'Makeup, skincare & haircare',
     badge: 'Full Edit',
     position: { bottom: '8%', right: '6%' },
     size: 'w-[340px] aspect-[4/5]',
@@ -122,10 +123,10 @@ export const HERO_ROTATION_CONFIG = {
 
 /** All editorial copy shown in the hero section */
 export const HERO_COPY = {
-  collectionLabel: 'The Complete African Beauty Collection',
-  headlineParts: ['The', 'Edit.'],
+  collectionLabel: 'Where Beauty Transcends Boundaries',
+  headlineParts: ['Transcend', 'Boundaries.'],
   subtitle:
-    'Discover a complete beauty destination for every ritual, routine, and expression—from complexion-perfecting makeup and hardworking skincare to nourishing haircare, memorable fragrance, bath and body care, nail colour, grooming essentials, wellness favourites, and the tools that bring it all together.',
+    'Discover a thoughtfully curated collection where beauty is designed to elevate your everyday ritual into a personal expression of art and luxury. Designed for those who view self-care as an art form.',
   priceLabel: 'Beauty Finds From',
   priceValue: '$12.00',
   primaryCta: 'Shop the Full Collection',
