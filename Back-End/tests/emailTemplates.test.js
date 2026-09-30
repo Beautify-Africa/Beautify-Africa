@@ -74,14 +74,14 @@ describe('Luxury Email Templates Service Suite', () => {
 
   describe('generateNewsletterUnsubscribeEmail', () => {
     test('generates secure unsubscribe email containing required token route', () => {
-      const unsubscribeLink = `${testClientUrl}/newsletter/unsubscribe?token=abcdef1234567890`;
+      const unsubscribeLink = `${testClientUrl}/newsletter/unsubscribe?token=mock-test-unsubscribe-token`;
       const { html, text } = generateNewsletterUnsubscribeEmail({
         unsubscribeLink,
         clientUrl: testClientUrl,
         email: 'user@example.com',
       });
 
-      expect(html).toContain('/newsletter/unsubscribe?token=abcdef1234567890');
+      expect(html).toContain('/newsletter/unsubscribe?token=mock-test-unsubscribe-token');
       expect(html).toContain('Confirm Unsubscribe');
       expect(html).toContain('user@example.com');
       expect(html).toContain('Confirm Newsletter Unsubscribe');
@@ -93,7 +93,7 @@ describe('Luxury Email Templates Service Suite', () => {
 
   describe('generatePasswordResetEmail', () => {
     test('generates luxury password reset email with token and security advice', () => {
-      const resetLink = `${testClientUrl}/reset-password?token=deadbeefcafe12345678`;
+      const resetLink = `${testClientUrl}/reset-password?token=mock-test-password-reset-token`;
       const { html, text } = generatePasswordResetEmail({
         resetLink,
         clientUrl: testClientUrl,
@@ -101,7 +101,7 @@ describe('Luxury Email Templates Service Suite', () => {
       });
 
       expect(html).toContain('Reset Your Password');
-      expect(html).toContain('token=deadbeefcafe12345678');
+      expect(html).toContain('token=mock-test-password-reset-token');
       expect(html).toContain('Reset My Password');
       expect(html).toContain('Security Advisory:');
       expect(html).toContain('1 hour');
