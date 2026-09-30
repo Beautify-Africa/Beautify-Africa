@@ -46,14 +46,16 @@ const dialectOptions = {
         ssl: {
           require: true,
           rejectUnauthorized:
-            process.env.NODE_ENV === 'test'
-              ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
-              : process.env.PG_SSL_REJECT_UNAUTHORIZED !== 'false' ||
-                ['production', 'staging'].includes(process.env.NODE_ENV),
+            process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false'
+              ? false
+              : process.env.DB_CA_CERT
+                ? true
+                : process.env.NODE_ENV === 'test'
+                  ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
+                  : false,
           ca: process.env.DB_CA_CERT
-              ? process.env.DB_CA_CERT.replace(/\\n/g, '\n')
-              : undefined,
-
+            ? process.env.DB_CA_CERT.replace(/\\n/g, '\n')
+            : undefined,
         },
       }),
 };
@@ -174,23 +176,23 @@ const connectDB = async () => {
     );
   }
 
-  // --- P0.2 Startup TLS Enforcement ---
-  // In production/staging, rejectUnauthorized must be true. If someone explicitly sets
-  // PG_SSL_REJECT_UNAUTHORIZED=false in a production environment, fail immediately with
-  // a clear message rather than silently accepting unverified certificates.
-  if (isProdLike && !isLocal && process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false') {
-    throw new Error(
-      '[SECURITY] PG_SSL_REJECT_UNAUTHORIZED=false is not permitted in production or staging environments. ' +
-      'Enable TLS certificate verification or use a local DATABASE_URL to bypass SSL for development.'
-    );
-  }
-
-  // Log TLS mode at startup (without printing the connection string)
+  // --- Startup TLS Mode Logging ---
   if (!isLocal) {
     const rejectUnauth =
-      env === 'test'
-        ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
-        : process.env.PG_SSL_REJECT_UNAUTHORIZED !== 'false' || isProdLike;
+      process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false'
+        ? false
+        : process.env.DB_CA_CERT
+          ? true
+          : env === 'test'
+            ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
+            : false;
+
+    if (isProdLike && !rejectUnauth && !process.env.DB_CA_CERT) {
+      console.warn(
+        '[DB] Warning: SSL certificate verification is relaxed for managed cloud database compatibility. SSL encryption remains active.'
+      );
+    }
+
     console.log(
       `[DB] TLS mode: SSL required=true, rejectUnauthorized=${rejectUnauth}, env=${env}`
     );
