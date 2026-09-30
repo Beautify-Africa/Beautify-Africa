@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beautify Luxury Email Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0c0a09;
+      color: #fafaf9;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(24, 24, 27, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      letter-spacing: 3px;
+      font-weight: 700;
+      color: #f59e0b;
+    }
+    .brand-sub {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #a8a29e;
+      border-left: 1px solid #44403c;
+      padding-left: 12px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: #1c1917;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid #292524;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: #a8a29e;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: #fafaf9;
+    }
+    .tab-btn.active {
+      background: #f59e0b;
+      color: #18181b;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+    }
+    .viewport-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1c1917;
+      padding: 4px 6px;
+      border-radius: 8px;
+      border: 1px solid #292524;
+    }
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: #78716c;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .view-btn.active {
+      background: #292524;
+      color: #fafaf9;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+      background: radial-gradient(circle at top, #1c1917 0%, #0c0a09 100%);
+    }
+    .frame-wrapper {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #ffffff;
+      width: 640px;
+      height: 840px;
+    }
+    .frame-wrapper.mobile {
+      width: 390px;
+      height: 740px;
+      border-radius: 36px;
+      border: 8px solid #292524;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .email-meta {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .email-meta h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      color: #fafaf9;
+      margin-bottom: 4px;
+    }
+    .email-meta p {
+      font-size: 13px;
+      color: #a8a29e;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-title">BEAUTIFY</div>
+      <div class="brand-sub">Luxury Email Suite Preview</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="loadEmail('welcome.html', 'Welcome to The Beautify Society', 'VIP Onboarding & 10% Welcome Code', this)">Welcome VIP</button>
+      <button class="tab-btn" onclick="loadEmail('password-reset.html', 'Password Reset Request', 'Secure Single-Use Authentication Link', this)">Password Reset</button>
+      <button class="tab-btn" onclick="loadEmail('unsubscribe.html', 'Newsletter Unsubscribe', 'Preference Management & Confirmation', this)">Unsubscribe</button>
+      <button class="tab-btn" onclick="loadEmail('low-stock.html', 'Executive Low Stock Alert', 'Automated Catalog Inventory Monitor', this)">Low Stock</button>
+      <button class="tab-btn" onclick="loadEmail('restock.html', 'Restock Verified', 'Storefront Supply Replenishment', this)">Restock</button>
+    </div>
+
+    <div class="viewport-toggle">
+      <button class="view-btn active" id="btn-desktop" onclick="setView('desktop')">Desktop</button>
+      <button class="view-btn" id="btn-mobile" onclick="setView('mobile')">Mobile</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="email-meta">
+      <h2 id="meta-title">Welcome to The Beautify Society</h2>
+      <p id="meta-desc">VIP Onboarding & 10% Welcome Code</p>
+    </div>
+
+    <div class="frame-wrapper" id="frameContainer">
+      <iframe id="emailFrame" src="welcome.html"></iframe>
+    </div>
+  </main>
+
+  <script>
+    function loadEmail(url, title, desc, btn) {
+      document.getElementById('emailFrame').src = url;
+      document.getElementById('meta-title').innerText = title;
+      document.getElementById('meta-desc').innerText = desc;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function setView(mode) {
+      const container = document.getElementById('frameContainer');
+      const deskBtn = document.getElementById('btn-desktop');
+      const mobBtn = document.getElementById('btn-mobile');
+      if (mode === 'mobile') {
+        container.classList.add('mobile');
+        mobBtn.classList.add('active');
+        deskBtn.classList.remove('active');
+      } else {
+        container.classList.remove('mobile');
+        deskBtn.classList.add('active');
+        mobBtn.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
