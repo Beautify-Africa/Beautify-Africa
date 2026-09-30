@@ -45,14 +45,7 @@ const dialectOptions = {
     : {
         ssl: {
           require: true,
-          rejectUnauthorized:
-            process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false'
-              ? false
-              : process.env.DB_CA_CERT
-                ? true
-                : process.env.NODE_ENV === 'test'
-                  ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
-                  : false,
+          rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true',
           ca: process.env.DB_CA_CERT
             ? process.env.DB_CA_CERT.replace(/\\n/g, '\n')
             : undefined,
@@ -178,16 +171,9 @@ const connectDB = async () => {
 
   // --- Startup TLS Mode Logging ---
   if (!isLocal) {
-    const rejectUnauth =
-      process.env.PG_SSL_REJECT_UNAUTHORIZED === 'false'
-        ? false
-        : process.env.DB_CA_CERT
-          ? true
-          : env === 'test'
-            ? process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
-            : false;
+    const rejectUnauth = process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true';
 
-    if (isProdLike && !rejectUnauth && !process.env.DB_CA_CERT) {
+    if (isProdLike && !rejectUnauth) {
       console.warn(
         '[DB] Warning: SSL certificate verification is relaxed for managed cloud database compatibility. SSL encryption remains active.'
       );
