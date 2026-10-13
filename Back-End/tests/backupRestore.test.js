@@ -1,6 +1,7 @@
 // tests/backupRestore.test.js
 const { backupDatabase } = require('../scripts/backupDatabase');
 const { restoreDatabase, verifyBackupIntegrity } = require('../scripts/restoreDatabase');
+const { sequelize } = require('../config/db');
 
 jest.setTimeout(30000);
 
@@ -65,8 +66,18 @@ describe('Database Backup & Tested Restore Process Suite', () => {
       sha256,
     };
 
-    const restoreResult = await restoreDatabase(validManifest, { skipTruncate: true });
-    expect(restoreResult.success).toBe(true);
-    expect(restoreResult.restoredCounts).toBeDefined();
+    const transactionSpy = jest
+      .spyOn(sequelize, 'transaction')
+      .mockImplementation(async (callback) => {
+        return await callback({});
+      });
+
+    try {
+      const restoreResult = await restoreDatabase(validManifest, { skipTruncate: true });
+      expect(restoreResult.success).toBe(true);
+      expect(restoreResult.restoredCounts).toBeDefined();
+    } finally {
+      transactionSpy.mockRestore();
+    }
   });
 });

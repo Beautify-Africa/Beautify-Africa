@@ -4,12 +4,12 @@ import FadeIn from '../Shared/FadeIn';
 import { buildResponsiveImageProps } from '../../utils/imageUtils';
 
 const reviewChipClass =
-  'items-center gap-3 rounded-full border border-white/70 bg-white/95 px-4 py-2 shadow-[0_18px_50px_rgba(41,37,36,0.18)] ring-1 ring-amber-900/5 backdrop-blur-xl transition-transform duration-300 hover:scale-105';
-const reviewAvatarClass = 'h-8 w-8 shrink-0 rounded-full border border-stone-100 object-cover';
+  'items-center gap-3 rounded-full border border-white/30 bg-white/10 px-4 py-2 shadow-[0_8px_32px_rgba(41,37,36,0.15)] ring-1 ring-white/10 backdrop-blur-md transition-transform duration-300 hover:scale-105 hover:bg-white/20';
+const reviewAvatarClass = 'h-8 w-8 shrink-0 rounded-full border border-white/40 object-cover';
 const reviewBodyClass = 'flex min-w-0 flex-col items-start leading-none';
-const reviewStarsClass = 'flex gap-0.5 text-amber-500';
+const reviewStarsClass = 'flex gap-0.5 text-amber-400';
 const reviewNameClass =
-  'mt-1 whitespace-nowrap text-[10px] font-bold tracking-normal text-stone-700';
+  'mt-1 whitespace-nowrap text-[10px] font-bold tracking-normal text-white drop-shadow-sm';
 
 /**
  * Scattered review chips: desktop (absolute) + mobile (horizontal scroll)

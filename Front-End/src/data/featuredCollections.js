@@ -4,8 +4,8 @@
  */
 
 export const FEATURED_CONTENT = {
-  heading: 'Current Obsession',
-  tagline: 'Selected Masterpieces for Modern Rituals',
+  heading: 'Current Obsessions',
+  tagline: 'Top Global Brands & Award-Winning Formulations',
 };
 
 export const FEATURED_COLLECTIONS = [
@@ -27,7 +27,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'Rouge Absolu',
         badge: 'Limited Edition',
         price: '$48.00',
-        desc: 'A scarlet masterpiece infused with diamond powder for a finish that captures light from every angle.',
+        desc: 'A scarlet masterpiece infused with diamond powder for a radiant, long-lasting finish that captures light from every angle.',
         image:
           'https://images.pexels.com/photos/2533266/pexels-photo-2533266.jpeg?auto=compress&cs=tinysrgb&w=1200',
       },
@@ -35,7 +35,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'Petal Stain No. 5',
         badge: 'Best Rated',
         price: '$38.00',
-        desc: 'A whispered wash of color that mimics the flushed glow of a post-facial complexion. Build-able and weightless.',
+        desc: 'A weightless wash of buildable color that gives lips and cheeks a natural, flushed radiance for all-day wear.',
         image:
           'https://images.pexels.com/photos/2536585/pexels-photo-2536585.jpeg?auto=compress&cs=tinysrgb&w=1200',
       },
@@ -51,7 +51,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'The Artistry Sculpt Collection',
         badge: 'Just Arrived',
         price: '$95.00',
-        desc: 'Precision tools featuring ultra-fine, 100% vegan synthetic bristles designed to mimic natural hair for superior blending.',
+        desc: 'Precision tools featuring ultra-fine, 100% vegan synthetic bristles designed for superior blending and seamless complexion application.',
         image:
           'https://images.pexels.com/photos/3321416/pexels-photo-3321416.jpeg?auto=compress&cs=tinysrgb&w=1200',
       },
@@ -59,7 +59,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'The Foundation Buff',
         badge: 'Artist Pick',
         price: '$45.00',
-        desc: 'A kabuki-style dense brush that polishes foundation into the skin for an airbrushed, poreless finish.',
+        desc: 'A kabuki-style dense brush that polishes liquid and cream foundations into the skin for an airbrushed, poreless finish.',
         image:
           'https://images.unsplash.com/photo-1596462502278-27bfdd403ea2?q=80&w=1200&auto=format&fit=crop',
       },
@@ -75,7 +75,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'The Clarity Corrector',
         badge: 'Latest Formulation',
         price: '$65.00',
-        desc: 'A targeted fluid that treats blemishes without compromising the skin barrier. 2% Encapsulated Salicylic Acid.',
+        desc: 'A targeted fluid that clears pores and smooths texture without stripping the barrier. 2% Encapsulated Salicylic Acid.',
         image:
           'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=1200&auto=format&fit=crop',
       },
@@ -83,7 +83,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'Luminous Oil Drops',
         badge: 'Viral Hit',
         price: '$72.00',
-        desc: 'Cold-pressed botanical oils suspended in a water-light matrix to deliver deep nourishment without greasiness.',
+        desc: 'Cold-pressed botanical oils suspended in a water-light matrix to deliver deep nourishment and a glass-skin glow under makeup.',
         image:
           'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1200&auto=format&fit=crop',
       },
@@ -91,7 +91,7 @@ export const FEATURED_COLLECTIONS = [
         productName: 'Night Renewal Ampoule',
         badge: 'Award Winner',
         price: '$88.00',
-        desc: 'Retinol reimagined. High-potency resurfacing with zero irritation, working overnight to reveal glass skin.',
+        desc: 'Retinol reimagined. High-potency resurfacing with zero irritation, working overnight to reveal firm, glowing skin.',
         image:
           'https://images.unsplash.com/photo-1627384113743-6bd5a479fffd?q=80&w=1200&auto=format&fit=crop',
       },

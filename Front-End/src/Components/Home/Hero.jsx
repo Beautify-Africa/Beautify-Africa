@@ -47,7 +47,7 @@ const RotatingWord = () => {
 
   return (
     <span
-      className="inline-block"
+      className="inline-block overflow-visible"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0) scale(1)' : 'translateY(-12px) scale(0.88)',
@@ -55,11 +55,12 @@ const RotatingWord = () => {
         letterSpacing: `${HERO_ROTATION_CONFIG.textLetterSpacingEm}em`,
         lineHeight: HERO_ROTATION_CONFIG.textLineHeight,
         paddingInline: `clamp(${HERO_ROTATION_CONFIG.textPaddingInlineMobileEm}em, 0.4vw, ${HERO_ROTATION_CONFIG.textPaddingInlineDesktopEm}em)`,
-        backgroundImage: 'linear-gradient(135deg, #78350f, #b45309, #d97706, #92400e)',
+        paddingBlock: '0.25em',
+        backgroundImage: 'linear-gradient(135deg, #fbbf24, #f59e0b, #d97706, #fbbf24)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
-        filter: visible ? 'drop-shadow(0 2px 12px rgba(180, 83, 9, 0.3))' : 'none',
+        filter: visible ? 'drop-shadow(0 2px 16px rgba(251, 191, 36, 0.5))' : 'none',
       }}
       aria-live="polite"
       aria-label={HERO_ROTATING_WORDS[index]}
@@ -97,7 +98,7 @@ const HeroSection = () => {
       <article className="relative w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-24 flex flex-col items-start pt-20 transition-all duration-500 z-30">
         <header>
           <FadeIn delay={0.3} direction="up" className="relative mb-10 max-w-6xl">
-            <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.85] text-stone-900 tracking-tighter relative z-20">
+            <h1 className="font-serif text-6xl sm:text-8xl md:text-9xl lg:text-[11rem] leading-[0.9] text-black tracking-tighter relative z-20">
               {HERO_COPY.headlineParts[0]}
               {/* Inline review chip anchored after the word 'The' */}
               {(() => {
@@ -112,7 +113,7 @@ const HeroSection = () => {
                   <FadeIn
                     key={`inline-${inlineReview.id}`}
                     delay={0.5}
-                    className="inline-flex items-center gap-3 ml-4 md:ml-6 -translate-y-1 md:-translate-y-2 align-middle font-sans not-italic tracking-normal bg-white/95 backdrop-blur-xl rounded-full px-4 py-2 shadow-[0_18px_50px_rgba(41,37,36,0.18)] ring-1 ring-amber-900/5 border border-white/70 hover:scale-105 transition-transform duration-300 cursor-default"
+                    className="inline-flex items-center gap-3 ml-4 md:ml-6 -translate-y-1 md:-translate-y-2 align-middle font-sans not-italic tracking-normal bg-white/10 backdrop-blur-md rounded-full px-4 py-2 shadow-[0_8px_32px_rgba(41,37,36,0.15)] ring-1 ring-white/10 border border-white/30 hover:scale-105 hover:bg-white/20 transition-transform duration-300 cursor-default"
                   >
                     <img
                       src={imageProps.src}
@@ -131,7 +132,7 @@ const HeroSection = () => {
                           <StarIcon key={i} className="w-2.5 h-2.5" filled={true} />
                         ))}
                       </div>
-                      <span className="text-[10px] font-bold text-stone-900 mt-1 tracking-wider uppercase">
+                      <span className="text-[10px] font-bold text-white mt-1 tracking-wider uppercase drop-shadow-sm">
                         {inlineReview.name}
                       </span>
                     </div>
@@ -139,7 +140,7 @@ const HeroSection = () => {
                 );
               })()}
               <br />
-              <span className="italic font-normal pl-4 md:pl-20 text-stone-800/90">
+              <span className="italic font-normal pl-4 md:pl-20 overflow-visible">
                 <RotatingWord />
               </span>{' '}
               <br />
@@ -155,8 +156,8 @@ const HeroSection = () => {
           </FadeIn>
         </header>
 
-        <FadeIn delay={0.6} direction="up" className="max-w-xl">
-          <p className="text-lg md:text-2xl text-stone-900 font-normal leading-relaxed mb-12 relative z-20">
+        <FadeIn delay={0.6} direction="up" className="max-w-3xl">
+          <p className="text-lg md:text-xl text-black font-normal leading-relaxed mb-12 relative z-20">
             {HERO_COPY.subtitle}
           </p>
 

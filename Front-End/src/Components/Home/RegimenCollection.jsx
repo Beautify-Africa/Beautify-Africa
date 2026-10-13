@@ -18,7 +18,7 @@ const CategoryCard = ({ category }) => {
             src={imageProps.src}
             srcSet={imageProps.srcSet}
             sizes={imageProps.sizes}
-            alt={`${category.title} skincare collection`}
+            alt={`${category.title} beauty collection`}
             className="w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-110 grayscale-[0.2] group-hover:grayscale-0"
             loading="lazy"
             decoding="async"

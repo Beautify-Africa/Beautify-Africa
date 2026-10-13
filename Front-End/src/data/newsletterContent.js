@@ -6,13 +6,13 @@
 import premiumSkincare from '../assets/premium_skincare_routine_1775937642617.opt.webp';
 
 export const NEWSLETTER_CONTENT = {
-  tagline: 'The Inner Circle',
+  tagline: 'Join the Beauty Club',
   heading: 'The Beautify Society',
   description:
-    'Join our private members list for early access to limited formulations, scientific journals, and archival releases.',
+    'Join our beauty community for VIP access to global brand drops, exclusive shade launches, and cosmetics flash sales.',
   submitLabel: 'Subscribe',
   placeholder: 'Email Address',
   disclaimer: 'Complimentary Shipping on First Order',
   image: premiumSkincare,
-  imageCaption: 'Est. 2024 • Paris',
+  imageCaption: 'Global Beauty • Est. 2024',
 };

@@ -5,7 +5,7 @@
 
 export const FOOTER_BRAND = {
   name: 'BEAUTIFY',
-  tagline: 'Masterpieces of elegance.',
+  tagline: 'World-Class Beauty & Luxury Cosmetics.',
   href: '/',
 };
 
@@ -19,8 +19,8 @@ export const SOCIAL_LINKS = [
 ];
 
 export const ROTATING_SOCIAL_SENTENCE = {
-  prefix: 'Born of the continent, find us glowing on',
-  suffix: '\u2014 where beauty is sacred.',
+  prefix: 'Celebrating beauty across every skin tone, find us glowing on',
+  suffix: '\u2014 where beauty has no boundaries.',
 };
 
 export const SOCIAL_ROTATION_CONFIG = {

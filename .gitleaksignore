@@ -1,0 +1,18 @@
+# Gitleaks ignore file for known legacy test mock keys in past git commits
+05ca1140a56381bbf68c21551610e7b0542eaa51:Back-End/tests/totpAuth.test.js:generic-api-key:40
+05ca1140a56381bbf68c21551610e7b0542eaa51:Back-End/tests/totpSecretCipher.test.js:generic-api-key:9
+ef202e4c5bbd1960ff9ded18fb88ddc42b30da22:Back-End/tests/securityHardening.test.js:generic-api-key:91
+1ef5251f7185597dbcee8edb3280db36ff2249d4:Back-End/.env.example:generic-api-key:33
+e02ca3fcf8ed0e86c26ef9298ae2bab9de3b0804:docker-compose.yml:generic-api-key:29
+# Mock test tokens in email templates
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Back-End/tests/emailTemplates.test.js:generic-api-key:77
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Back-End/tests/emailTemplates.test.js:generic-api-key:84
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/unsubscribe.html:generic-api-key:106
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/unsubscribe.html:generic-api-key:114
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/unsubscribe.html:generic-api-key:128
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/unsubscribe.html:generic-api-key:129
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/unsubscribe.html:generic-api-key:168
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/password-reset.html:generic-api-key:106
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/password-reset.html:generic-api-key:114
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/password-reset.html:generic-api-key:144
+209fcfcc80c4851f0889c6da7fe73e04a1a3c564:Front-End/public/emails/password-reset.html:generic-api-key:145

@@ -130,7 +130,7 @@ const Navbar = ({ onOpenCart }) => {
               <button
                 type="button"
                 onClick={openAuthDialog}
-                className="hidden lg:block rounded-sm border border-stone-300 bg-stone-100 px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 transition-colors duration-500 hover:border-stone-900 hover:bg-stone-900 hover:text-white shadow-sm"
+                className="hidden lg:block rounded-sm border border-amber-400 bg-[linear-gradient(135deg,#fbbf24,#f59e0b,#d97706,#fbbf24)] px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 shadow-sm"
               >
                 Sign In
               </button>
@@ -142,7 +142,7 @@ const Navbar = ({ onOpenCart }) => {
                 to="/shop"
                 onMouseEnter={prefetchShop.onMouseEnter}
                 onFocus={prefetchShop.onFocus}
-                className="hidden lg:block px-6 py-2 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-amber-900 transition-colors duration-500 rounded-sm"
+                className="hidden lg:block rounded-sm border border-amber-400 bg-[linear-gradient(135deg,#fbbf24,#f59e0b,#d97706,#fbbf24)] px-6 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 shadow-sm"
               >
                 Shop Now
               </Link>

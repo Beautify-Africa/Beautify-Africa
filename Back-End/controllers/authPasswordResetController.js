@@ -2,6 +2,7 @@
 const { Op } = require('sequelize');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
+const { generatePasswordResetEmail } = require('../services/emailTemplates');
 const {
   normalizeEmail,
   hashPasswordResetToken,
@@ -37,17 +38,13 @@ async function forgotPassword(req, res) {
     await user.save();
 
     const resetLink = buildPasswordResetLink(rawToken);
-    const emailText = [
-      'Reset your Beautify Africa password',
-      '',
-      'We received a request to reset your password.',
-      'Use the link below to set a new password:',
-      resetLink,
-      '',
-      'If you did not request this, you can ignore this email.',
-    ].join('\n');
 
-    const emailHtml = `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#292524;max-width:620px;margin:0 auto;"><h2 style="font-size:24px;margin-bottom:16px;">Reset your Beautify Africa password</h2><p style="margin-bottom:12px;">We received a request to reset your password.</p><p style="margin-bottom:18px;">Click the button below to set a new password. This link expires shortly for security reasons.</p><p style="margin:24px 0;"><a href="${resetLink}" style="display:inline-block;background:#1c1917;color:#ffffff;text-decoration:none;padding:12px 18px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">Reset Password</a></p><p style="font-size:13px;color:#57534e;word-break:break-all;">If the button does not work, copy and paste this link into your browser:<br />${resetLink}</p></div>`;
+    // Luxury HTML Email Template
+    const { html: emailHtml, text: emailText } = generatePasswordResetEmail({
+      resetLink,
+      clientUrl: process.env.PASSWORD_RESET_URL_BASE || process.env.CLIENT_URL,
+      email: user.email,
+    });
 
     try {
       await sendEmail({

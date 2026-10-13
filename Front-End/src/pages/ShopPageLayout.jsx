@@ -10,16 +10,16 @@ export default function ShopPageLayout({ onOpenCart }) {
   return (
     <>
       <Seo
-        title="Shop | Beautify Africa - Premium African Beauty Products"
-        description="Browse our collection of luxurious African-inspired skincare, makeup, and beauty essentials. Shop ethically sourced ingredients celebrating African beauty traditions."
+        title="Shop | Beautify Africa - Premium Global Beauty & Cosmetics"
+        description="Browse our curated collection of luxury skincare, high-pigment makeup, and beauty essentials from top global brands for every skin tone."
         path="/shop"
-        imageAlt="Beautify Africa - Shop Premium African Beauty Products"
+        imageAlt="Beautify Africa - Shop Premium Global Beauty & Cosmetics"
         structuredData={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Shop African Beauty Products',
+          name: 'Shop Premium Beauty & Cosmetics',
           description:
-            'Browse our collection of luxurious African-inspired skincare, makeup, and beauty essentials',
+            'Browse our collection of world-class makeup, clinical skincare, and luxury beauty essentials for every skin tone',
           url: 'https://beautify-africa.com/shop',
           provider: {
             '@type': 'Organization',

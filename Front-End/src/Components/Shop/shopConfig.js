@@ -16,8 +16,8 @@ export const SORT_OPTIONS = [
 export const SHOP_CONTENT = {
   heading: 'The Collection',
   description:
-    'Curated formulations for the discerning individual. Explore our complete range of scientific skincare and artisanal makeup.',
-  searchPlaceholder: 'Search products, brands, categories...',
+    'Top global brands, vibrant cosmetics, and high-performance skincare curated for every skin tone, type, and texture.',
+  searchPlaceholder: 'Search products, brands, makeup, shades...',
   noResultsMessage: 'No products match your criteria.',
   clearFiltersLabel: 'Clear Filters',
 };

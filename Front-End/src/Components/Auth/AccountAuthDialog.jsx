@@ -84,6 +84,7 @@ export default function AccountAuthDialog({ isOpen, onClose }) {
 
   return (
     <div
+      id="account-auth-dialog"
       className="fixed inset-0 z-[180] flex items-center justify-center px-4 py-8"
       role="dialog"
       aria-modal="true"

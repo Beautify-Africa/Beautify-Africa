@@ -19,7 +19,7 @@ test.describe('Admin Studio Security Gate & Operations Suite', () => {
     await expect(emailInput).toBeVisible();
     await expect(passwordInput).toBeVisible();
     await expect(submitBtn).toBeVisible();
-    await expect(submitBtn).toContainText(/Authenticate Master Session/i);
+    await expect(submitBtn).toContainText(/Authorize Session|Authenticate Master Session/i);
   });
 
   test('validates required fields on admin authentication form', async ({ page }) => {

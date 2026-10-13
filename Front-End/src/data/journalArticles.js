@@ -6,42 +6,42 @@
 export const JOURNAL_CONTENT = {
   tagline: 'Editorial',
   heading: 'The Journal',
-  description: 'Expert insights, botanical science, and the art of application.',
+  description: 'Expert beauty tutorials, shade-matching guides, and cosmetics science.',
 };
 
 export const JOURNAL_ARTICLES = {
   featured: {
-    id: 'cold-press-extraction',
-    category: 'Ingredient Focus',
+    id: 'shade-matching-guide',
+    category: 'Complexion & Shades',
     categoryColor: 'text-white',
-    title: 'The Science of Cold-Press Extraction',
+    title: 'Finding Your Undertone / The Inclusive Shade Guide',
     excerpt:
-      'Why heat destroys potency. We explore how our proprietary cold-press method preserves active antioxidants in our Wild Orchid serum.',
+      'From cool olive to deep rich warm undertones, our beauty experts share how to identify your true complexion match across global beauty brands.',
     image:
       'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=1200&auto=format&fit=crop',
-    cta: 'Read Full Study',
+    cta: 'Read Full Guide',
   },
   secondary: [
     {
-      id: 'texture-layering',
-      category: 'Rituals & Routine',
+      id: 'long-wear-makeup',
+      category: 'Makeup Artistry',
       categoryColor: 'text-amber-200',
       hoverColor: 'hover:text-amber-200',
-      title: 'The Art of Layering Textures',
+      title: 'Prep to Set: 16-Hour Transfer-Proof Makeup',
       excerpt:
-        'A definitive guide to the correct order of application for maximum absorption and flawless finish.',
+        'A masterclass on skin prep, primer pairing, and powder baking for vibrant, crease-free wear in any climate.',
       image:
         'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?q=80&w=1200&auto=format&fit=crop',
-      cta: 'View the Guide',
+      cta: 'View Routine',
     },
     {
-      id: 'moisture-barrier',
-      category: 'Skin Biology',
+      id: 'cruelty-free-science',
+      category: 'Clean Beauty & Ethics',
       categoryColor: 'text-teal-200',
       hoverColor: 'hover:text-teal-200',
-      title: 'Understanding the Barrier',
+      title: '100% Cruelty-Free: Modern High-Impact Glamour',
       excerpt:
-        'We break down what the acid mantle is and the specific lipids needed to rebuild it.',
+        'Discover how top global beauty laboratories engineer vibrant pigments and barrier-restoring skincare with zero animal testing.',
       image:
         'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1200&auto=format&fit=crop',
       cta: 'Learn More',
