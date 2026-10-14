@@ -173,6 +173,20 @@ describe('Security Hardening & Session Safeguards', () => {
       expect(content).toContain('ENABLE ROW LEVEL SECURITY');
     });
 
+    it('enforces RLS explicitly on public.sequelize_meta for Supabase/PostgREST exposure', () => {
+      const fs = require('fs');
+      const path = require('path');
+      const migrationPath = path.join(
+        __dirname,
+        '../migrations/20261014000002-enforce-sequelize-meta-rls.js'
+      );
+      expect(fs.existsSync(migrationPath)).toBe(true);
+
+      const content = fs.readFileSync(migrationPath, 'utf8');
+      expect(content).toContain('public.sequelize_meta');
+      expect(content).toContain('ENABLE ROW LEVEL SECURITY');
+    });
+
     it('covers all 15 application tables with Row Level Security in migration', () => {
       const fs = require('fs');
       const path = require('path');
