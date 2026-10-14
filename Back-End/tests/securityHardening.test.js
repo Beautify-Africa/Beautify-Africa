@@ -159,6 +159,20 @@ describe('Security Hardening & Session Safeguards', () => {
   });
 
   describe('Database Security & Least-Privileged Access', () => {
+    it('enforces RLS explicitly on public.webhook_events for Supabase/PostgREST exposure', () => {
+      const fs = require('fs');
+      const path = require('path');
+      const migrationPath = path.join(
+        __dirname,
+        '../migrations/20261014000001-enforce-webhook-events-rls.js'
+      );
+      expect(fs.existsSync(migrationPath)).toBe(true);
+
+      const content = fs.readFileSync(migrationPath, 'utf8');
+      expect(content).toContain('public.webhook_events');
+      expect(content).toContain('ENABLE ROW LEVEL SECURITY');
+    });
+
     it('covers all 15 application tables with Row Level Security in migration', () => {
       const fs = require('fs');
       const path = require('path');
