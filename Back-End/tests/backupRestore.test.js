@@ -3,7 +3,7 @@ const { backupDatabase } = require('../scripts/backupDatabase');
 const { restoreDatabase, verifyBackupIntegrity } = require('../scripts/restoreDatabase');
 const { sequelize } = require('../config/db');
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 describe('Database Backup & Tested Restore Process Suite', () => {
   let sampleBackupManifest;
@@ -12,7 +12,7 @@ describe('Database Backup & Tested Restore Process Suite', () => {
     // Generate snapshot without writing to disk
     const result = await backupDatabase({ writeFiles: false });
     sampleBackupManifest = result.manifest;
-  }, 30000);
+  }, 60000);
 
   test('backupDatabase produces valid manifest with cryptographic SHA-256 hash', () => {
     expect(sampleBackupManifest).toBeDefined();

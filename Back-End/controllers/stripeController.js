@@ -165,7 +165,6 @@ const handleStripeWebhook = async (req, res) => {
       try {
         await sequelize.transaction(async (t) => {
           const order = await Order.findByPk(orderId, {
-            include: [{ model: OrderItem, as: 'orderItems' }],
             transaction: t,
             lock: t.LOCK.UPDATE,
           });
@@ -173,6 +172,11 @@ const handleStripeWebhook = async (req, res) => {
           if (!order) {
             throw new Error('Order not found for Stripe payment');
           }
+
+          order.orderItems = await OrderItem.findAll({
+            where: { orderId },
+            transaction: t,
+          });
 
           paymentGatewayService.validatePaymentBinding({
             order,

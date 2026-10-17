@@ -23,16 +23,26 @@ async function adjustStock(
   const lock = transaction ? transaction.LOCK.UPDATE : undefined;
 
   const product = await Product.findByPk(productId, {
-    include: [{ model: ProductVariant, as: 'variants' }],
     transaction,
     lock,
+    ...(lock ? {} : { include: ['variants'] }),
   });
   if (!product) throw new Error('Product not found');
 
   let stockBefore, stockAfter, updateTarget;
 
   if (variantId && UUID_REGEX.test(String(variantId))) {
-    const variant = (product.variants || []).find((v) => v.id === variantId);
+    let variant = null;
+    if (Array.isArray(product.variants)) {
+      variant = product.variants.find((v) => String(v.id) === String(variantId));
+    }
+    if (!variant) {
+      variant = await ProductVariant.findOne({
+        where: { id: variantId, productId },
+        transaction,
+        lock,
+      });
+    }
     if (!variant) throw new Error('Variant not found');
 
     stockBefore = variant.stockQuantity;
