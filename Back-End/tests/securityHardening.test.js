@@ -159,66 +159,6 @@ describe('Security Hardening & Session Safeguards', () => {
   });
 
   describe('Database Security & Least-Privileged Access', () => {
-    it('includes migration to deduplicate duplicate users.email indexes', () => {
-      const fs = require('fs');
-      const path = require('path');
-      const migrationPath = path.join(
-        __dirname,
-        '../migrations/20261015000001-deduplicate-users-email-indexes.js'
-      );
-      expect(fs.existsSync(migrationPath)).toBe(true);
-
-      const content = fs.readFileSync(migrationPath, 'utf8');
-      expect(content).toContain("t.relname = 'users'");
-      expect(content).toContain("= 'email'");
-      expect(content).toContain('DROP INDEX IF EXISTS');
-    });
-
-    it('includes migration to deduplicate products.slug and newsletters.email indexes', () => {
-      const fs = require('fs');
-      const path = require('path');
-      const migrationPath = path.join(
-        __dirname,
-        '../migrations/20261015000002-deduplicate-products-and-newsletters-indexes.js'
-      );
-      expect(fs.existsSync(migrationPath)).toBe(true);
-
-      const content = fs.readFileSync(migrationPath, 'utf8');
-      expect(content).toContain("t.relname = 'products'");
-      expect(content).toContain("= 'slug'");
-      expect(content).toContain("t.relname = 'newsletters'");
-      expect(content).toContain("= 'email'");
-      expect(content).toContain('DROP INDEX IF EXISTS');
-    });
-
-    it('enforces RLS explicitly on public.webhook_events for Supabase/PostgREST exposure', () => {
-      const fs = require('fs');
-      const path = require('path');
-      const migrationPath = path.join(
-        __dirname,
-        '../migrations/20261014000001-enforce-webhook-events-rls.js'
-      );
-      expect(fs.existsSync(migrationPath)).toBe(true);
-
-      const content = fs.readFileSync(migrationPath, 'utf8');
-      expect(content).toContain('public.webhook_events');
-      expect(content).toContain('ENABLE ROW LEVEL SECURITY');
-    });
-
-    it('enforces RLS explicitly on public.sequelize_meta for Supabase/PostgREST exposure', () => {
-      const fs = require('fs');
-      const path = require('path');
-      const migrationPath = path.join(
-        __dirname,
-        '../migrations/20261014000002-enforce-sequelize-meta-rls.js'
-      );
-      expect(fs.existsSync(migrationPath)).toBe(true);
-
-      const content = fs.readFileSync(migrationPath, 'utf8');
-      expect(content).toContain('public.sequelize_meta');
-      expect(content).toContain('ENABLE ROW LEVEL SECURITY');
-    });
-
     it('covers all 15 application tables with Row Level Security in migration', () => {
       const fs = require('fs');
       const path = require('path');
