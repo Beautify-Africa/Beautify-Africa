@@ -34,9 +34,17 @@ const cancelOrder = async (req, res) => {
 
     await sequelize.transaction(async (t) => {
       const lockedOrder = await Order.findByPk(id, {
-        include: [{ model: OrderItem, as: 'orderItems' }],
         transaction: t,
         lock: t.LOCK.UPDATE,
+      });
+
+      if (!lockedOrder) {
+        throw new Error('Order not found');
+      }
+
+      lockedOrder.orderItems = await OrderItem.findAll({
+        where: { orderId: id },
+        transaction: t,
       });
 
       if (lockedOrder.isPaid || lockedOrder.paymentMethod !== 'Stripe') {

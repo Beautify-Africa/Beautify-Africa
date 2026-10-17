@@ -33,7 +33,9 @@ const sendEmail = async (options) => {
     }
   );
 
-  await job.waitUntilFinished(queueEvents, 30000);
+  if (queueEvents && typeof job.waitUntilFinished === 'function') {
+    await job.waitUntilFinished(queueEvents, 30000);
+  }
 
   console.log(`[API] Successfully queued email task! Express can now resume immediately.`);
 };
