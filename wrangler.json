@@ -1,5 +1,4 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "beautify-africa",
   "compatibility_date": "2024-09-23",
   "build": {
@@ -7,7 +6,6 @@
   },
   "assets": {
     "directory": "./Front-End/dist",
-    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   }
 }
